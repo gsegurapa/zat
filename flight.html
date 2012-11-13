@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Flightstats Active Flight Picker</title>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.js"></script>
+<style>
+	body {
+	  font-family: Tahoma, Geneva, sans-serif;
+	  font-size: 1em;
+	}
+</style>
+</head>
+<body>
+<div id="top">
+Departing airport:
+<input id="aircode" type="text" size="4" />
+<input id="lookup" type="button" value="Lookup" />
+</div>
+<div id="out">
+<table id="flights">
+</table>
+</div>
+<script type="text/javascript">
+(function($){
+	var airportCode = 'PDX',
+			appId = 'ebc6552f',
+			appKey = 'NACIS';
+
+	$('#aircode').val(airportCode).select();
+
+	$('#lookup').on('click', lookup);
+	$('#aircode').on('keydown', lookup);
+
+	function lookup(e) {
+		if (e.type === 'keydown' && e.keyCode !== 13) { return; }
+		airportCode = $('#aircode').val().toUpperCase();
+		$.ajax({  // airport tracks departures
+      url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
+      data: { appId: appId, appKey: appKey, maxPositions: 2, includeFlightPlan: true },
+      dataType: 'jsonp',
+      success: getDepartures
+    });
+	}
+
+	function getDepartures(data, status, xhr) {
+		var $flights = $('#flights');
+		$flights.empty();
+		if (!data || data.error) {
+			$flights.text('AJAX error: '+data.error.errorMessage)
+			return;
+		}
+		$flights.append('<tr><td>ID</td><td>FLIGHT</td><td>TO</td><td>LEAVES</td></tr>');
+		$.each(data.flightTracks, function(index, val) {
+			$flights.append('<tr><td><a href="index.html?id='+val.flightId+'">'+val.flightId+'</a></td><td>'+
+				val.carrierFsCode+'-'+val.flightNumber+'</td><td>'+val.arrivalAirportFsCode+
+				'</td><td>'+val.departureDate.dateLocal.slice(0,16)+'</td></tr>');
+		});
+	}
+}(jQuery));
+</script>
+</body>
+</html>

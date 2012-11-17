@@ -92,7 +92,7 @@
 
 	$(document).ready(function() {
 
-		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane;
+		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane, plan, path;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
@@ -109,7 +109,7 @@
 		var flightIcon = L.divIcon({ // airplane icon (orange)
 				html: '<img class="airplaneicon" src="http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/airplane/shadow-orange.png" />',
 				iconSize: [50, 50],
-				iconAnchor: [25, 5],
+				iconAnchor: [25, 25],
 				className: ''
 		});
 
@@ -117,7 +117,7 @@
 
 			$.ajax({  // Flight track by flight ID
 	        url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
-	        data: { appId: appId, appKey: appKey, maxPositions: 2, includeFlightPlan: true },
+	        data: { appId: appId, appKey: appKey, maxPositions: 100, includeFlightPlan: true },
 	        dataType: 'jsonp',
 	        success: getFlight
 	      });
@@ -138,6 +138,8 @@
 					alert('AJAX error: '+data.error.errorMessage);
 					return;
 				}
+
+				console.log(data);
 
 				var flight = data.flightTrack;
 				var pos = flight.positions[0];
@@ -163,7 +165,7 @@
 							L.latLng(arra.latitude, arra.longitude),
 							L.latLng(pos.lat,pos.lon)]).pad(0.05);
 					map.fitBounds(flightBounds);
-					airplane = L.marker([+pos.lat, +pos.lon], { icon: flightIcon }).addTo(map).rotate(+flight.heading).
+					airplane = L.marker([+pos.lat, +pos.lon], { icon: flightIcon, zIndexOffset: 1000 }).addTo(map).rotate(+flight.heading).
 							bindPopup('<strong>'+airlines[flight.carrierFsCode].name+' #'+flight.flightNumber+
 								'</strong><br />Route: '+departureAirport+' to '+arrivalAirport+
 								'<br />Lat/Lng: '+(+pos.lat).toFixed(2)+'/'+(+pos.lon).toFixed(2)+
@@ -171,6 +173,18 @@
 								'<br />Speed: '+pos.speedMph+' mph'+
 								'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
 								'<br />Equipment: '+flight.equipment);
+					var ll = [];
+					var p = flight.waypoints;
+					for (var i = 0; i < p.length; i++) {
+						ll.push([p[i].lat, p[i].lon]);
+					}
+					plan = L.polyline(ll, { color: '#3dd', dashArray: '5, 6'}).addTo(map);
+					ll = [];
+					p = flight.positions;
+					for (i = 0; i < p.length; i++) {
+						ll.push([p[i].lat, p[i].lon]);
+					}
+					path = L.polyline(ll, { color: '#088'}).addTo(map);
 				}
 			} // end getFlight
 		} // end mainloop

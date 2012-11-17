@@ -92,7 +92,7 @@
 
 	$(document).ready(function() {
 
-		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane, plan, path;
+		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane, plan, path, positions;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
@@ -173,18 +173,22 @@
 								'<br />Speed: '+pos.speedMph+' mph'+
 								'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
 								'<br />Equipment: '+flight.equipment);
-					var ll = [];
+					positions = [];
 					var p = flight.waypoints;
 					for (var i = 0; i < p.length; i++) {
-						ll.push([p[i].lat, p[i].lon]);
+						positions.push([p[i].lat, p[i].lon]);
 					}
-					plan = L.polyline(ll, { color: '#3dd', dashArray: '5, 6'}).addTo(map);
-					ll = [];
+					plan = L.polyline(positions, { color: '#3dd', weight: 7, dashArray: '5, 8'}).addTo(map);
+					layercontrol.addOverlay(plan, 'flight plan');
+					positions = [];
 					p = flight.positions;
 					for (i = 0; i < p.length; i++) {
-						ll.push([p[i].lat, p[i].lon]);
+						positions.push([p[i].lat, p[i].lon]);
 					}
-					path = L.polyline(ll, { color: '#088'}).addTo(map);
+					path = L.polyline(positions, { color: '#088', opacity: 0.8, weight: 2 }).addTo(map);
+					layercontrol.addOverlay(path, 'flight path');
+				} else {
+					// path.addLatLng
 				}
 			} // end getFlight
 		} // end mainloop

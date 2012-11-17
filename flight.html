@@ -14,7 +14,7 @@
 <body>
 <div id="top">
 Departing airport:
-<input id="aircode" type="text" size="4" />
+<input id="aircode" type="text" size="4" value="PDX" />
 <input id="lookup" type="button" value="Lookup" />
 </div>
 <div id="out">
@@ -27,7 +27,7 @@ Departing airport:
 			appId = 'ebc6552f',
 			appKey = 'NACIS';
 
-	$('#aircode').val(airportCode).select();
+	$('#aircode').select();
 
 	$('#lookup').on('click', lookup);
 	$('#aircode').on('keydown', lookup);

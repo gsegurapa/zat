@@ -6,6 +6,7 @@
 	    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.ie.css" />
 	<![endif]-->
   <script src="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.js"></script>
+  <script src="leaflet.label.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.js"></script>
 
   <script type="text/javascript" src="fliack.js"></script>
@@ -19,6 +20,12 @@
 			width: 50px;
 			height: 50px;
 		}
+		span.labelhead {
+			font-size: 1.25em;
+			line-height: 1.4em;
+			font-weight: bold;
+			color: black;
+		}
 		div.leaflet-control-attribution, a.attribution {
 			margin: 0;
 			padding: 0 3px;
@@ -28,6 +35,38 @@
 			text-decoration: none;
 			background-color: rgb(256, 256, 256);
 			background-color: rgba(256, 256, 256, 0.5);
+		}
+		.leaflet-label {
+			background: rgb(235, 235, 235);
+			background: rgba(235, 235, 235, 0.80);
+			background-clip: padding-box;
+			border-color: #777;
+			border-color: rgba(0,0,0,0.3);
+			border-radius: 6px;
+			border-style: solid;
+			border-width: 2px;
+			color: #111;
+			display: block;
+			font: 12px/17px "Helvetica Neue", Arial, Helvetica, sans-serif;
+			font-weight: bold;
+			padding: 1px 6px;
+			position: absolute;
+			-webkit-user-select: none;
+			   -moz-user-select: none;
+			    -ms-user-select: none;
+			        user-select: none;
+			white-space: nowrap;
+			z-index: 6;
+		}
+		.leaflet-label:before {
+			border-right: 6px solid black;
+			border-right-color: inherit;
+			border-top: 6px solid transparent;
+			border-bottom: 6px solid transparent;
+			content: "";
+			position: absolute;
+			top: 5px;
+			left: -8px;
 		}
 	</style>
 </head>

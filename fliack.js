@@ -4,6 +4,8 @@
 
 	// process URL parameters
 	var flightID, // flightstats flight id
+			airline,
+			flightnum,
 			timeFormat=12, // 12 or 24
 			units='metric', // metric or US
 			mapType = 'street', // name of map
@@ -19,9 +21,14 @@
     if (params.units) { units = params.units; }
     if (params.mapType) { mapType = params.mapType; }
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
+    if (params.airline) { airline = params.airline; }
+    if (params.flight) { flightnum = params.flight; }
+    
 	}
 
 	getParams(window.location.href);
+
+	if (flightID === undefined) { window.location = "flight.html"; }
 
 	var appId = 'defc5e51',
 			appKey = '49c2d9cae10585f227dec686b3d22cb7';
@@ -92,7 +99,7 @@
 
 	$(document).ready(function() {
 
-		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane, plan, path, positions;
+		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane, plan, path, positions, wrap;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
@@ -114,13 +121,32 @@
 		});
 
 		function mainloop() {
+			window.handleResponse = function(data) { // results from Chris' API
+				if (console && console.log) console.log('mobile API: ',data);
+				p = data.PositionalUpdate;
+				if (console && console.log) console.log('mobile API length: '+p.length,
+							'actual start: ('+(+p[0].latitude).toFixed(4)+','+(+p[0].longitude).toFixed(4)+')');
+				positions = Array(p.length);
+				for (i = 0; i < p.length; i++) {
+						lon = p[i].longitude;
+						positions[i] = L.latLng(p[i].latitude, lon>90 ? lon-360:lon, true);
+					}
+					var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).addTo(map);
+					layercontrol.addOverlay(path, 'mobile API path');
+			} // end handleResponse
 
 			$.ajax({  // Flight track by flight ID
 	        url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
-	        data: { appId: appId, appKey: appKey, maxPositions: 100, includeFlightPlan: true },
+	        data: { appId: appId, appKey: appKey, includeFlightPlan: true },
 	        dataType: 'jsonp',
 	        success: getFlight
 	      });
+
+			var url = 'http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+flightID+'&airlineCode='+airline+'&flightNumber='+
+					flightnum+'&version=1.0&key=49e3481552e7c4c9%253A-5b147615%253A12ee3ed13b5%253A-5f90&responseType=jsonp';
+			var script = document.createElement('script');
+			script.setAttribute('src', url);
+			document.getElementsByTagName('head')[0].appendChild(script); // load the script
 
 			function getAppendix(data) { // read in data from appendix and convert to dictionary
 	      ret = {};
@@ -134,12 +160,13 @@
 	    }
 
 			function getFlight(data, status, xhr) {
+				var lon;
 				if (!data || data.error) {
 					alert('AJAX error: '+data.error.errorMessage);
 					return;
 				}
 
-				console.log(data);
+				if (console && console.log) console.log('3scale API: ',data);
 
 				var flight = data.flightTrack;
 				var pos = flight.positions[0];
@@ -149,13 +176,17 @@
 					airlines = getAppendix(data.appendix.airlines);
 					departureAirport = flight.departureAirportFsCode;
 					var depa = airports[departureAirport];
+					arrivalAirport = flight.arrivalAirportFsCode;
+					var arra = airports[arrivalAirport];
+					wrap = Math.abs(depa.longitude - arra.longitude) > 180;
+					// console.log(wrap);
+
 					L.marker([depa.latitude, depa.longitude], { icon: airportIcon }).addTo(map).
 							bindPopup('<strong>'+departureAirport+'</strong><br />'+depa.name+
 								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode); // +
 								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString()));
-					arrivalAirport = flight.arrivalAirportFsCode;
-					var arra = airports[arrivalAirport];
-					L.marker([arra.latitude, arra.longitude], { icon: airportIcon }).addTo(map).
+					lon = +arra.longitude;
+					L.marker(L.latLng(arra.latitude, arra.longitude - (lon>90?360:0), true), { icon: airportIcon }).addTo(map).
 							bindPopup('<strong>'+arrivalAirport+'</strong><br />'+arra.name+
 								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode); // +
 								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString()));							
@@ -165,7 +196,8 @@
 							L.latLng(arra.latitude, arra.longitude),
 							L.latLng(pos.lat,pos.lon)]).pad(0.05);
 					map.fitBounds(flightBounds);
-					airplane = L.marker([+pos.lat, +pos.lon], { icon: flightIcon, zIndexOffset: 1000 }).addTo(map).rotate(+flight.heading).
+					lon = +pos.lon;
+					airplane = L.marker(L.latLng(+pos.lat, lon>0?lon-360:lon, true), { icon: flightIcon, zIndexOffset: 1000 }).addTo(map).rotate(+flight.heading).
 							bindPopup('<strong>'+airlines[flight.carrierFsCode].name+' #'+flight.flightNumber+
 								'</strong><br />Route: '+departureAirport+' to '+arrivalAirport+
 								'<br />Lat/Lng: '+(+pos.lat).toFixed(2)+'/'+(+pos.lon).toFixed(2)+
@@ -173,17 +205,24 @@
 								'<br />Speed: '+pos.speedMph+' mph'+
 								'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
 								'<br />Equipment: '+flight.equipment);
-					positions = [];
 					var p = flight.waypoints;
+					positions = Array(p.length);
+					// if (console && console.log) console.log('plan length: '+p.length,
+					// 		'first plan point: ('+p[0].lat.toFixed(4)+','+p[0].lon.toFixed(4)+')'
+					// 		,'dep airport: ('+depa.latitude.toFixed(4)+','+depa.longitude.toFixed(4)+')');
 					for (var i = 0; i < p.length; i++) {
-						positions.push([p[i].lat, p[i].lon]);
+						lon = p[i].lon;
+						positions[i] = L.latLng(p[i].lat, lon>90 ? lon-360:lon, true);
 					}
-					plan = L.polyline(positions, { color: '#3dd', weight: 7, dashArray: '5, 8'}).addTo(map);
+					plan = L.polyline(positions, { color: '#3dd', weight: 7, dashArray: '5, 8'}); //.addTo(map);
 					layercontrol.addOverlay(plan, 'flight plan');
-					positions = [];
 					p = flight.positions;
+					positions = Array(p.length);
+					if (console && console.log) console.log('3scale length: '+p.length,
+							'actual start: ('+p[p.length-1].lat.toFixed(4)+','+p[p.length-1].lon.toFixed(4)+')');
 					for (i = 0; i < p.length; i++) {
-						positions.push([p[i].lat, p[i].lon]);
+						lon = p[i].lon;
+						positions[i] = L.latLng(p[i].lat, lon>90 ? lon-360:lon, true);
 					}
 					path = L.polyline(positions, { color: '#088', opacity: 0.8, weight: 2 }).addTo(map);
 					layercontrol.addOverlay(path, 'flight path');

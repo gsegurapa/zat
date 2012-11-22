@@ -52,9 +52,13 @@ Departing airport:
 		}
 		$flights.append('<tr><td>ID</td><td>FLIGHT</td><td>TO</td><td>LEAVES</td></tr>');
 		$.each(data.flightTracks, function(index, val) {
-			$flights.append('<tr><td><a href="index.html?id='+val.flightId+'">'+val.flightId+'</a></td><td>'+
+			$flights.append('<tr><td><a href="index.html?id='+val.flightId+
+				'&airline='+val.carrierFsCode+'&flight='+val.flightNumber+'">'+val.flightId+'</a></td><td>'+
 				val.carrierFsCode+'-'+val.flightNumber+'</td><td>'+val.arrivalAirportFsCode+
-				'</td><td>'+val.departureDate.dateLocal.slice(0,16)+'</td></tr>');
+				'</td><td>'+val.departureDate.dateLocal.slice(0,16)+
+				'</td><td><a href="http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+
+				val.flightId+'&airlineCode='+val.carrierFsCode+'&flightNumber='+val.flightNumber+
+				'&version=1.0&key=49e3481552e7c4c9%253A-5b147615%253A12ee3ed13b5%253A-5f90&responseType=jsonp" target="_blank">chris data</a></td></tr>');
 		});
 	}
 }(jQuery));

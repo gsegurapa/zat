@@ -263,7 +263,6 @@
 					}
 					multi.push(positions);
 					if (wrap) { multi.push(positions2); }
-					// console.log(multi);
 					path = L.multiPolyline(multi, { color: '#088', opacity: 0.8, weight: 3 }).bindLabel(pathlabel).addTo(map);
 					layercontrol.addOverlay(path, 'flight path');
 				} else {

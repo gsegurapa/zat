@@ -164,7 +164,7 @@
 	    }
 
 			function getFlight(data, status, xhr) {
-				var lat, lon;
+				var lon, dpos, apos, fpos;
 				if (!data || data.error) {
 					alert('AJAX error: '+data.error.errorMessage);
 					return;
@@ -185,34 +185,45 @@
 
 					wrap = Math.abs(depa.longitude - arra.longitude) > 180; // does route cross anti-meridian
 
-					lat = +depa.latitude; lon = +depa.longitude;
+					lon = +depa.longitude;
+					dpos = L.latLng(+depa.latitude, wrap && lon>0 ? lon-360 : lon, true);
 					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
 								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
 								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
-					L.marker(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true), { icon: airportIcon }).addTo(map).bindLabel(label);
-					lat = +arra.latitude; lon = +arra.longitude;
+					L.marker(dpos, { icon: airportIcon }).addTo(map).bindLabel(label); // departing airport icon
+
+					lon = +arra.longitude;
+					apos = L.latLng(+arra.latitude, wrap && lon>0 ? lon-360 : lon, true);
 					label = '<span class="labelhead">To '+arrivalAirport+'</span><br />'+arra.name+
 								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode; // +
 								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
-					L.marker(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true), { icon: airportIcon }).addTo(map).bindLabel(label);
-					flightBounds = L.latLngBounds([ // includes both airports and current position of flight
-							L.latLng(+depa.latitude, +depa.longitude),
-							L.latLng(+arra.latitude, +arra.longitude),
-							L.latLng(pos.lat,pos.lon)
-						]).pad(0.05);
-					// console.log(flightBounds);
-					map.fitBounds(flightBounds);
-					lat = +pos.lat; lon = +pos.lon;
+					L.marker(apos, { icon: airportIcon }).addTo(map).bindLabel(label); // arriving airport icon
+
+					lon = +pos.lon;
+					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					label = '<span class="labelhead">'+airlines[flight.carrierFsCode].name+'</span>'+
 								'<br />Flight #: '+flight.flightNumber+
 								'<br />Route: '+departureAirport+' to '+arrivalAirport+
-								'<br />Lat/Long: '+(+pos.lat).toFixed(2)+'/'+lon.toFixed(2)+
+								'<br />Lat/Long: '+fpos.lat.toFixed(2)+'/'+fpos.lng.toFixed(2)+
 								'<br />Altitude: '+pos.altitudeFt+' ft'+
 								'<br />Speed: '+pos.speedMph+' mph'+
 								'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
 								'<br />Equipment: '+flight.equipment;
-					airplane = L.marker(L.latLng(lat, wrap ? lon-360 : lon, true), { icon: flightIcon, zIndexOffset: 1000 }).
+					airplane = L.marker(fpos, { icon: flightIcon, zIndexOffset: 1000 }).	// airplane icon
 							addTo(map).rotate(+flight.heading).bindLabel(label);
+					
+					if (wrap) { // set map view including both airports and current position of flight
+						flightBounds = L.latLngBounds([
+								[dpos.lat, dpos.lng+180],
+								[apos.lat, apos.lng+180],
+								[fpos.lat, fpos.lng+180]
+							]).pad(0.05);
+						var c = flightBounds.getCenter();
+						map.setView(L.latLng(c.lat, c.lng - 180, true) , map.getBoundsZoom(flightBounds));
+					} else {
+						flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
+						map.fitBounds(flightBounds);
+					}					
 					
 					// do waypoints (flight plan)
 					var p = flight.waypoints;
@@ -239,10 +250,6 @@
 								// console.log('gap: ',(ct - last)/60000);
 								multi.push(positions);
 								positions = [];
-								// if (wrap) {
-								// 	multi.push(positions2);
-								// 	positions2 = [];
-								// }
 							}
 						}
 						lat = +p[i].lat; lon = +p[i].lon;

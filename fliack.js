@@ -99,15 +99,14 @@
 
 	$(document).ready(function() {
 
-		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane, airplane2, plan, path, positions, positions2, wrap;
+		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane, plan, path, positions, wrap;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
 			layers: defaultlayers,
-			worldCopyJump: true,
+			worldCopyJump: false,
 			inertia: false
-		});
-		map.addControl(layercontrol).addControl(attributioncontrol);
+		}).addControl(layercontrol).addControl(attributioncontrol);
 
 		var airportIcon = L.icon({
 				iconUrl: 'http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/tower/classic.png',
@@ -171,12 +170,12 @@
 					return;
 				}
 
-				if (console && console.log) console.log('Flex API: ',data);
+				if (console && console.log) console.log('Flex API data: ',data);
 
 				var flight = data.flightTrack;
 				var pos = flight.positions[0];
 
-				if (flightBounds === undefined) {
+				if (flightBounds === undefined) { // first time called
 					airports = getAppendix(data.appendix.airports);
 					airlines = getAppendix(data.appendix.airlines);
 					departureAirport = flight.departureAirportFsCode;
@@ -184,28 +183,24 @@
 					arrivalAirport = flight.arrivalAirportFsCode;
 					var arra = airports[arrivalAirport];
 
-					wrap = Math.abs(depa.longitude - arra.longitude) > 180;
+					wrap = Math.abs(depa.longitude - arra.longitude) > 180; // does route cross anti-meridian
 
 					lat = +depa.latitude; lon = +depa.longitude;
 					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
 								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
 								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
-					L.marker(L.latLng(lat, lon, true), { icon: airportIcon }).addTo(map).bindLabel(label);
-					if (wrap) {
-						L.marker(L.latLng(lat, lon+360, true), { icon: airportIcon }).addTo(map).bindLabel(label);
-					}
+					L.marker(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true), { icon: airportIcon }).addTo(map).bindLabel(label);
 					lat = +arra.latitude; lon = +arra.longitude;
 					label = '<span class="labelhead">To '+arrivalAirport+'</span><br />'+arra.name+
 								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode; // +
 								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
-					L.marker(L.latLng(lat, wrap ? lon-360 : lon, true), { icon: airportIcon }).addTo(map).bindLabel(label);
-					if (wrap) {
-						L.marker(L.latLng(lat, wrap ? lon : lon+360, true), { icon: airportIcon }).addTo(map).bindLabel(label);
-					}
+					L.marker(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true), { icon: airportIcon }).addTo(map).bindLabel(label);
 					flightBounds = L.latLngBounds([ // includes both airports and current position of flight
-							L.latLng(depa.latitude, depa.longitude),
-							L.latLng(arra.latitude, arra.longitude),
-							L.latLng(pos.lat,pos.lon)]).pad(0.05).pad(0.04);
+							L.latLng(+depa.latitude, +depa.longitude),
+							L.latLng(+arra.latitude, +arra.longitude),
+							L.latLng(pos.lat,pos.lon)
+						]).pad(0.05);
+					// console.log(flightBounds);
 					map.fitBounds(flightBounds);
 					lat = +pos.lat; lon = +pos.lon;
 					label = '<span class="labelhead">'+airlines[flight.carrierFsCode].name+'</span>'+
@@ -218,27 +213,23 @@
 								'<br />Equipment: '+flight.equipment;
 					airplane = L.marker(L.latLng(lat, wrap ? lon-360 : lon, true), { icon: flightIcon, zIndexOffset: 1000 }).
 							addTo(map).rotate(+flight.heading).bindLabel(label);
-					if (wrap) {
-						airplane2 = L.marker(L.latLng(lat, wrap ? lon : lon+360, true), { icon: flightIcon, zIndexOffset: 1000 }).
-								addTo(map).rotate(+flight.heading).bindLabel(label);
-					}
+					
 					// do waypoints (flight plan)
 					var p = flight.waypoints;
 					if (p) { // there is a flight plan
-						positions = wrap ? [ new Array(p.length), new Array(p.length) ] : [ new Array(p.length) ];
+						positions = new Array(p.length);
 						for (var i = 0; i < p.length; i++) {
 							lat = +p[i].lat; lon = +p[i].lon;
-							positions[0][i] = L.latLng(lat, lon>0 ? lon-360 : lon, true);
-							if (wrap) { positions[1][i] = L.latLng(lat, lon>0 ? lon : lon+360, true); }
+							// positions[i] = L.latLng(lat, wrap && lon<0 ? lon : lon-360, true);
+							positions[i] = L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
 						}
-						plan = L.multiPolyline(positions, { color: '#3dd', weight: 7, dashArray: '5, 8'}).bindLabel(airline+flightnum+' flight plan').addTo(map);
+						plan = L.polyline(positions, { color: '#3dd', weight: 7, dashArray: '5, 8'}).bindLabel(airline+flightnum+' flight plan').addTo(map);
 						layercontrol.addOverlay(plan, 'flight plan');
 					} // end if there is a flight plan
 
 					// do positions (Flex)
 					p = flight.positions;
 					positions = [];
-					if (wrap) { positions2 = []; }
 					var last = null, ct;
 					var multi = [];
 					for (i = 0; i < p.length; i++) {
@@ -248,21 +239,17 @@
 								// console.log('gap: ',(ct - last)/60000);
 								multi.push(positions);
 								positions = [];
-								if (wrap) {
-									multi.push(positions2);
-									positions2 = [];
-								}
+								// if (wrap) {
+								// 	multi.push(positions2);
+								// 	positions2 = [];
+								// }
 							}
 						}
 						lat = +p[i].lat; lon = +p[i].lon;
-						positions.push(L.latLng(lat, lon>0 ? lon-360 : lon, true));
-						if (wrap) {
-							positions2.push(L.latLng(lat, lon>0 ? lon : lon+360, true));
-						}
+						positions.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
 						last = ct;
 					}
 					multi.push(positions);
-					if (wrap) { multi.push(positions2); }
 					path = L.multiPolyline(multi, { color: '#088', opacity: 0.8, weight: 3 }).bindLabel(pathlabel).addTo(map);
 					layercontrol.addOverlay(path, 'flight path');
 				} else {

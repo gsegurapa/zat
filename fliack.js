@@ -164,7 +164,7 @@
 	    }
 
 			function getFlight(data, status, xhr) {
-				var lon, dpos, apos, fpos;
+				var lat, lon, dpos, apos, fpos;
 				if (!data || data.error) {
 					alert('AJAX error: '+data.error.errorMessage);
 					return;
@@ -219,7 +219,7 @@
 								[fpos.lat, fpos.lng+180]
 							]).pad(0.05);
 						var c = flightBounds.getCenter();
-						map.setView(L.latLng(c.lat, c.lng - 180, true) , map.getBoundsZoom(flightBounds));
+						map.setView(L.latLng(c.lat, c.lng - 180, true), map.getBoundsZoom(flightBounds));
 					} else {
 						flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
 						map.fitBounds(flightBounds);
@@ -234,9 +234,15 @@
 							// positions[i] = L.latLng(lat, wrap && lon<0 ? lon : lon-360, true);
 							positions[i] = L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
 						}
-						plan = L.polyline(positions, { color: '#3dd', weight: 7, dashArray: '5, 8'}).bindLabel(airline+flightnum+' flight plan').addTo(map);
+						plan = L.polyline(positions, { color: '#399', weight: 5, dashArray: '18, 12'}).bindLabel(airline+flightnum+' flight plan').addTo(map);
 						layercontrol.addOverlay(plan, 'flight plan');
-					} // end if there is a flight plan
+					} else { // if there is NO flight plan
+						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
+						console.log(npoints);
+						plan = L.polyline([dpos, apos], { color: '#399', weight: 6, dashArray: '1, 12'}).
+								greatCircle(npoints).bindLabel(airline+flightnum+' route').addTo(map);
+						layercontrol.addOverlay(plan, 'route');
+					}
 
 					// do positions (Flex)
 					p = flight.positions;
@@ -257,7 +263,7 @@
 						last = ct;
 					}
 					multi.push(positions);
-					path = L.multiPolyline(multi, { color: '#088', opacity: 0.8, weight: 3 }).bindLabel(pathlabel).addTo(map);
+					path = L.multiPolyline(multi, { color: '#066', opacity: 0.8, weight: 3 }).bindLabel(pathlabel).addTo(map);
 					layercontrol.addOverlay(path, 'flight path');
 				} else {
 					// path.addLatLng
@@ -272,6 +278,47 @@
 	L.Marker.include({  // add rotate function to Marker class
 		rotate: function(deg) {
 			var $icon = $(this._icon).find('img').css('transform', 'rotate('+deg+'deg)');
+			return this;
+		}
+	});
+
+	L.Polyline.include({
+		greatCircle: function(npoints) {
+			var points = [];
+			var start = this._latlngs[0],
+					end = this._latlngs[1];
+			start.lng = (start.lng + 180) % 360 + ((start.lng < -180 || start.lng === 180) ? 180 : -180);
+			end.lng = (end.lng + 180) % 360 + ((end.lng < -180 || end.lng === 180) ? 180 : -180);
+			if (npoints <= 2) {
+				points.push([start.lat, start.lng]);
+				points.push([end.lat, end.lng]);
+			} else {
+				var D2R = Math.PI / 180;
+				var R2D = 180 / Math.PI;
+				var startx = D2R * start.lng,
+						starty = D2R * start.lat,
+						endx = D2R * end.lng,
+						endy = D2R * end.lat;
+				var w = startx - endx,
+						h = starty - endy;
+				var g = 2.0 * Math.asin(Math.sqrt(Math.pow(Math.sin(h / 2.0), 2) +
+                Math.cos(starty) * Math.cos(endy) * Math.pow(Math.sin(w / 2.0), 2)));
+				var isg = 1 / Math.sin(g);
+				var delta = 1.0 / (npoints - 1);
+				var wrap = Math.abs(start.lng - end.lng) > 180; // does route cross anti-meridian
+				for (var i = 0; i < npoints; i++) {
+          var step = delta * i;
+					var A = Math.sin((1 - step) * g) * isg;
+			    var B = Math.sin(step * g) * isg;
+			    var x = A * Math.cos(starty) * Math.cos(startx) + B * Math.cos(endy) * Math.cos(endx);
+			    var y = A * Math.cos(starty) * Math.sin(startx) + B * Math.cos(endy) * Math.sin(endx);
+			    var z = A * Math.sin(starty) + B * Math.sin(endy);
+			    var lat = R2D * Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+			    var lon = R2D * Math.atan2(y, x);
+          points.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
+        }
+			}
+			this._latlngs = points;
 			return this;
 		}
 	});

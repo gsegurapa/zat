@@ -99,7 +99,7 @@
 
 	$(document).ready(function() {
 
-		var airports, airlines, departureAirport, arrivalAirport, flightBounds, airplane, plan, path, positions, wrap;
+		var airports, airlines, departureAirport, dpos, arrivalAirport, apos, flightBounds, airplane, fpos, plan, path, positions, wrap;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
@@ -164,7 +164,7 @@
 	    }
 
 			function getFlight(data, status, xhr) {
-				var lat, lon, dpos, apos, fpos;
+				var lat, lon;
 				if (!data || data.error) {
 					alert('AJAX error: '+data.error.errorMessage);
 					return;
@@ -175,7 +175,7 @@
 				var flight = data.flightTrack;
 				var pos = flight.positions[0];
 
-				if (flightBounds === undefined) { // first time called
+				if (airports === undefined) { // first time called
 					airports = getAppendix(data.appendix.airports);
 					airlines = getAppendix(data.appendix.airlines);
 					departureAirport = flight.departureAirportFsCode;
@@ -187,31 +187,13 @@
 
 					lon = +depa.longitude;
 					dpos = L.latLng(+depa.latitude, wrap && lon>0 ? lon-360 : lon, true);
-					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
-								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
-								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
-					L.marker(dpos, { icon: airportIcon }).addTo(map).bindLabel(label); // departing airport icon
-
 					lon = +arra.longitude;
 					apos = L.latLng(+arra.latitude, wrap && lon>0 ? lon-360 : lon, true);
-					label = '<span class="labelhead">To '+arrivalAirport+'</span><br />'+arra.name+
-								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode; // +
-								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
-					L.marker(apos, { icon: airportIcon }).addTo(map).bindLabel(label); // arriving airport icon
-
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
-					label = '<span class="labelhead">'+airlines[flight.carrierFsCode].name+'</span>'+
-								'<br />Flight #: '+flight.flightNumber+
-								'<br />Route: '+departureAirport+' to '+arrivalAirport+
-								'<br />Lat/Long: '+fpos.lat.toFixed(2)+'/'+fpos.lng.toFixed(2)+
-								'<br />Altitude: '+pos.altitudeFt+' ft'+
-								'<br />Speed: '+pos.speedMph+' mph'+
-								'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
-								'<br />Equipment: '+flight.equipment;
-					airplane = L.marker(fpos, { icon: flightIcon, zIndexOffset: 1000 }).	// airplane icon
-							addTo(map).rotate(+flight.heading).bindLabel(label);
-					
+
+					map.on('load', mapReady);
+
 					if (wrap) { // set map view including both airports and current position of flight
 						flightBounds = L.latLngBounds([
 								[dpos.lat, dpos.lng+180],
@@ -223,7 +205,35 @@
 					} else {
 						flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
 						map.fitBounds(flightBounds);
-					}					
+					}
+
+				} else {
+					// path.addLatLng
+				}
+
+				function mapReady(e) {
+					console.log('mapReady: ', e.type, e.target);
+					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
+								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
+								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
+					L.marker(dpos, { icon: airportIcon }).addTo(map).bindLabel(label); // departing airport icon
+
+					label = '<span class="labelhead">To '+arrivalAirport+'</span><br />'+arra.name+
+								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode; // +
+								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
+					L.marker(apos, { icon: airportIcon }).addTo(map).bindLabel(label); // arriving airport icon
+
+					label = '<span class="labelhead">'+airlines[flight.carrierFsCode].name+'</span>'+
+								'<br />Flight #: '+flight.flightNumber+
+								'<br />Route: '+departureAirport+' to '+arrivalAirport+
+								'<br />Lat/Long: '+fpos.lat.toFixed(2)+'/'+fpos.lng.toFixed(2)+
+								'<br />Altitude: '+pos.altitudeFt+' ft'+
+								'<br />Speed: '+pos.speedMph+' mph'+
+								'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
+								'<br />Heading: '+(+flight.heading).toFixed()+' deg'+
+								'<br />Equipment: '+flight.equipment;
+					airplane = L.marker(fpos, { icon: flightIcon, zIndexOffset: 1000 }).	// airplane icon
+							addTo(map).rotate(+flight.heading).bindLabel(label);
 					
 					// do waypoints (flight plan)
 					var p = flight.waypoints;
@@ -238,9 +248,8 @@
 						layercontrol.addOverlay(plan, 'flight plan');
 					} else { // if there is NO flight plan
 						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
-						console.log(npoints);
 						plan = L.polyline([dpos, apos], { color: '#399', weight: 6, dashArray: '1, 12'}).
-								greatCircle(npoints).bindLabel(airline+flightnum+' route').addTo(map);
+								greatCircle(npoints).addTo(map).bindLabel(airline+flightnum+' route');
 						layercontrol.addOverlay(plan, 'route');
 					}
 
@@ -263,12 +272,13 @@
 						last = ct;
 					}
 					multi.push(positions);
-					path = L.multiPolyline(multi, { color: '#066', opacity: 0.8, weight: 3 }).bindLabel(pathlabel).addTo(map);
+					path = L.multiPolyline(multi, { color: '#066', opacity: 0.8, weight: 3 }).addTo(map).bindLabel(pathlabel);
 					layercontrol.addOverlay(path, 'flight path');
-				} else {
-					// path.addLatLng
-				}
+				} // end mapReady
+
 			} // end getFlight
+
+
 		} // end mainloop
 
 		mainloop();
@@ -277,12 +287,12 @@
 
 	L.Marker.include({  // add rotate function to Marker class
 		rotate: function(deg) {
-			var $icon = $(this._icon).find('img').css('transform', 'rotate('+deg+'deg)');
+			var $icon = $(this._icon).find('img').css('transform', 'rotate('+deg+'deg)');			
 			return this;
 		}
 	});
 
-	L.Polyline.include({
+	L.Polyline.include({	// draw a polyline using geodesics
 		greatCircle: function(npoints) {
 			var points = [];
 			var start = this._latlngs[0],

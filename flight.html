@@ -37,7 +37,7 @@ Departing airport:
 		airportCode = $('#aircode').val().toUpperCase();
 		$.ajax({  // airport tracks departures
       url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
-      data: { appId: appId, appKey: appKey, maxPositions: 2, includeFlightPlan: true },
+      data: { appId: appId, appKey: appKey, maxPositions: 2, extendedOptions: 'useInlinedReferences' },
       dataType: 'jsonp',
       success: getDepartures
     });
@@ -50,12 +50,26 @@ Departing airport:
 			$flights.text('AJAX error: '+data.error.errorMessage)
 			return;
 		}
-		$flights.append('<tr><td>ID</td><td>FLIGHT</td><td>TO</td><td>LEAVES</td></tr>');
+		var deps = [];
 		$.each(data.flightTracks, function(index, val) {
-			$flights.append('<tr><td><a href="index.html?id='+val.flightId+
-				'&airline='+val.carrierFsCode+'&flight='+val.flightNumber+'">'+val.flightId+'</a></td><td>'+
-				val.carrierFsCode+'-'+val.flightNumber+'</td><td>'+val.arrivalAirportFsCode+
-				'</td><td>'+val.departureDate.dateLocal.slice(0,16)+'</td></tr>');
+			deps.push({id: val.flightId,
+								airline: val.carrier.name,
+								flight: val.flightNumber,
+								to: val.arrivalAirport.fs,
+								city: val.arrivalAirport.city+(val.arrivalAirport.countryCode==='US'?'':', '+val.arrivalAirport.countryCode),
+								leaves: val.departureDate.dateLocal.slice(0,16)});
+		});
+		function comp(a, b) {
+			return a.leaves > b.leaves ? -1 : 1;
+		}
+		deps.sort(comp);
+
+		$flights.append('<tr><td>ID</td><td>FLIGHT</td><td>TO</td><td>LEAVES</td></tr>');
+		$.each(deps, function(index, val) {
+			$flights.append('<tr><td><a href="index.html?id='+val.id+
+				'&airline='+val.airline+'&flight='+val.flight+'">'+val.id+'</a></td><td>'+
+				val.airline+' '+val.flight+'</td><td>'+val.to+' - '+val.city+
+				'</td><td>'+val.leaves+'</td></tr>');
 				// '</td><td><a href="http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+
 				// val.flightId+'&airlineCode='+val.carrierFsCode+'&flightNumber='+val.flightNumber+
 				// '&version=1.0&key=49e3481552e7c4c9%253A-5b147615%253A12ee3ed13b5%253A-5f90&responseType=jsonp" target="_blank">chris data</a></td></tr>');

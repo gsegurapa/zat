@@ -122,7 +122,7 @@
 				labelAnchor: [10, -5],
 				className: ''
 		});
-		var pathlabel = airline+flightnum+' flight path'
+		var pathlabel = airline+flightnum+' flight path';
 
 		function mainloop() {
 			// window.handleResponse = function(data) { // results from Chris' API
@@ -138,6 +138,12 @@
 			// 		var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).bindLabel(pathlabel).addTo(map);
 			// 		layercontrol.addOverlay(path, 'mobile API path');
 			// } // end handleResponse
+			// Call the mobile API
+			// var url = 'http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+flightID+'&airlineCode='+airline+'&flightNumber='+
+			// 		flightnum+'&version=1.0&key=49e3481552e7c4c9%253A-5b147615%253A12ee3ed13b5%253A-5f90&responseType=jsonp';
+			// var script = document.createElement('script');
+			// script.setAttribute('src', url);
+			// document.getElementsByTagName('head')[0].appendChild(script); // load the script
 
 			$.ajax({  // Flight track by flight ID
 	        url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
@@ -146,11 +152,6 @@
 	        success: getFlight
 	      });
 
-			// var url = 'http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+flightID+'&airlineCode='+airline+'&flightNumber='+
-			// 		flightnum+'&version=1.0&key=49e3481552e7c4c9%253A-5b147615%253A12ee3ed13b5%253A-5f90&responseType=jsonp';
-			// var script = document.createElement('script');
-			// script.setAttribute('src', url);
-			// document.getElementsByTagName('head')[0].appendChild(script); // load the script
 
 			function getAppendix(data) { // read in data from appendix and convert to dictionary
 	      ret = {};
@@ -208,11 +209,14 @@
 					}
 
 				} else {
-					// path.addLatLng
+					lon = +pos.lon;
+					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
+					airplane.setLatLng(fpos);
+					airplane.rotate(+flight.heading);
+					setPositions();					
 				}
 
 				function mapReady(e) {
-					console.log('mapReady: ', e.type, e.target);
 					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
 								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
 								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
@@ -262,7 +266,6 @@
 						ct = Date.parse(p[i].date);
 						if (last) {
 							if (Math.abs(ct - last) > 600000) {	// no data for 10 minutes
-								// console.log('gap: ',(ct - last)/60000);
 								multi.push(positions);
 								positions = [];
 							}
@@ -274,14 +277,42 @@
 					multi.push(positions);
 					path = L.multiPolyline(multi, { color: '#066', opacity: 0.8, weight: 3 }).addTo(map).bindLabel(pathlabel);
 					layercontrol.addOverlay(path, 'flight path');
+
+					setPositions(); // draw actual flight position data
 				} // end mapReady
 
-			} // end getFlight
+				function setPositions() { // do positions (Flex)
+					p = flight.positions;
+					positions = [];
+					var last = null, ct;
+					var multi = [];
+					for (i = 0; i < p.length; i++) {
+						ct = Date.parse(p[i].date);
+						if (last) {
+							if (Math.abs(ct - last) > 600000) {	// no data for 10 minutes
+								multi.push(positions);
+								positions = [];
+							}
+						}
+						lat = +p[i].lat; lon = +p[i].lon;
+						positions.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
+						last = ct;
+					}
+					multi.push(positions);
+					if (path) {	// layer already exists
+						path.setLatLngs(multi);
+					} else {	// create layer
+						path = L.multiPolyline(multi, { color: '#066', opacity: 0.8, weight: 3 }).addTo(map).bindLabel(pathlabel);
+						layercontrol.addOverlay(path, 'flight path');
+					}
+				}
 
+			} // end getFlight
 
 		} // end mainloop
 
 		mainloop();
+		setInterval(mainloop, 10000);
 
 	});
 

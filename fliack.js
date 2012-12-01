@@ -108,15 +108,22 @@
 			inertia: false
 		}).addControl(layercontrol).addControl(attributioncontrol);
 
-		var airportIcon = L.icon({
-				iconUrl: 'http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/tower/classic.png',
+		var airportDepIcon = L.icon({
+				iconUrl: 'img/tower-blue.png',
+				iconSize: [78, 145],
+				iconAnchor: [17, 97],
+				popupAnchor: [2, -93],
+				labelAnchor: [7, -60]
+		});
+		var airportArrIcon = L.icon({
+				iconUrl: 'img/tower-orange.png',
 				iconSize: [78, 145],
 				iconAnchor: [17, 97],
 				popupAnchor: [2, -93],
 				labelAnchor: [7, -60]
 		});
 		var flightIcon = L.divIcon({ // airplane icon (orange)
-				html: '<img class="airplaneicon" src="http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/airplane/shadow-orange.png" />',
+				html: '<img class="airplaneicon" src="img/airplane-purple.png" />',
 				iconSize: [50, 50],
 				iconAnchor: [25, 25],
 				labelAnchor: [10, -5],
@@ -220,12 +227,12 @@
 					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
 								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
 								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
-					L.marker(dpos, { icon: airportIcon }).addTo(map).bindLabel(label); // departing airport icon
+					L.marker(dpos, { icon: airportDepIcon }).addTo(map).bindLabel(label); // departing airport icon
 
 					label = '<span class="labelhead">To '+arrivalAirport+'</span><br />'+arra.name+
 								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode; // +
 								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
-					L.marker(apos, { icon: airportIcon }).addTo(map).bindLabel(label); // arriving airport icon
+					L.marker(apos, { icon: airportArrIcon }).addTo(map).bindLabel(label); // arriving airport icon
 
 					label = '<span class="labelhead">'+airlines[flight.carrierFsCode].name+'</span>'+
 								'<br />Flight #: '+flight.flightNumber+
@@ -248,35 +255,14 @@
 							// positions[i] = L.latLng(lat, wrap && lon<0 ? lon : lon-360, true);
 							positions[i] = L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
 						}
-						plan = L.polyline(positions, { color: '#399', weight: 5, dashArray: '18, 12'}).bindLabel(airline+flightnum+' flight plan').addTo(map);
+						plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel(airline+flightnum+' flight plan').addTo(map);
 						layercontrol.addOverlay(plan, 'flight plan');
 					} else { // if there is NO flight plan
 						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
-						plan = L.polyline([dpos, apos], { color: '#399', weight: 6, dashArray: '1, 12'}).
+						plan = L.polyline([dpos, apos], { color: '#939', weight: 6, dashArray: '1, 12'}).
 								greatCircle(npoints).addTo(map).bindLabel(airline+flightnum+' route');
 						layercontrol.addOverlay(plan, 'route');
 					}
-
-					// do positions (Flex)
-					p = flight.positions;
-					positions = [];
-					var last = null, ct;
-					var multi = [];
-					for (i = 0; i < p.length; i++) {
-						ct = Date.parse(p[i].date);
-						if (last) {
-							if (Math.abs(ct - last) > 600000) {	// no data for 10 minutes
-								multi.push(positions);
-								positions = [];
-							}
-						}
-						lat = +p[i].lat; lon = +p[i].lon;
-						positions.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
-						last = ct;
-					}
-					multi.push(positions);
-					path = L.multiPolyline(multi, { color: '#066', opacity: 0.8, weight: 3 }).addTo(map).bindLabel(pathlabel);
-					layercontrol.addOverlay(path, 'flight path');
 
 					setPositions(); // draw actual flight position data
 				} // end mapReady
@@ -302,7 +288,7 @@
 					if (path) {	// layer already exists
 						path.setLatLngs(multi);
 					} else {	// create layer
-						path = L.multiPolyline(multi, { color: '#066', opacity: 0.8, weight: 3 }).addTo(map).bindLabel(pathlabel);
+						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(map).bindLabel(pathlabel);
 						layercontrol.addOverlay(path, 'flight path');
 					}
 				}

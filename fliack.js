@@ -97,16 +97,20 @@
 	var attributioncontrol = L.control.attribution({ prefix: false }).
 			addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
 
+	var zoomcontrol = L.control.zoom();
+
 	$(document).ready(function() {
 
 		var airports, airlines, departureAirport, dpos, arrivalAirport, apos, flightBounds, airplane, fpos, plan, path, positions, wrap;
+		var tracking = false;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
+			zoomControl: false,
 			layers: defaultlayers,
 			worldCopyJump: false,
 			inertia: false
-		}).addControl(layercontrol).addControl(attributioncontrol);
+		}).addControl(layercontrol).addControl(attributioncontrol).addControl(zoomcontrol);
 
 		var airportDepIcon = L.icon({
 				iconUrl: 'img/tower-blue.png',
@@ -159,7 +163,6 @@
 	        success: getFlight
 	      });
 
-
 			function getAppendix(data) { // read in data from appendix and convert to dictionary
 	      ret = {};
 	      if (data) {
@@ -169,6 +172,25 @@
 	        }
 	      }
 	      return ret;
+	    }
+
+	    function setfullview() {
+				if (wrap) { // set map view including both airports and current position of flight
+					flightBounds = L.latLngBounds([
+							[dpos.lat, dpos.lng+180],
+							[apos.lat, apos.lng+180],
+							[fpos.lat, fpos.lng+180]
+						]).pad(0.05);
+					var c = flightBounds.getCenter();
+					map.setView(L.latLng(c.lat, c.lng - 180, true), map.getBoundsZoom(flightBounds));
+				} else {
+					flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
+					map.fitBounds(flightBounds);
+				}
+	    }
+
+	    function settrackingview() {
+	    	if (fpos) { map.setView(fpos, 11); }
 	    }
 
 			function getFlight(data, status, xhr) {
@@ -201,29 +223,28 @@
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 
 					map.on('load', mapReady);
-
-					if (wrap) { // set map view including both airports and current position of flight
-						flightBounds = L.latLngBounds([
-								[dpos.lat, dpos.lng+180],
-								[apos.lat, apos.lng+180],
-								[fpos.lat, fpos.lng+180]
-							]).pad(0.05);
-						var c = flightBounds.getCenter();
-						map.setView(L.latLng(c.lat, c.lng - 180, true), map.getBoundsZoom(flightBounds));
-					} else {
-						flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
-						map.fitBounds(flightBounds);
-					}
+					setfullview();
 
 				} else {
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					airplane.setLatLng(fpos);
 					airplane.rotate(+flight.heading);
+					if (tracking) { map.panTo(fpos); }
 					setPositions();					
 				}
 
 				function mapReady(e) {
+					// add additional zoom control buttons
+					$zoomdiv = $('.leaflet-control-zoom');
+					$(zoomcontrol._createButton('Track', 'leaflet-control-zoom-track', $zoomdiv[0], trackfun, map)).css({
+						'background-image': 'url(img/icon-eye.png)', margin: '5px 0' });
+					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0], fullfun, map)).css({
+						'background-image': 'url(img/icon-full.png)' });
+					map.on('dragstart', function(e) {
+						tracking = false;
+					});
+
 					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
 								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
 								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
@@ -295,6 +316,16 @@
 
 			} // end getFlight
 
+			function trackfun(e) {
+				tracking = true;
+				settrackingview();
+			}
+			function fullfun(e) {
+				tracking = false;
+				setfullview();
+			}
+
+
 		} // end mainloop
 
 		mainloop();
@@ -320,8 +351,8 @@
 				points.push([start.lat, start.lng]);
 				points.push([end.lat, end.lng]);
 			} else {
-				var D2R = Math.PI / 180;
-				var R2D = 180 / Math.PI;
+				var D2R = L.LatLng.DEG_TO_RAD;
+				var R2D = L.LatLng.RAD_TO_DEG;
 				var startx = D2R * start.lng,
 						starty = D2R * start.lat,
 						endx = D2R * end.lng,

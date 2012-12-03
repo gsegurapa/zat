@@ -102,7 +102,7 @@
 	$(document).ready(function() {
 
 		var airports, airlines, departureAirport, dpos, arrivalAirport, apos, flightBounds, airplane, fpos, plan, path, positions, wrap;
-		var tracking = false;
+		var tracking = false, $trackbutton;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
@@ -174,7 +174,7 @@
 	      return ret;
 	    }
 
-	    function setfullview() {
+	    function setfullview(m) {
 				if (wrap) { // set map view including both airports and current position of flight
 					flightBounds = L.latLngBounds([
 							[dpos.lat, dpos.lng+180],
@@ -182,15 +182,15 @@
 							[fpos.lat, fpos.lng+180]
 						]).pad(0.05);
 					var c = flightBounds.getCenter();
-					map.setView(L.latLng(c.lat, c.lng - 180, true), map.getBoundsZoom(flightBounds));
+					m.setView(L.latLng(c.lat, c.lng - 180, true), m.getBoundsZoom(flightBounds));
 				} else {
 					flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
-					map.fitBounds(flightBounds);
+					m.fitBounds(flightBounds);
 				}
 	    }
 
-	    function settrackingview() {
-	    	if (fpos) { map.setView(fpos, 11); }
+	    function settrackingview(m) {
+	    	if (fpos) { m.setView(fpos, 11); }
 	    }
 
 			function getFlight(data, status, xhr) {
@@ -223,7 +223,7 @@
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 
 					map.on('load', mapReady);
-					setfullview();
+					setfullview(map);
 
 				} else {
 					lon = +pos.lon;
@@ -237,12 +237,13 @@
 				function mapReady(e) {
 					// add additional zoom control buttons
 					$zoomdiv = $('.leaflet-control-zoom');
-					$(zoomcontrol._createButton('Track', 'leaflet-control-zoom-track', $zoomdiv[0], trackfun, map)).css({
-						'background-image': 'url(img/icon-eye.png)', margin: '5px 0' });
+					$trackbutton = $(zoomcontrol._createButton('Track', 'leaflet-control-zoom-track', $zoomdiv[0], trackfun, map)).css({
+						'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0], fullfun, map)).css({
 						'background-image': 'url(img/icon-full.png)' });
 					map.on('dragstart', function(e) {
 						tracking = false;
+						$trackbutton.css('background-color', '');
 					});
 
 					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
@@ -318,11 +319,13 @@
 
 			function trackfun(e) {
 				tracking = true;
-				settrackingview();
+				$trackbutton.css('background-color', '#aaf');
+				settrackingview(this);
 			}
 			function fullfun(e) {
 				tracking = false;
-				setfullview();
+				$trackbutton.css('background-color', '');
+				setfullview(this);
 			}
 
 

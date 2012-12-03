@@ -102,7 +102,7 @@
 	$(document).ready(function() {
 
 		var airports, airlines, departureAirport, dpos, arrivalAirport, apos, flightBounds, airplane, fpos, plan, path, positions, wrap;
-		var tracking = false, $trackbutton;
+		var tracking = false, $trackbutton, maxZoom = 11;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
@@ -110,7 +110,19 @@
 			layers: defaultlayers,
 			worldCopyJump: false,
 			inertia: false
-		}).addControl(layercontrol).addControl(attributioncontrol).addControl(zoomcontrol);
+		}).addControl(layercontrol).addControl(attributioncontrol).addControl(zoomcontrol).
+			on('layeradd', function(e) {
+				var layer = e.layer;
+				var m = layer._map;
+				if (!layer.options || !layer.options.maxZoom) return;
+				$.each(tiles, function(k, v) {
+					if (v === layer) {
+						maxZoom = layer.options.maxZoom;
+						if (m.getZoom() > maxZoom) { m.setZoom(maxZoom); }
+						return false;	
+					}
+				});
+			});
 
 		var airportDepIcon = L.icon({
 				iconUrl: 'img/tower-blue.png',
@@ -190,7 +202,7 @@
 	    }
 
 	    function settrackingview(m) {
-	    	if (fpos) { m.setView(fpos, 11); }
+	    	if (fpos) { m.setView(fpos, maxZoom); }
 	    }
 
 			function getFlight(data, status, xhr) {

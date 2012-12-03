@@ -127,19 +127,19 @@
 			});
 
 			function setflightlabel() {
-				airplane.bindLabel(
-					(logo ? '<div class="logodiv"><img class="labelhead" src="'+logourl+'" /></div>' :
-							'<em id="fakelogo" class="labelhead">'+airlines[flight.carrierFsCode].name+'</em><br />')+
-					'Flight #: '+flight.carrierFsCode+' #'+flight.flightNumber+
+				var label = (logo ? '<img class="labelhead" src="'+logourl+'" /><br />' :
+							'<div class="labelhead fakelogo">'+airlines[flight.carrierFsCode].name+'</div>')+
+					'Flight: '+flight.carrierFsCode+' #'+flight.flightNumber+
 					'<br />Route: '+departureAirport+' to '+arrivalAirport+
 					'<br />Altitude: '+pos.altitudeFt+' ft'+
 					'<br />Speed: '+pos.speedMph+' mph'+
-					'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
 					'<br />Heading: '+(+flight.heading).toFixed()+' deg'+
-					'<br />Equipment: '+flight.equipment+
+					'<br />Bearing to '+arrivalAirport+': '+(+flight.bearing).toFixed()+' deg'+
 					'<br />Latitude: '+fpos.lat.toFixed(2)+
-					'<br />Longitude: '+fpos.lng.toFixed(2)
-				);
+					'<br />Longitude: '+fpos.lng.toFixed(2)+
+					'<br />Equipment: '+flight.equipment;
+				airplane.hideLabel();
+				airplane.bindLabel(label);
 			}
 
 		var airportDepIcon = L.icon({
@@ -223,16 +223,20 @@
 	    }
 
 			function getFlight(data, status, xhr) {
-				var lat, lon;
 				if (!data || data.error) {
 					alert('AJAX error: '+data.error.errorMessage);
 					return;
 				}
 
+				var lat, lon;
 				if (console && console.log) console.log('Flex API data: ',data);
 
 				flight = data.flightTrack;
-				pos = flight.positions[0];
+				var newpos = flight.positions[0];
+				if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon && newpos.date === pos.date) {
+					return; // no new data
+				}
+				pos = newpos;
 
 				if (airports === undefined) { // first time called
 					airports = getAppendix(data.appendix.airports);

@@ -103,6 +103,8 @@
 
 		var airports, airlines, departureAirport, dpos, arrivalAirport, apos, flightBounds, airplane, fpos, plan, path, positions, wrap;
 		var tracking = false, $trackbutton, maxZoom = 11;
+		var logo, logoimg, logourl;	// airline logo image
+		var flight, pos;
 
 		var map = L.map('map_div', {
 			attributionControl: false,
@@ -123,6 +125,22 @@
 					}
 				});
 			});
+
+			function setflightlabel() {
+				airplane.bindLabel(
+					(logo ? '<div class="logodiv"><img class="labelhead" src="'+logourl+'" /></div>' :
+							'<em id="fakelogo" class="labelhead">'+airlines[flight.carrierFsCode].name+'</em><br />')+
+					'Flight #: '+flight.carrierFsCode+' #'+flight.flightNumber+
+					'<br />Route: '+departureAirport+' to '+arrivalAirport+
+					'<br />Altitude: '+pos.altitudeFt+' ft'+
+					'<br />Speed: '+pos.speedMph+' mph'+
+					'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
+					'<br />Heading: '+(+flight.heading).toFixed()+' deg'+
+					'<br />Equipment: '+flight.equipment+
+					'<br />Latitude: '+fpos.lat.toFixed(2)+
+					'<br />Longitude: '+fpos.lng.toFixed(2)
+				);
+			}
 
 		var airportDepIcon = L.icon({
 				iconUrl: 'img/tower-blue.png',
@@ -145,7 +163,6 @@
 				labelAnchor: [10, -5],
 				className: ''
 		});
-		var pathlabel = airline+flightnum+' flight path';
 
 		function mainloop() {
 			// window.handleResponse = function(data) { // results from Chris' API
@@ -158,7 +175,7 @@
 			// 			lon = p[i].longitude;
 			// 			positions[i] = L.latLng(p[i].latitude, lon>90 ? lon-360:lon, true);
 			// 		}
-			// 		var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).bindLabel(pathlabel).addTo(map);
+			// 		var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).bindLabel('flight path').addTo(map);
 			// 		layercontrol.addOverlay(path, 'mobile API path');
 			// } // end handleResponse
 			// Call the mobile API
@@ -214,8 +231,8 @@
 
 				if (console && console.log) console.log('Flex API data: ',data);
 
-				var flight = data.flightTrack;
-				var pos = flight.positions[0];
+				flight = data.flightTrack;
+				pos = flight.positions[0];
 
 				if (airports === undefined) { // first time called
 					airports = getAppendix(data.appendix.airports);
@@ -234,6 +251,16 @@
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 
+					var ac = flight.carrierFsCode.toLowerCase();
+					// logo sizes: 90x30, 120x40, 150x50, 256x86
+					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_120x40.png';
+					logoimg = $('<img/>');
+					logoimg.load(function(e) {
+						logo = true;
+						setflightlabel();
+					});
+					logoimg.attr('src', logourl);
+
 					map.on('load', mapReady);
 					setfullview(map);
 
@@ -243,8 +270,10 @@
 					airplane.setLatLng(fpos);
 					airplane.rotate(+flight.heading);
 					if (tracking) { map.panTo(fpos); }
-					setPositions();					
+					setPositions();
+					setflightlabel();			
 				}
+
 
 				function mapReady(e) {
 					// add additional zoom control buttons
@@ -258,27 +287,19 @@
 						$trackbutton.css('background-color', '');
 					});
 
-					var label = '<span class="labelhead">From '+departureAirport+'</span><br />'+depa.name+
+					var label = '<div class="labelhead">From '+departureAirport+'</div>'+depa.name+
 								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
 								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
 					L.marker(dpos, { icon: airportDepIcon }).addTo(map).bindLabel(label); // departing airport icon
 
-					label = '<span class="labelhead">To '+arrivalAirport+'</span><br />'+arra.name+
+					label = '<div class="labelhead">To '+arrivalAirport+'</div>'+arra.name+
 								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode; // +
 								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
 					L.marker(apos, { icon: airportArrIcon }).addTo(map).bindLabel(label); // arriving airport icon
 
-					label = '<span class="labelhead">'+airlines[flight.carrierFsCode].name+'</span>'+
-								'<br />Flight #: '+flight.flightNumber+
-								'<br />Route: '+departureAirport+' to '+arrivalAirport+
-								'<br />Lat/Long: '+fpos.lat.toFixed(2)+'/'+fpos.lng.toFixed(2)+
-								'<br />Altitude: '+pos.altitudeFt+' ft'+
-								'<br />Speed: '+pos.speedMph+' mph'+
-								'<br />Bearing: '+(+flight.bearing).toFixed()+' deg'+
-								'<br />Heading: '+(+flight.heading).toFixed()+' deg'+
-								'<br />Equipment: '+flight.equipment;
 					airplane = L.marker(fpos, { icon: flightIcon, zIndexOffset: 1000 }).	// airplane icon
-							addTo(map).rotate(+flight.heading).bindLabel(label);
+							addTo(map).rotate(+flight.heading);
+					setflightlabel();
 					
 					// do waypoints (flight plan)
 					var p = flight.waypoints;
@@ -289,7 +310,7 @@
 							// positions[i] = L.latLng(lat, wrap && lon<0 ? lon : lon-360, true);
 							positions[i] = L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
 						}
-						plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel(airline+flightnum+' flight plan').addTo(map);
+						plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel('flight plan').addTo(map);
 						layercontrol.addOverlay(plan, 'flight plan');
 					} else { // if there is NO flight plan
 						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
@@ -322,7 +343,7 @@
 					if (path) {	// layer already exists
 						path.setLatLngs(multi);
 					} else {	// create layer
-						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(map).bindLabel(pathlabel);
+						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(map).bindLabel('flight path');
 						layercontrol.addOverlay(path, 'flight path');
 					}
 				}

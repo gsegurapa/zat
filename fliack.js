@@ -101,7 +101,8 @@
 
 	$(document).ready(function() {
 
-		var airports, airlines, departureAirport, dpos, arrivalAirport, apos, flightBounds, airplane, fpos, plan, path, positions, wrap;
+		var airports, airlines;
+		var departureAirport, dpos, arrivalAirport, apos, flightBounds, airplane, fpos, plan, path, positions, wrap;
 		var tracking = false, $trackbutton, maxZoom = 11;
 		var logo, logoimg, logourl;	// airline logo image
 		var flight, pos;
@@ -156,12 +157,13 @@
 				popupAnchor: [2, -93],
 				labelAnchor: [7, -60]
 		});
-		var flightIcon = L.divIcon({ // airplane icon (orange)
-				html: '<img class="airplaneicon" src="img/airplane-purple.png" />',
+		var flightIcon = L.divIcon({ // airplane icon (rotatable)
+				html: '<img class="airplaneshadow" src="img/shadow4.png" /><img class="airplaneicon" src="img/airplane-purple.png" />',
 				iconSize: [50, 50],
 				iconAnchor: [25, 25],
 				labelAnchor: [10, -5],
-				className: ''
+				className: '',
+
 		});
 
 		function mainloop() {
@@ -233,7 +235,8 @@
 
 				flight = data.flightTrack;
 				var newpos = flight.positions[0];
-				if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon && newpos.date === pos.date) {
+				if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon &&
+						newpos.date === pos.date && pos.altitudeFt === newpos.altitudeFt) {
 					return; // no new data
 				}
 				pos = newpos;
@@ -274,6 +277,7 @@
 					airplane.setLatLng(fpos);
 					airplane.rotate(+flight.heading);
 					if (tracking) { map.panTo(fpos); }
+					setShadow();
 					setPositions();
 					setflightlabel();			
 				}
@@ -286,23 +290,29 @@
 						'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0], fullfun, map)).css({
 						'background-image': 'url(img/icon-full.png)' });
-					map.on('dragstart', function(e) {
-						tracking = false;
-						$trackbutton.css('background-color', '');
+					map.on('dragstart zoomstart', function(e) {
+						if (tracking) {
+							tracking = false;
+							$trackbutton.css('background-color', '');							
+						}
 					});
 
+					// departing airport marker
 					var label = '<div class="labelhead">From '+departureAirport+'</div>'+depa.name+
 								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode; // +
 								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
 					L.marker(dpos, { icon: airportDepIcon }).addTo(map).bindLabel(label); // departing airport icon
 
+					// arriving airport marker
 					label = '<div class="labelhead">To '+arrivalAirport+'</div>'+arra.name+
 								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode; // +
 								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
 					L.marker(apos, { icon: airportArrIcon }).addTo(map).bindLabel(label); // arriving airport icon
 
+					// flight marker (airplane)
 					airplane = L.marker(fpos, { icon: flightIcon, zIndexOffset: 1000 }).	// airplane icon
 							addTo(map).rotate(+flight.heading);
+					setShadow();
 					setflightlabel();
 					
 					// do waypoints (flight plan)
@@ -325,6 +335,16 @@
 
 					setPositions(); // draw actual flight position data
 				} // end mapReady
+
+				function setShadow() {
+					var $shadow = $('.airplaneshadow');
+					var alt = +(pos.altitudeFt || depa.elevationFeet || arra.elevationFeet || 0);
+					var offset = Math.round(alt * 0.0005); // shadow offset
+					var shim = 'img/shadow'+ (Math.max(0, Math.min(9, Math.floor(alt / 3000))))+'.png'; // shadow image 0-9
+					if ($shadow.attr('src') !== shim) { $shadow.attr('src', shim); }
+					$shadow.css({opacity: 0.6, left: offset, top: offset}).attr('src', shim); // shadow
+					// console.log(alt, offset, shim);
+				}
 
 				function setPositions() { // do positions (Flex)
 					p = flight.positions;
@@ -356,7 +376,7 @@
 
 			function trackfun(e) {
 				tracking = true;
-				$trackbutton.css('background-color', '#aaf');
+				$trackbutton.css('background-color', '#d8e');
 				settrackingview(this);
 			}
 			function fullfun(e) {

@@ -32,12 +32,23 @@ Departing airport:
 	$('#lookup').on('click', lookup);
 	$('#aircode').on('keydown', lookup);
 
+	function getAppendix(data) { // read in data from appendix and convert to dictionary
+    ret = {};
+    if (data) {
+      for (var i = 0; i<data.length; i++) {
+        var v = data[i];
+        ret[v.fs] = v;
+      }
+    }
+    return ret;
+  }
+
 	function lookup(e) {
 		if (e.type === 'keydown' && e.keyCode !== 13) { return; }
 		airportCode = $('#aircode').val().toUpperCase();
 		$.ajax({  // airport tracks departures
       url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
-      data: { appId: appId, appKey: appKey, maxPositions: 2, extendedOptions: 'useInlinedReferences' },
+      data: { appId: appId, appKey: appKey, maxPositions: 2 },
       dataType: 'jsonp',
       success: getDepartures
     });
@@ -50,13 +61,17 @@ Departing airport:
 			$flights.text('AJAX error: '+data.error.errorMessage)
 			return;
 		}
+		console.log('departing flights: ',data);
+		var airlines = getAppendix(data.appendix.airlines);
+		var airports = getAppendix(data.appendix.airports);
 		var deps = [];
 		$.each(data.flightTracks, function(index, val) {
 			deps.push({id: val.flightId,
-								airline: val.carrier.name,
+								airlineCode: val.carrierFsCode,
+								airline: airlines[val.carrierFsCode].name,
 								flight: val.flightNumber,
-								to: val.arrivalAirport.fs,
-								city: val.arrivalAirport.city+(val.arrivalAirport.countryCode==='US'?'':', '+val.arrivalAirport.countryCode),
+								to: val.arrivalAirportFsCode,
+								city: airports[val.arrivalAirportFsCode].city+(airports[val.arrivalAirportFsCode].countryCode==='US'?'':', '+airports[val.arrivalAirportFsCode].countryCode),
 								leaves: val.departureDate.dateLocal.slice(0,16)});
 		});
 		function comp(a, b) {
@@ -67,7 +82,7 @@ Departing airport:
 		$flights.append('<tr><td>ID</td><td>FLIGHT</td><td>TO</td><td>LEAVES</td></tr>');
 		$.each(deps, function(index, val) {
 			$flights.append('<tr><td><a href="index.html?id='+val.id+
-				'&airline='+val.airline+'&flight='+val.flight+'">'+val.id+'</a></td><td>'+
+				'&airline='+val.airlineCode+'&flight='+val.flight+'">'+val.id+'</a></td><td>'+
 				val.airline+' '+val.flight+'</td><td>'+val.to+' - '+val.city+
 				'</td><td>'+val.leaves+'</td></tr>');
 				// '</td><td><a href="http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+

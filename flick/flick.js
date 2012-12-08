@@ -30,8 +30,8 @@
 
 	if (flightID === undefined) { window.location = "flight.html"; }
 
-	var appId = 'defc5e51',
-			appKey = '49c2d9cae10585f227dec686b3d22cb7';
+	var appId = '9543a3e8',
+			appKey = '91d511451d9dbf38ede3efafefac5f09';
 
 	var tiles = {
 		street: L.tileLayer(

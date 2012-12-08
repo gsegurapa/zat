@@ -276,7 +276,9 @@
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					airplane.setLatLng(fpos);
 					airplane.rotate(+flight.heading);
-					if (tracking) { map.panTo(fpos); }
+					if (tracking) {
+						map.panTo(fpos);
+					}
 					setShadow();
 					setPositions();
 					setflightlabel();			
@@ -290,7 +292,7 @@
 						'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0], fullfun, map)).css({
 						'background-image': 'url(img/icon-full.png)' });
-					map.on('dragstart zoomstart', function(e) {
+					map.on('dragstart', function(e) {
 						if (tracking) {
 							tracking = false;
 							$trackbutton.css('background-color', '');							

@@ -1,6 +1,8 @@
 // FlightStats flight tracker
+/*global L:false, jQuery:false */
 
 (function($){
+	"use strict";
 
 	var updateRate = 10000;	// 10 seconds
 
@@ -65,18 +67,18 @@
     getTileUrl: function(xy) {
       var z = this._getZoomForUrl();
       var de = L.TileLayer.FSWeather.weather_tiles_range[z];
-      return (de && xy.x >= de.x.min & xy.x <= de.x.max && xy.y >= de.y.min && xy.y <= de.y.max) ?
+      return (de && xy.x >= de.x.min && xy.x <= de.x.max && xy.y >= de.y.min && xy.y <= de.y.max) ?
         ['http://www.flightstats.com/googlemaptiles/weather/noaa/radar/z', z,
             '/radar_tile_z', z, 'x', xy.x, 'y', xy.y, '.png'].join('') : '';
     }
   });
   
   L.TileLayer.FSWeather.weather_tiles_range = {
-	    2: { x: {min: 0, max: 1}, y: {min: 1, max: 1} },
-	    3: { x: {min: 0, max: 2}, y: {min: 2, max: 3} },
-	    4: { x: {min: 0, max: 5}, y: {min: 4, max: 7} },
-	    5: { x: {min: 0, max: 10}, y: {min: 8, max: 14} },
-	    6: { x: {min: 0, max: 20}, y: {min: 16, max: 28} }
+			2: { x: {min: 0, max: 1}, y: {min: 1, max: 1} },
+			3: { x: {min: 0, max: 2}, y: {min: 2, max: 3} },
+			4: { x: {min: 0, max: 5}, y: {min: 4, max: 7} },
+			5: { x: {min: 0, max: 10}, y: {min: 8, max: 14} },
+			6: { x: {min: 0, max: 20}, y: {min: 16, max: 28} }
   };
 
 	var weather = new L.TileLayer.FSWeather({
@@ -103,11 +105,11 @@
 	$(document).ready(function() {
 
 		var airports, airlines;	// appendices
-		var departureAirport, dpos, arrivalAirport, apos, airplane, fpos, flightBounds, plan, path, positions, wrap;
+		var departureAirport, dpos, arrivalAirport, apos, airplane, fpos, flightBounds, plan, path, wrap;
 		var tracking = false, $trackbutton, maxZoom = 11;
-		var logo = false, logoimg, logourl;	// airline logo image
-		var flightLabel;
-		var flight, pos, timestamp, nodata;
+		var logo = false, logoimg, logourl;	// airline logo image and prefetch
+		var flightLabel;	// label for the airplane icon
+		var flightData, pos, timestamp, nodata;
 
 		var map = L.map('map_div', {	// create map
 			attributionControl: false,
@@ -119,7 +121,7 @@
 			on('layeradd', function(e) { // reset zoom on basemap change
 				var layer = e.layer;
 				var m = layer._map;
-				if (!layer.options || !layer.options.maxZoom) return;
+				if (!layer.options || !layer.options.maxZoom) { return; }
 				$.each(tiles, function(k, v) {
 					if (v === layer) {
 						maxZoom = layer.options.maxZoom;
@@ -132,31 +134,33 @@
 		// get position data from API
 		function mainloop() {
 
-			$.ajax({  // Flight track by flight ID
-	        url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
-	        data: { appId: appId, appKey: appKey, includeFlightPlan: plan===undefined, extendedOptions: 'includeNewFields' },
-	        dataType: 'jsonp',
-	        success: getFlight
-	      });
+			$.ajax({  // Call Flight track by flight ID API
+					url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
+					data: { appId: appId, appKey: appKey, includeFlightPlan: plan===undefined, extendedOptions: 'includeNewFields' },
+					dataType: 'jsonp',
+					success: getFlight
+				});
 
-			function getFlight(data, status, xhr) {
+			function getFlight(data /*, status, xhr */) { // callback
 				if (!data || data.error) {
 					alert('AJAX error: '+data.error.errorMessage);
 					return;
 				}
 
-				var lat, lon;
+				if (console && console.log) { console.log('Flex API data: ', data); }
 
-				flight = data.flightTrack;
-				var newpos = flight.positions[0];
+				var lon;	// temp variable for longitude
+
+				flightData = data.flightTrack;
+				var newpos = flightData.positions[0];
 				var newdate = Date.parse(newpos.date);
 				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 				timestamp += updateRate;	// 10 seconds
 				// if (console && console.log) console.log(timestamp - newdate);
-				if (timestamp - newdate > 120000) { 	// two minutes
+				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
-						if (console && console.log) console.log('position data lost');
-						$('.airplaneicon').attr('src', 'img/airplane-gray.png')						
+						if (console && console.log) { console.log('position data lost '+timestamp); }
+						$('.airplaneicon').attr('src', 'img/airplane-gray.png');
 					}
 					nodata = true;
 				}
@@ -169,21 +173,23 @@
 				timestamp = newdate;
 				if (nodata) {
 					nodata = false;
-					if (console && console.log) console.log('position data reestablished');
+					if (console && console.log) { console.log('position data reestablished '+timestamp); }
 					$('.airplaneicon').attr('src', 'img/airplane-purple.png');
 				}
-
-				if (console && console.log) console.log('Flex API data: ', data);
 
 				if (airports === undefined) { // first time called
 					airports = getAppendix(data.appendix.airports);
 					airlines = getAppendix(data.appendix.airlines);
-					departureAirport = flight.departureAirportFsCode;
+					departureAirport = flightData.departureAirportFsCode;
 					var depa = airports[departureAirport];
-					arrivalAirport = flight.arrivalAirportFsCode;
+					arrivalAirport = flightData.arrivalAirportFsCode;
 					var arra = airports[arrivalAirport];
 
-					wrap = Math.abs(depa.longitude - arra.longitude) > 180; // does route cross anti-meridian
+					// Need to update this test to take into account flights that fly the "wrong" way around
+					// the world. In particular Singapore to New York (because of the wind).
+					// Do this by looking at flight plan, except flight plan is sometimes wrong.
+					// See https://www.pivotaltracker.com/projects/709005#!/stories/40465187
+					wrap = Math.abs(depa.longitude - arra.longitude) > 180; // does route cross anti-meridian?
 
 					lon = +depa.longitude;
 					dpos = L.latLng(+depa.latitude, wrap && lon>0 ? lon-360 : lon, true);
@@ -192,11 +198,11 @@
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 
-					var ac = flight.carrierFsCode.toLowerCase();
+					var ac = flightData.carrierFsCode.toLowerCase();
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_120x40.png';
 					logoimg = $('<img/>'); // prefetch
-					logoimg.load(function(e) {	// if image exists, use it
+					logoimg.load(function(/* e */) {	// if image exists, use it
 						logo = true;
 						setFlightLabel();
 					});
@@ -205,11 +211,11 @@
 					map.on('load', mapReady);
 					setfullview(map);
 
-				} else {
+				} else {	// update
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					airplane.setLatLng(fpos); // can't chain because of bug in 0.4, fixed in 0.5
-					airplane.rotate(+flight.heading);
+					airplane.rotate(+flightData.heading);
 					if (tracking) {
 						map.panTo(fpos);
 					}
@@ -219,17 +225,25 @@
 				}
 
 				// map is ready, draw everything for the first time
-				function mapReady(e) {
+				function mapReady(/* e */) {
 
 					// add additional zoom control buttons
-					$zoomdiv = $('.leaflet-control-zoom');
+					var $zoomdiv = $('.leaflet-control-zoom');
 					// zoom in and turn on tracking
-					$trackbutton = $(zoomcontrol._createButton('Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0], trackfun, map)).css({
-						'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
+					$trackbutton = $(zoomcontrol._createButton('Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0],
+							function(/* e */) {
+								tracking = true;
+								$trackbutton.css('background-color', '#d8e');
+								settrackingview(this);
+							}, map)).css({'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					// zoom out to show entire flight
-					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0], fullfun, map)).css({
-						'background-image': 'url(img/icon-full.png)' });
-					map.on('dragstart', function(e) {
+					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0],
+							function(/* e */) {
+								tracking = false;
+								$trackbutton.css('background-color', '');
+								setfullview(this);
+							}, map)).css({'background-image': 'url(img/icon-full.png)' });
+					map.on('dragstart', function(/* e */) {
 						if (tracking) {
 							tracking = false;
 							$trackbutton.css('background-color', '');							
@@ -264,17 +278,16 @@
 
 					// flight marker (airplane)
 					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
-					airplane = flightMarker(fpos).addTo(map).rotate(+flight.heading).setShadow(alt);
+					airplane = flightMarker(fpos).addTo(map).rotate(+flightData.heading).setShadow(alt);
 					setFlightLabel();
 					
 					// do flight plan (waypoints)
-					var p = flight.waypoints;
+					var p = flightData.waypoints;
 					if (p) { // there is a flight plan
-						positions = new Array(p.length);
+						var positions = new Array(p.length);
 						for (var i = 0; i < p.length; i++) {
-							lat = +p[i].lat; lon = +p[i].lon;
-							// positions[i] = L.latLng(lat, wrap && lon<0 ? lon : lon-360, true);
-							positions[i] = L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
+							lon = +p[i].lon;
+							positions[i] = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);
 						}
 						plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel('flight plan').addTo(map);
 						layercontrol.addOverlay(plan, 'flight plan');
@@ -289,11 +302,11 @@
 				} // end mapReady
 
 				function setPositions() { // draw flight positions
-					p = flight.positions;
-					positions = [];
+					var p = flightData.positions;
+					var positions = [];
 					var last = null, ct;
 					var multi = [];
-					for (i = 0; i < p.length; i++) {
+					for (var i = 0; i < p.length; i++) {
 						ct = Date.parse(p[i].date);
 						if (last) {
 							if (Math.abs(ct - last) > 600000) {	// no data for 10 minutes
@@ -301,8 +314,8 @@
 								positions = [];
 							}
 						}
-						lat = +p[i].lat; lon = +p[i].lon;
-						positions.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
+						lon = +p[i].lon;
+						positions.push(L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true));
 						last = ct;
 					}
 					multi.push(positions);
@@ -317,17 +330,17 @@
 			} // end getFlight
 
 			function getAppendix(data) { // read in data from appendix and convert to dictionary
-	      ret = {};
-	      if (data) {
-	        for (var i = 0; i<data.length; i++) {
-	          var v = data[i];
-	          ret[v.fs] = v;
-	        }
-	      }
-	      return ret;
-	    }
+				var ret = {};
+				if (data) {
+					for (var i = 0; i<data.length; i++) {
+						var v = data[i];
+						ret[v.fs] = v;
+					}
+				}
+				return ret;
+			}
 
-	    function setfullview(m) { // set map view including both airports and current position of flight
+			function setfullview(m) { // set map view including both airports and current position of flight
 				if (wrap) { // shift by 180 degrees if flight crosses anti-meridian
 					flightBounds = L.latLngBounds([
 							[dpos.lat, dpos.lng+180],
@@ -340,24 +353,11 @@
 					flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
 					m.fitBounds(flightBounds);
 				}
-	    }
-
-	    function settrackingview(m) {
-	    	if (fpos) { m.setView(fpos, maxZoom > 11 ? 11 : maxZoom); }
-	    }
-
-			function trackfun(e) {
-				tracking = true;
-				$trackbutton.css('background-color', '#d8e');
-				settrackingview(this);
 			}
 
-			function fullfun(e) {
-				tracking = false;
-				$trackbutton.css('background-color', '');
-				setfullview(this);
+			function settrackingview(m) {
+				if (fpos) { m.setView(fpos, maxZoom > 11 ? 11 : maxZoom); }
 			}
-
 
 		} // end mainloop
 
@@ -366,16 +366,17 @@
 
 		function setFlightLabel() {
 			var label = (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
-						'<div class="labelhead fakelogo">'+airlines[flight.carrierFsCode].name+'&nbsp;</div>')+
-				'Flight: '+flight.carrierFsCode+' #'+flight.flightNumber+
+						'<div class="labelhead fakelogo">'+airlines[flightData.carrierFsCode].name+'&nbsp;</div>')+
+				'Flight: '+flightData.carrierFsCode+' #'+flightData.flightNumber+
 				'<br />Route: '+departureAirport+' to '+arrivalAirport+
+				(flightData.delayMinutes ? '<br />Delayed: '+flightData.delayMinutes+' min' : '<br />On Time')+
 				'<br />Altitude: '+pos.altitudeFt+' ft'+
 				'<br />Speed: '+pos.speedMph+' mph'+
-				'<br />Heading: '+(+flight.heading).toFixed()+'&deg;'+
-				'<br />Bearing to '+arrivalAirport+': '+(+flight.bearing).toFixed()+'&deg;'+
+				'<br />Heading: '+(+flightData.heading).toFixed()+'&deg;'+
+				'<br />Bearing to '+arrivalAirport+': '+(+flightData.bearing).toFixed()+'&deg;'+
 				'<br />Latitude: '+fpos.lat.toFixed(2)+
 				'<br />Longitude: '+fpos.lng.toFixed(2)+
-				'<br />Equipment: '+flight.equipment;
+				'<br />Equipment: '+flightData.equipment;
 			if (flightLabel) {
 				flightLabel.updateLabelContent(label);
 			} else {
@@ -402,12 +403,12 @@
 			this._latlng = L.latLng(latlng);
 		},
 		rotate: function(deg) { // add rotate function to Marker class
-			var $icon = $(this._icon).find('img').css('transform', 'rotate('+deg+'deg)');			
+			$(this._icon).find('img').css('transform', 'rotate('+deg+'deg)');			
 			return this;
 		},
 		setShadow: function(alt) {	// shadow for flight icon
 			var $shadow = $(this._icon).find('.airplaneshadow');
-			var offset = Math.round(alt * 0.0005); // shadow offset
+			var offset = Math.round(alt * 0.0005); // shadow offset based on altitude
 			var shimg = 'img/shadow'+ (Math.max(0, Math.min(9, Math.floor(alt / 3000))))+'.png'; // shadow image 0-9 (progressive blur)
 			if ($shadow.attr('src') !== shimg) { $shadow.attr('src', shimg); }
 			$shadow.css({opacity: 0.6, left: offset, top: offset});
@@ -446,12 +447,12 @@
 				for (var i = 0; i < npoints; i++) {
           var step = delta * i;
 					var A = Math.sin((1 - step) * g) * isg;
-			    var B = Math.sin(step * g) * isg;
-			    var x = A * Math.cos(starty) * Math.cos(startx) + B * Math.cos(endy) * Math.cos(endx);
-			    var y = A * Math.cos(starty) * Math.sin(startx) + B * Math.cos(endy) * Math.sin(endx);
-			    var z = A * Math.sin(starty) + B * Math.sin(endy);
-			    var lat = R2D * Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
-			    var lon = R2D * Math.atan2(y, x);
+					var B = Math.sin(step * g) * isg;
+					var x = A * Math.cos(starty) * Math.cos(startx) + B * Math.cos(endy) * Math.cos(endx);
+					var y = A * Math.cos(starty) * Math.sin(startx) + B * Math.cos(endy) * Math.sin(endx);
+					var z = A * Math.sin(starty) + B * Math.sin(endy);
+					var lat = R2D * Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+					var lon = R2D * Math.atan2(y, x);
           points.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
         }
 			}
@@ -462,22 +463,22 @@
 
 }(jQuery));
 
-			// window.handleResponse = function(data) { // results from Chris' API
-			// 	if (console && console.log) console.log('mobile API: ',data);
-			// 	p = data.PositionalUpdate;
-			// 	if (console && console.log) console.log('mobile API length: '+p.length,
-			// 				'actual start: ('+(+p[0].latitude).toFixed(4)+','+(+p[0].longitude).toFixed(4)+')');
-			// 	positions = new Array(p.length);
-			// 	for (i = 0; i < p.length; i++) {
-			// 			lon = p[i].longitude;
-			// 			positions[i] = L.latLng(p[i].latitude, lon>90 ? lon-360:lon, true);
-			// 		}
-			// 		var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).bindLabel('flight path').addTo(map);
-			// 		layercontrol.addOverlay(path, 'mobile API path');
-			// } // end handleResponse
+			//	window.handleResponse = function(data) { // results from Chris' API
+			//		if (console && console.log) console.log('mobile API: ',data);
+			//		p = data.PositionalUpdate;
+			//		if (console && console.log) console.log('mobile API length: '+p.length,
+			//				'actual start: ('+(+p[0].latitude).toFixed(4)+','+(+p[0].longitude).toFixed(4)+')');
+			//		positions = new Array(p.length);
+			//		for (i = 0; i < p.length; i++) {
+			//			lon = p[i].longitude;
+			//			positions[i] = L.latLng(p[i].latitude, lon>90 ? lon-360:lon, true);
+			//		}
+			//		var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).bindLabel('flight path').addTo(map);
+			//		layercontrol.addOverlay(path, 'mobile API path');
+			//	}	// end handleResponse
 			// Call the mobile API
 			// var url = 'http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+flightID+'&airlineCode='+airline+'&flightNumber='+
-			// 		flightnum+'&version=1.0&key=49e3481552e7c4c9%253A-5b147615%253A12ee3ed13b5%253A-5f90&responseType=jsonp';
-			// var script = document.createElement('script');
-			// script.setAttribute('src', url);
-			// document.getElementsByTagName('head')[0].appendChild(script); // load the script
+			//		flightnum+'&version=1.0&key=49e3481552e7c4c9%253A-5b147615%253A12ee3ed13b5%253A-5f90&responseType=jsonp';
+			//	var script = document.createElement('script');
+			//	script.setAttribute('src', url);
+			//	document.getElementsByTagName('head')[0].appendChild(script); // load the script

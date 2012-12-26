@@ -5,7 +5,7 @@
 	"use strict";
 
 	var updateRate = 10000;	// 10 seconds
-	var aniRate = 300;	// 0.3 second
+	var aniRate = 250;	// 1/4 second
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -129,6 +129,7 @@
 				frames = 0,	// frame of animation remaining
 				anitimer;	// animation timer
 		var vlat, vlng, vrot;	// velocities for animation
+		var tail;		// last actual flight position displayed
 
 		var map = L.map('map_div', {	// create map
 			attributionControl: false,
@@ -238,7 +239,7 @@
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp);
-					setPositions(map);
+					setPositions();
 					setFlightLabel();			
 				}
 
@@ -253,6 +254,7 @@
 								tracking = true;
 								$trackbutton.css('background-color', '#d8e');
 								settrackingview(this);
+								setPositions();
 							}, map)).css({'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					// zoom out to show entire flight
 					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0],
@@ -311,7 +313,7 @@
 						layercontrol.addOverlay(plan, 'route');
 					}
 
-					setPositions(map); // draw actual flight position data
+					setPositions(); // draw actual flight position data
 
 					// flight marker (airplane)
 					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
@@ -333,12 +335,15 @@
 
 				} // end mapReady
 
-				function setPositions(m) { // draw flight positions
+				function setPositions() { // draw flight positions
 					var p = flightData.positions;
 					var positions = [];
 					var last = null, ct;
 					var multi = [];
-					for (var i = 1; i < p.length; i++) {
+					var i = tracking ? 2 : 0;
+					var lon = +p[i].lon;
+					tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);
+					for (; i < p.length; i++) {
 						ct = Date.parse(p[i].date);
 						if (last) {
 							if (Math.abs(ct - last) > 600000) {	// no data for 10 minutes
@@ -354,7 +359,7 @@
 					if (path) {	// layer already exists
 						path.setLatLngs(multi);
 					} else {	// create layer
-						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(m).bindLabel('flight path');
+						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(map).bindLabel('flight path');
 						layercontrol.addOverlay(path, 'flight path');
 					}
 				} // end setPositions
@@ -369,7 +374,7 @@
 						if (tracking) { map.panTo(p); }
 						return;
 					}
-					frames += Math.ceil(dt / aniRate);	// add number of frames for this move
+					frames += Math.floor(dt / aniRate);	// add number of frames for this move
 					var turn = h - currot;	// calculate shortest turn
 					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
 					vlat = (p.lat - curpos.lat) / frames;
@@ -383,16 +388,13 @@
 							currot += vrot;
 							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
 							// if (tracking) { map.panTo(curpos); }
-							if (frames <= 0) {
+							if (frames <= 0) {	// stop movement
 								vlat = 0;
 								vlng = 0;
 								vrot = 0;
 							} else { frames--; }
 						}, aniRate);
 					}
-
-					// airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
-					// if (tracking) { map.panTo(p); }
 				}	// end phat
 
 			} // end getFlight
@@ -429,7 +431,7 @@
 			}
 
 			function settrackingview(m) {
-				if (fpos) { m.setView(fpos, maxZoom > 11 ? 11 : maxZoom); }
+				if (fpos) { m.setView(fpos, maxZoom > 9 ? 9 : maxZoom); }
 			}
 
 		} // end mainloop

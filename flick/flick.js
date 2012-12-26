@@ -5,6 +5,7 @@
 	"use strict";
 
 	var updateRate = 10000;	// 10 seconds
+	var aniRate = 300;	// 0.3 second
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -104,12 +105,30 @@
 
 	$(document).ready(function() {
 
-		var airports, airlines;	// appendices
-		var departureAirport, dpos, arrivalAirport, apos, airplane, fpos, flightBounds, plan, path, wrap;
+		// console.log('hey!');
+
+		var airports, airlines;	// appendices from API
+		var departureAirport,	// code of departure airport
+				dpos,	// lat/lng position of departure airport
+				arrivalAirport,	// code of arrival airport
+				apos,	// lat/lng position of arrival airport
+				airplane,	// L.marker for airplane icon
+				fpos,	// lat/lng position of airplane
+				plan,	// L.polyline of flight plan (or great circle)
+				path,	// L.polyline of actual flight path
+				wrap;	// does route cross the anti-meridian?
 		var tracking = false, $trackbutton, maxZoom = 11;
-		var logo = false, logoimg, logourl;	// airline logo image and prefetch
+		var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
 		var flightLabel;	// label for the airplane icon
-		var flightData, pos, timestamp, nodata;
+		var flightData,	// flight data returned by API
+				pos,	// position data returned by API
+				timestamp,	// time of API call
+				nodata;	// haven't received data from API recently
+		var curpos,	// current lat/lng of animation
+				currot, // current heading of animation
+				frames = 0,	// frame of animation remaining
+				anitimer;	// animation timer
+		var vlat, vlng, vrot;	// velocities for animation
 
 		var map = L.map('map_div', {	// create map
 			attributionControl: false,
@@ -147,8 +166,6 @@
 					return;
 				}
 
-				if (console && console.log) { console.log('Flex API data: ', data); }
-
 				var lon;	// temp variable for longitude
 
 				flightData = data.flightTrack;
@@ -160,7 +177,8 @@
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
 						if (console && console.log) { console.log('position data lost '+timestamp); }
-						$('.airplaneicon').attr('src', 'img/airplane-gray.png');
+						airplane.setActive(false);
+						// $('.airplaneicon').attr('src', 'img/airplane-gray.png');
 					}
 					nodata = true;
 				}
@@ -174,8 +192,10 @@
 				if (nodata) {
 					nodata = false;
 					if (console && console.log) { console.log('position data reestablished '+timestamp); }
-					$('.airplaneicon').attr('src', 'img/airplane-purple.png');
+					airplane.setActive(true);
+					// $('.airplaneicon').attr('src', 'img/airplane-purple.png');
 				}
+				if (console && console.log) { console.log('Flex API data: ', data); }
 
 				if (airports === undefined) { // first time called
 					airports = getAppendix(data.appendix.airports);
@@ -187,8 +207,9 @@
 
 					// Need to update this test to take into account flights that fly the "wrong" way around
 					// the world. In particular Singapore to New York (because of the wind).
-					// Do this by looking at flight plan, except flight plan is sometimes wrong.
+					// Could do this by looking at flight plan, except flight plan is sometimes wrong.
 					// See https://www.pivotaltracker.com/projects/709005#!/stories/40465187
+					// See setfullview for hack to fix Singapore flights
 					wrap = Math.abs(depa.longitude - arra.longitude) > 180; // does route cross anti-meridian?
 
 					lon = +depa.longitude;
@@ -197,6 +218,7 @@
 					apos = L.latLng(+arra.latitude, wrap && lon>0 ? lon-360 : lon, true);
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
+					currot = +(flightData.heading || flightData.bearing);
 
 					var ac = flightData.carrierFsCode.toLowerCase();
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
@@ -204,7 +226,7 @@
 					logoimg = $('<img/>'); // prefetch
 					logoimg.load(function(/* e */) {	// if image exists, use it
 						logo = true;
-						setFlightLabel();
+						// setFlightLabel();
 					});
 					logoimg.attr('src', logourl);	// prefetch image
 
@@ -212,15 +234,11 @@
 					setfullview(map);
 
 				} else {	// update
+					if (tracking) { map.panTo(fpos); }
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
-					airplane.setLatLng(fpos); // can't chain because of bug in 0.4, fixed in 0.5
-					airplane.rotate(+flightData.heading);
-					if (tracking) {
-						map.panTo(fpos);
-					}
-					if (pos.altitudeFt) { airplane.setShadow(+pos.altitudeFt); }
-					setPositions();
+					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp);
+					setPositions(map);
 					setFlightLabel();			
 				}
 
@@ -275,11 +293,6 @@
 						}).addTo(map).bindLabel('<div class="labelhead">Arrive '+arrivalAirport+'</div>'+arra.name+
 								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode);
 								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
-
-					// flight marker (airplane)
-					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
-					airplane = flightMarker(fpos).addTo(map).rotate(+flightData.heading).setShadow(alt);
-					setFlightLabel();
 					
 					// do flight plan (waypoints)
 					var p = flightData.waypoints;
@@ -298,15 +311,34 @@
 						layercontrol.addOverlay(plan, 'route');
 					}
 
-					setPositions(); // draw actual flight position data
+					setPositions(map); // draw actual flight position data
+
+					// flight marker (airplane)
+					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
+					var heading = +(flightData.heading || flightData.bearing);
+					if (flightData.positions.length >= 2) {
+						p = flightData.positions[1];
+						var a2 = +(p.altitudeFt || alt);
+						if (a2 > 5000) { a2 = alt; }	// fix bad data for airplanes on ground
+						lon = +p.lon;
+						var fp2 = L.latLng(+p.lat, wrap && lon>0 ? lon-360 : lon, true);
+						curpos = fp2;
+						airplane = flightMarker(fp2).addTo(map).rotate(heading).setShadow(a2).stamp(p.date);
+						phat(fpos, heading, +pos.altitudeFt, timestamp);	// start airplane moving
+					} else {
+						airplane = flightMarker(fpos).addTo(map).rotate(heading).setShadow(alt).stamp(p.date);
+					}
+					
+					setFlightLabel();
+
 				} // end mapReady
 
-				function setPositions() { // draw flight positions
+				function setPositions(m) { // draw flight positions
 					var p = flightData.positions;
 					var positions = [];
 					var last = null, ct;
 					var multi = [];
-					for (var i = 0; i < p.length; i++) {
+					for (var i = 1; i < p.length; i++) {
 						ct = Date.parse(p[i].date);
 						if (last) {
 							if (Math.abs(ct - last) > 600000) {	// no data for 10 minutes
@@ -322,10 +354,46 @@
 					if (path) {	// layer already exists
 						path.setLatLngs(multi);
 					} else {	// create layer
-						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(map).bindLabel('flight path');
+						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(m).bindLabel('flight path');
 						layercontrol.addOverlay(path, 'flight path');
 					}
-				}
+				} // end setPositions
+
+				// update position of airplane, using animation
+				function phat(p, h, a, t) {	// position, heading, altitude, time
+					if (!isNaN(a)) { airplane.setShadow(a); }
+					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
+					airplane.stamp(t);
+					if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
+						airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
+						if (tracking) { map.panTo(p); }
+						return;
+					}
+					frames += Math.ceil(dt / aniRate);	// add number of frames for this move
+					var turn = h - currot;	// calculate shortest turn
+					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
+					vlat = (p.lat - curpos.lat) / frames;
+					vlng = (p.lng - curpos.lng) / frames;
+					vrot =  turn / frames;
+					if (!anitimer) {
+						anitimer = setInterval(function() {
+							// console.log(frames, vlat, vlng, vrot);
+							var lon = curpos.lng + vlng;
+							curpos = L.latLng(curpos.lat + vlat, wrap && lon>0 ? lon-360 : lon, true);
+							currot += vrot;
+							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
+							// if (tracking) { map.panTo(curpos); }
+							if (frames <= 0) {
+								vlat = 0;
+								vlng = 0;
+								vrot = 0;
+							} else { frames--; }
+						}, aniRate);
+					}
+
+					// airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
+					// if (tracking) { map.panTo(p); }
+				}	// end phat
 
 			} // end getFlight
 
@@ -341,6 +409,11 @@
 			}
 
 			function setfullview(m) { // set map view including both airports and current position of flight
+				var flightBounds;	// area of world to display
+				if (Math.abs(180 - Math.abs(dpos.lng - apos.lng)) < 5) {
+					m.fitWorld();
+					return;
+				}
 				if (wrap) { // shift by 180 degrees if flight crosses anti-meridian
 					flightBounds = L.latLngBounds([
 							[dpos.lat, dpos.lng+180],
@@ -401,10 +474,19 @@
 		initialize: function (latlng) {
 			L.Util.setOptions(this, this.defaultFlightMarkerOptions);
 			this._latlng = L.latLng(latlng);
+			this._stamp = 0;
 		},
 		rotate: function(deg) { // add rotate function to Marker class
 			$(this._icon).find('img').css('transform', 'rotate('+deg+'deg)');			
 			return this;
+		},
+		stamp: function(ds) {
+			if (ds) {
+				if (typeof ds === 'string') { ds = Date.parse(ds); }
+				this._stamp = ds;
+				return this;
+			}
+			return this._stamp;
 		},
 		setShadow: function(alt) {	// shadow for flight icon
 			var $shadow = $(this._icon).find('.airplaneshadow');
@@ -412,6 +494,10 @@
 			var shimg = 'img/shadow'+ (Math.max(0, Math.min(9, Math.floor(alt / 3000))))+'.png'; // shadow image 0-9 (progressive blur)
 			if ($shadow.attr('src') !== shimg) { $shadow.attr('src', shimg); }
 			$shadow.css({opacity: 0.6, left: offset, top: offset});
+			return this;
+		},
+		setActive: function(v) {	// change color when data feed lost
+			$(this._icon).find('.airplaneicon').attr('src', v ? 'img/airplane-purple.png' : 'img/airplane-gray.png');
 			return this;
 		}
 	});

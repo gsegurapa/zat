@@ -179,6 +179,7 @@
 					if (!nodata) {
 						if (console && console.log) { console.log('position data lost '+timestamp); }
 						airplane.setActive(false);
+						setPositions(true);
 						// $('.airplaneicon').attr('src', 'img/airplane-gray.png');
 					}
 					nodata = true;
@@ -335,12 +336,12 @@
 
 				} // end mapReady
 
-				function setPositions() { // draw flight positions
+				function setPositions(all) { // draw flight positions
 					var p = flightData.positions;
 					var positions = [];
 					var last = null, ct;
 					var multi = [];
-					var i = tracking ? 2 : 0;
+					var i = tracking && !all ? 2 : 0;
 					var lon = +p[i].lon;
 					tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);
 					for (; i < p.length; i++) {
@@ -367,6 +368,14 @@
 				// update position of airplane, using animation
 				function phat(p, h, a, t) {	// position, heading, altitude, time
 					if (!isNaN(a)) { airplane.setShadow(a); }
+					if (curpos) {	// calculate heading from positions
+						h = (90 + (Math.atan2(curpos.lat - p.lat, p.lng - curpos.lng) * L.LatLng.RAD_TO_DEG)) % 360;
+						if (h < 0) { newhead += 360; }
+					}
+					currot %- 360;
+					if (currot < 0) { currot += 360; }
+					var turn = h - currot;	// calculate shortest turn
+					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
 					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
 					airplane.stamp(t);
 					if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
@@ -374,12 +383,21 @@
 						if (tracking) { map.panTo(p); }
 						return;
 					}
+					var speed = curpos.distanceTo(p) * 1000 / dt; // in meters / second
+					// console.log(speed, dt);
 					frames += Math.floor(dt / aniRate);	// add number of frames for this move
-					var turn = h - currot;	// calculate shortest turn
-					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
 					vlat = (p.lat - curpos.lat) / frames;
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / frames;
+					// if (speed > 343.2) { // limit to the speed of sound in meters/sec
+     //        var speedratio = 343.2 / speed;
+     //        vlat *= speedratio;
+     //        vlng *= speedratio;
+     //        frames = Math.floor(frames / speedratio);
+     //      }
+     //      if (Math.abs(turn / dt) > 2000) {  // maximum turn rate 2 degrees per second
+     //        vrot = (vrot > 0 ? 0.002 : -0.002) * dt;
+     //      }
 					if (!anitimer) {
 						anitimer = setInterval(function() {
 							// console.log(frames, vlat, vlng, vrot);
@@ -466,9 +484,9 @@
 		defaultFlightMarkerOptions: {
 			icon: L.divIcon({ // airplane icon (rotatable)
 					html: '<img class="airplaneshadow" src="img/shadow4.png" /><img class="airplaneicon" src="img/airplane-purple.png" />',
-					iconSize: [50, 50],
-					iconAnchor: [25, 25],
-					labelAnchor: [10, -5],
+					iconSize: [62, 62],
+					iconAnchor: [31, 31],
+					labelAnchor: [15, -4],
 					className: ''
 			}),
 			zIndexOffset: 1000

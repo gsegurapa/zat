@@ -116,6 +116,7 @@
 				fpos,	// lat/lng position of airplane
 				plan,	// L.polyline of flight plan (or great circle)
 				path,	// L.polyline of actual flight path
+				multi,	// lat/lngs for flight path
 				wrap;	// does route cross the anti-meridian?
 		var tracking = false, $trackbutton, maxZoom = 11;
 		var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
@@ -129,7 +130,6 @@
 				frames = 0,	// frame of animation remaining
 				anitimer;	// animation timer
 		var vlat, vlng, vrot;	// velocities for animation
-		var tail;		// last actual flight position displayed
 
 		var map = L.map('map_div', {	// create map
 			attributionControl: false,
@@ -340,10 +340,10 @@
 					var p = flightData.positions;
 					var positions = [];
 					var last = null, ct;
-					var multi = [];
 					var i = tracking && !all ? 2 : 0;
 					var lon = +p[i].lon;
-					tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);
+					var tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
+					multi = [[tail, tail]]; // dummy path for tail
 					for (; i < p.length; i++) {
 						ct = Date.parse(p[i].date);
 						if (last) {
@@ -406,6 +406,10 @@
 							currot += vrot;
 							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
 							// if (tracking) { map.panTo(curpos); }
+							if (path) {	// draw tail
+								multi[0][0] = curpos;
+								path.setLatLngs(multi);
+							}
 							if (frames <= 0) {	// stop movement
 								vlat = 0;
 								vlng = 0;

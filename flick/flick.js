@@ -391,7 +391,7 @@
 					if (!isNaN(a)) { airplane.setShadow(a); }
 					if (curpos) {	// calculate heading from positions
 						h = (90 + (Math.atan2(curpos.lat - p.lat, p.lng - curpos.lng) * L.LatLng.RAD_TO_DEG)) % 360;
-						if (h < 0) { newhead += 360; }
+						if (h < 0) { h += 360; }
 					}
 					currot %- 360;
 					if (currot < 0) { currot += 360; }

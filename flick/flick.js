@@ -14,7 +14,8 @@
 			timeFormat=12, // 12 or 24
 			units='metric', // metric or US
 			mapType = 'street', // name of map
-			showWeather = false; // true or false
+			showWeather = false,
+			graph_on = false; // true or false
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -154,12 +155,19 @@
 		// get position data from API
 		function mainloop() {
 
-			$.ajax({  // Call Flight track by flight ID API
+			$.ajax({  // Call Flight Track by flight ID API
 					url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
 					data: { appId: appId, appKey: appKey, includeFlightPlan: plan===undefined, extendedOptions: 'includeNewFields' },
 					dataType: 'jsonp',
 					success: getFlight
 				});
+
+			// $.ajax({	// Call Flight Status by flight ID API
+			// 		url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' + flightID,
+			// 		data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
+			// 		dataType: 'jsonp',
+			// 		success: getStatus
+			// });
 
 			function getFlight(data /*, status, xhr */) { // callback
 				if (!data || data.error) {
@@ -263,7 +271,20 @@
 								tracking = false;
 								$trackbutton.css('background-color', '');
 								setfullview(this);
-							}, map)).css({'background-image': 'url(img/icon-full.png)' });
+							}, map)).css({'background-image': 'url(img/icon-full.png)', margin: '5px 0' });
+					$(zoomcontrol._createButton('Show Graph', 'leaflet-control-show-graph', $zoomdiv[0],
+							function(/* e */) {
+								if (graph_on) {	// hide graph
+									$('#map_div').animate({height: '100%'}, 'fast');
+									$('#graph1_div, #graph2_div').hide();
+									graph_on = false;
+								} else {	// show graph
+									$('#graph1_div, #graph2_div').show();
+									$('#map_div').animate({height: '80%'}, 'fast');
+									graph_on = true;
+									doGraph();
+								}
+							}, map)).css({'background-image': 'url(img/icon-graph.png)' });
 					map.on('dragstart', function(/* e */) {
 						if (tracking) {
 							tracking = false;
@@ -420,6 +441,42 @@
 				}	// end phat
 
 			} // end getFlight
+
+			function doGraph() {	// draw graph
+				$('#graph1_div, #graph2_div').empty();
+				Morris.Line({
+					element: 'graph1_div',
+					data: flightData.positions,
+					xkey: 'date',
+					ykeys: ['altitudeFt'],
+					labels: ['Altitude'],
+					postUnits: ' ft',
+					smooth: false,
+					pointSize: 2,
+					hideHover: true
+				});	
+				Morris.Line({
+					element: 'graph2_div',
+					data: flightData.positions,
+					xkey: 'date',
+					ykeys: ['speedMph'],
+					labels: ['Speed'],
+					postUnits: ' mph',
+					smooth: false,
+					pointSize: 2,
+					hideHover: true,
+					lineColors: ['#f08']
+				});	
+			}
+
+			function getStatus(data /*, status, xhr */) { // status callback
+				if (!data || data.error) {
+					alert('AJAX error: '+data.error.errorMessage);
+					return;
+				}
+				if (console && console.log) { console.log('Flight status: ', data); }
+
+			}	// end getStatus
 
 			function getAppendix(data) { // read in data from appendix and convert to dictionary
 				var ret = {};

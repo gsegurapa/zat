@@ -249,7 +249,8 @@
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp);
 					setPositions();
-					setFlightLabel();			
+					setFlightLabel();
+					doGraph();
 				}
 
 				// map is ready, draw everything for the first time

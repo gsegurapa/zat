@@ -406,7 +406,7 @@
 					}
 					var speed = curpos.distanceTo(p) * 1000 / dt; // in meters / second
 					// console.log(speed, dt);
-					frames += Math.floor(dt / aniRate);	// add number of frames for this move
+					frames = Math.floor(dt / aniRate);	// add number of frames for this move
 					vlat = (p.lat - curpos.lat) / frames;
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / frames;

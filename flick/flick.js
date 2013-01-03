@@ -261,21 +261,23 @@
 					var $zoomdiv = $('.leaflet-control-zoom');
 					// zoom in and turn on tracking
 					$trackbutton = $(zoomcontrol._createButton('Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0],
-							function(/* e */) {
+							function(e) {
 								tracking = true;
 								$trackbutton.css('background-color', '#d8e');
 								settrackingview(this);
 								setPositions();
+								L.DomEvent.stopPropagation(e);
 							}, map)).css({'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					// zoom out to show entire flight
 					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0],
-							function(/* e */) {
+							function(e) {
 								tracking = false;
 								$trackbutton.css('background-color', '');
 								setfullview(this);
+								L.DomEvent.stopPropagation(e);
 							}, map)).css({'background-image': 'url(img/icon-full.png)', margin: '5px 0' });
 					$(zoomcontrol._createButton('Show Graph', 'leaflet-control-show-graph', $zoomdiv[0],
-							function(/* e */) {
+							function(e) {
 								if (graph_on) {	// hide graph
 									$('#map_div').animate({height: '100%'}, 'fast');
 									$('#graph1_div, #graph2_div').hide();
@@ -286,6 +288,7 @@
 									graph_on = true;
 									doGraph();
 								}
+								L.DomEvent.stopPropagation(e);
 							}, map)).css({'background-image': 'url(img/icon-graph.png)' });
 					map.on('dragstart', function(/* e */) {
 						if (tracking) {

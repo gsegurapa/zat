@@ -186,26 +186,27 @@
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
 						if (console && console.log) { console.log('position data lost '+timestamp); }
-						airplane.setActive(false);
+						airplane.setActive(false);	// set airplane color to gray
 						setPositions(true);
-						// $('.airplaneicon').attr('src', 'img/airplane-gray.png');
 					}
 					nodata = true;
 				}
 
 				if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon &&
 						newpos.date === pos.date && pos.altitudeFt === newpos.altitudeFt) {
-					return; // no new data
+					return; // data has not changed
 				}
+				if (console && console.log) { console.log('Flex API data: ', data); }
+
 				pos = newpos;
 				timestamp = newdate;
 				if (nodata) {
 					nodata = false;
 					if (console && console.log) { console.log('position data reestablished '+timestamp); }
-					airplane.setActive(true);
-					// $('.airplaneicon').attr('src', 'img/airplane-purple.png');
+					airplane.setActive(true);	// set airplane color back to purple
+					lon = +pos.lon;
+					curpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 				}
-				if (console && console.log) { console.log('Flex API data: ', data); }
 
 				if (airports === undefined) { // first time called
 					airports = getAppendix(data.appendix.airports);
@@ -219,7 +220,7 @@
 					// the world. In particular Singapore to New York (because of the wind).
 					// Could do this by looking at flight plan, except flight plan is sometimes wrong.
 					// See https://www.pivotaltracker.com/projects/709005#!/stories/40465187
-					// See setfullview for hack to fix Singapore flights
+					// See setfullview for hack to fix long Singapore flights
 					wrap = Math.abs(depa.longitude - arra.longitude) > 180; // does route cross anti-meridian?
 
 					lon = +depa.longitude;
@@ -250,7 +251,7 @@
 					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp);
 					setPositions();
 					setFlightLabel();
-					doGraph();
+					if (graph_on) { doGraph(); }
 				}
 
 				// map is ready, draw everything for the first time
@@ -362,14 +363,14 @@
 					var p = flightData.positions;
 					var positions = [];
 					var last = null, ct;
-					var i = tracking && !all ? 2 : 0;
+					var i = tracking && !all ? 3 : 0;
 					var lon = +p[i].lon;
 					var tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
 					multi = [[tail, tail]]; // dummy path for tail
 					for (; i < p.length; i++) {
 						ct = Date.parse(p[i].date);
 						if (last) {
-							if (Math.abs(ct - last) > 600000) {	// no data for 10 minutes
+							if (Math.abs(ct - last) > 300000) {	// no data for 5 minutes
 								multi.push(positions);
 								positions = [];
 							}
@@ -400,17 +401,19 @@
 					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
 					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
 					airplane.stamp(t);
-					if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
+					if (dt > 30000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
 						airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
 						if (tracking) { map.panTo(p); }
 						return;
 					}
 					var speed = curpos.distanceTo(p) * 1000 / dt; // in meters / second
 					// console.log(speed, dt);
-					frames = Math.floor(dt / aniRate);	// add number of frames for this move
+					// frames = Math.ceil(frames/2);
+					frames = Math.ceil(dt / aniRate) + 20;	// add number of frames for this move
+					var rotframes = Math.ceil(frames/2);
 					vlat = (p.lat - curpos.lat) / frames;
 					vlng = (p.lng - curpos.lng) / frames;
-					vrot =  turn / frames;
+					vrot =  turn / rotframes;
 					// if (speed > 343.2) { // limit to the speed of sound in meters/sec
      //        var speedratio = 343.2 / speed;
      //        vlat *= speedratio;
@@ -436,7 +439,10 @@
 								vlat = 0;
 								vlng = 0;
 								vrot = 0;
-							} else { frames--; }
+							} else {
+								if (frames <= rotframes) { vrot = 0; }
+								frames--;
+							}
 						}, aniRate);
 					}
 				}	// end phat

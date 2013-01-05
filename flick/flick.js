@@ -1,5 +1,5 @@
 // FlightStats flight tracker
-/*global L:false, jQuery:false */
+/*global L:false, jQuery:false, Morris:false */
 
 (function($){
 	"use strict";
@@ -162,12 +162,12 @@
 					success: getFlight
 				});
 
-			// $.ajax({	// Call Flight Status by flight ID API
-			// 		url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' + flightID,
-			// 		data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
-			// 		dataType: 'jsonp',
-			// 		success: getStatus
-			// });
+			//	$.ajax({	// Call Flight Status by flight ID API
+			//		url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' + flightID,
+			//		data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
+			//		dataType: 'jsonp',
+			//		success: getStatus
+			//	});
 
 			function getFlight(data /*, status, xhr */) { // callback
 				if (!data || data.error) {
@@ -335,7 +335,7 @@
 						layercontrol.addOverlay(plan, 'flight plan');
 					} else { // if there is NO flight plan, draw great circle
 						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
-						plan = L.polyline([dpos, apos], { color: '#939', weight: 6, dashArray: '1, 12'}).
+						plan = L.polyline([dpos, apos], { color: '#939', weight: 6, dashArray: '1, 15'}).
 								greatCircle(npoints).addTo(map).bindLabel(airline+flightnum+' route');
 						layercontrol.addOverlay(plan, 'route');
 					}
@@ -366,7 +366,7 @@
 					var p = flightData.positions;
 					var positions = [];
 					var last = null, ct;
-					var i = tracking && !all ? 3 : 0;
+					var i = tracking && !all ? 2 : 0;
 					var lon = +p[i].lon;
 					var tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
 					multi = [[tail, tail]]; // dummy path for tail
@@ -398,19 +398,20 @@
 						h = (90 + (Math.atan2(curpos.lat - p.lat, p.lng - curpos.lng) * L.LatLng.RAD_TO_DEG)) % 360;
 						if (h < 0) { h += 360; }
 					}
-					currot %- 360;
+					currot %= 360;
 					if (currot < 0) { currot += 360; }
 					var turn = h - currot;	// calculate shortest turn
 					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
 					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
 					airplane.stamp(t);
-					if (dt > 30000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
+					if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
+					console.log('got here', dt);
 						airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
 						if (tracking) { map.panTo(p); }
 						return;
 					}
 					var speed = curpos.distanceTo(p) * 1000 / dt; // in meters / second
-					// console.log(speed, dt);
+					console.log('calculated speed: '+(speed*2.237).toFixed(2)+ ', API speed: '+pos.speedMph);
 					// frames = Math.ceil(frames/2);
 					frames = Math.ceil(dt / aniRate) + 20;	// add number of frames for this move
 					var rotframes = Math.ceil(frames/2);
@@ -479,14 +480,14 @@
 				});	
 			}
 
-			function getStatus(data /*, status, xhr */) { // status callback
-				if (!data || data.error) {
-					alert('AJAX error: '+data.error.errorMessage);
-					return;
-				}
-				if (console && console.log) { console.log('Flight status: ', data); }
+			//	function getStatus(data /*, status, xhr */) { // status callback
+			//		if (!data || data.error) {
+			//		alert('AJAX error: '+data.error.errorMessage);
+			//		return;
+			//	}
+			//	if (console && console.log) { console.log('Flight status: ', data); }
 
-			}	// end getStatus
+			// }	// end getStatus
 
 			function getAppendix(data) { // read in data from appendix and convert to dictionary
 				var ret = {};

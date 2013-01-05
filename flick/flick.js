@@ -128,6 +128,7 @@
 				nodata;	// haven't received data from API recently
 		var curpos,	// current lat/lng of animation
 				currot, // current heading of animation
+				speed, // current speed of airplane in mph
 				frames = 0,	// frame of animation remaining
 				anitimer;	// animation timer
 		var vlat, vlng, vrot;	// velocities for animation
@@ -248,7 +249,7 @@
 					if (tracking) { map.panTo(fpos); }
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
-					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp);
+					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp, +pos.speedMph);
 					setPositions();
 					setFlightLabel();
 					if (graph_on) { doGraph(); }
@@ -353,7 +354,7 @@
 						var fp2 = L.latLng(+p.lat, wrap && lon>0 ? lon-360 : lon, true);
 						curpos = fp2;
 						airplane = flightMarker(fp2).addTo(map).rotate(heading).setShadow(a2).stamp(p.date);
-						phat(fpos, heading, +pos.altitudeFt, timestamp);	// start airplane moving
+						phat(fpos, heading, +pos.altitudeFt, timestamp, +pos.speedMph);	// start airplane moving
 					} else {
 						airplane = flightMarker(fpos).addTo(map).rotate(heading).setShadow(alt).stamp(p.date);
 					}
@@ -366,7 +367,8 @@
 					var p = flightData.positions;
 					var positions = [];
 					var last = null, ct;
-					var i = tracking && !all ? 2 : 0;
+					var i = tracking && !all ? 4 : 0;
+					console.log(i);
 					var lon = +p[i].lon;
 					var tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
 					multi = [[tail, tail]]; // dummy path for tail
@@ -392,16 +394,12 @@
 				} // end setPositions
 
 				// update position of airplane, using animation
-				function phat(p, h, a, t) {	// position, heading, altitude, time
+				function phat(p, h, a, t, s) {	// position, heading, altitude, time, speed
 					if (!isNaN(a)) { airplane.setShadow(a); }
-					// if (curpos) {	// calculate heading from positions (slightly inaccurate because uses planar geometry)
-					// 	h = (90 + (Math.atan2(curpos.lat - p.lat, p.lng - curpos.lng) * L.LatLng.RAD_TO_DEG)) % 360;
-					// 	if (h < 0) { h += 360; }
-					// }
-					currot %= 360;
-					if (currot < 0) { currot += 360; }
-					var turn = h - currot;	// calculate shortest turn
-					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
+					if (curpos) {	// calculate heading from positions
+						h = calcHeading(curpos, p);
+					}
+
 					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
 					airplane.stamp(t);
 					if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
@@ -410,14 +408,33 @@
 						if (tracking) { map.panTo(p); }
 						return;
 					}
-					var speed = curpos.distanceTo(p) * 1000 / dt; // in meters / second
-					console.log('calculated speed: '+(speed*2.237).toFixed(2)+ ', API speed: '+pos.speedMph);
-					// frames = Math.ceil(frames/2);
-					frames = Math.ceil(dt / aniRate) + 20;	// add number of frames for this move
+
+					if (Math.abs(s - speed) > 100) { console.log('speed jump', s, speed); }
+					if (s) { speed = s; }	// valid speed
+
+					currot = (currot + 360) % 360;
+					var turn = h - currot;	// calculate shortest turn
+					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
+
+					// number of frames to move that distance at current speed
+					frames = Math.floor(curpos.distanceTo(p) * 2236.936292 / (s * aniRate));
+					console.log(frames+' frames');
+					if (frames <= 0) {
+						curpos = p;
+						return;
+					}
+
+					// var speed = curpos.distanceTo(p) * 1000 / dt; // in meters / second
+					// console.log('calculated speed: '+(speed*2.237).toFixed(2)+ ', API speed: '+pos.speedMph);
+					// // frames = Math.ceil(frames/2);
+					// frames = Math.ceil(dt / aniRate) + 20;	// add number of frames for this move
 					var rotframes = Math.ceil(frames/2);
 					vlat = (p.lat - curpos.lat) / frames;
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / rotframes;
+
+					frames += 60000 / aniRate;	// plus one more minute of frames
+
 					// if (speed > 343.2) { // limit to the speed of sound in meters/sec
      //        var speedratio = 343.2 / speed;
      //        vlat *= speedratio;
@@ -427,6 +444,8 @@
      //      if (Math.abs(turn / dt) > 2000) {  // maximum turn rate 2 degrees per second
      //        vrot = (vrot > 0 ? 0.002 : -0.002) * dt;
      //      }
+
+     			// animation timer
 					if (!anitimer) {
 						anitimer = setInterval(function() {
 							// console.log(frames, vlat, vlng, vrot);
@@ -443,8 +462,14 @@
 								vlat = 0;
 								vlng = 0;
 								vrot = 0;
+								clearInterval(anitimer);
+								anitimer = null;
 							} else {
-								if (frames <= rotframes) { vrot = 0; }
+								if (rotframes <= 0) {
+									vrot = 0;
+								} else {
+									rotframes--;
+								}
 								frames--;
 							}
 						}, aniRate);
@@ -478,6 +503,16 @@
 					hideHover: true,
 					lineColors: ['#f08']
 				});	
+			}	// end doGraph
+
+			function calcHeading(p1, p2) {
+				var toRad = L.LatLng.DEG_TO_RAD;
+				var lat1 = p1.lat * toRad,
+						lat2 = p2.lat * toRad,
+						dLon = (p2.lon - p1.lon) * toRad,
+						y = Math.sin(dLon) * Math.cos(lat2),
+						x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+				return (Math.atan2(y, x) * L.LatLng.RAD_TO_DEG + 360) % 360;
 			}
 
 			//	function getStatus(data /*, status, xhr */) { // status callback

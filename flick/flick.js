@@ -188,7 +188,7 @@
 					if (!nodata) {
 						if (console && console.log) { console.log('position data lost '+timestamp); }
 						airplane.setActive(false);	// set airplane color to gray
-						setPositions(true);
+						setPositions(0);
 					}
 					nodata = true;
 				}
@@ -205,8 +205,8 @@
 					nodata = false;
 					if (console && console.log) { console.log('position data reestablished '+timestamp); }
 					airplane.setActive(true);	// set airplane color back to purple
-					lon = +pos.lon;
-					curpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
+					// lon = +pos.lon;
+					// curpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 				}
 
 				if (airports === undefined) { // first time called
@@ -250,7 +250,7 @@
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp, +pos.speedMph);
-					setPositions();
+					setPositions(updateRate);
 					setFlightLabel();
 					if (graph_on) { doGraph(); }
 				}
@@ -266,7 +266,7 @@
 								tracking = true;
 								$trackbutton.css('background-color', '#d8e');
 								settrackingview(this);
-								setPositions();
+								setPositions(updateRate);
 								L.DomEvent.stopPropagation(e);
 							}, map)).css({'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					// zoom out to show entire flight
@@ -341,7 +341,7 @@
 						layercontrol.addOverlay(plan, 'route');
 					}
 
-					setPositions(); // draw actual flight position data
+					setPositions(updateRate); // draw actual flight position data
 
 					// flight marker (airplane)
 					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
@@ -363,12 +363,19 @@
 
 				} // end mapReady
 
-				function setPositions(all) { // draw flight positions
+				function setPositions(delay) { // draw flight positions
 					var p = flightData.positions;
 					var positions = [];
 					var last = null, ct;
-					var i = tracking && !all ? 4 : 0;
-					console.log(i);
+					var i = 0;
+					if (tracking && delay > 0) {
+						var delayts = timestamp - delay * 6;
+						for ( ; i < p.length; i++) {
+							var ts = Date.parse(p[i].date);
+							if (ts < delayts) { break; }
+						}
+					}
+					console.log('delay '+i);
 					var lon = +p[i].lon;
 					var tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
 					multi = [[tail, tail]]; // dummy path for tail

@@ -106,8 +106,6 @@
 
 	$(document).ready(function() {
 
-		// console.log('hey!');
-
 		var airports, airlines;	// appendices from API
 		var departureAirport,	// code of departure airport
 				dpos,	// lat/lng position of departure airport
@@ -157,7 +155,7 @@
 		function mainloop() {
 
 			$.ajax({  // Call Flight Track by flight ID API
-					url: 'https://test-api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
+					url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
 					data: { appId: appId, appKey: appKey, includeFlightPlan: plan===undefined, extendedOptions: 'includeNewFields' },
 					dataType: 'jsonp',
 					success: getFlight
@@ -372,10 +370,9 @@
 						var delayts = timestamp - delay * 6;
 						for ( ; i < p.length; i++) {
 							var ts = Date.parse(p[i].date);
-							if (ts < delayts) { break; }
+							if (ts < delayts) { i++; break; }
 						}
 					}
-					console.log('delay '+i);
 					var lon = +p[i].lon;
 					var tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
 					multi = [[tail, tail]]; // dummy path for tail
@@ -410,13 +407,12 @@
 					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
 					airplane.stamp(t);
 					if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
-					console.log('got here', dt);
 						airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
 						if (tracking) { map.panTo(p); }
 						return;
 					}
 
-					if (Math.abs(s - speed) > 100) { console.log('speed jump', s, speed); }
+					if (Math.abs(s - speed) > 100 && console && console.log) { console.log('speed jump', s, speed); }
 					if (s) { speed = s; }	// valid speed
 
 					currot = (currot + 360) % 360;
@@ -425,7 +421,6 @@
 
 					// number of frames to move that distance at current speed
 					frames = Math.floor(curpos.distanceTo(p) * 2236.936292 / (s * aniRate));
-					console.log(frames+' frames');
 					if (frames <= 0) {
 						curpos = p;
 						return;
@@ -455,7 +450,6 @@
      			// animation timer
 					if (!anitimer) {
 						anitimer = setInterval(function() {
-							// console.log(frames, vlat, vlng, vrot);
 							var lon = curpos.lng + vlng;
 							curpos = L.latLng(curpos.lat + vlat, wrap && lon>0 ? lon-360 : lon, true);
 							currot += vrot;
@@ -516,9 +510,9 @@
 				var toRad = L.LatLng.DEG_TO_RAD;
 				var lat1 = p1.lat * toRad,
 						lat2 = p2.lat * toRad,
-						dLon = (p2.lon - p1.lon) * toRad,
-						y = Math.sin(dLon) * Math.cos(lat2),
-						x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+						dLon = (p2.lng - p1.lng) * toRad,
+						y = Math.sin(dLon)*Math.cos(lat2),
+						x = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
 				return (Math.atan2(y, x) * L.LatLng.RAD_TO_DEG + 360) % 360;
 			}
 

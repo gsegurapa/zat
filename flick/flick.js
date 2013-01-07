@@ -126,14 +126,18 @@
 				nodata;	// haven't received data from API recently
 		var curpos,	// current lat/lng of animation
 				currot, // current heading of animation
-				speed, // current speed of airplane in mph
-				frames = 0,	// frame of animation remaining
+				curspeed, // current speed of airplane in mph
+				curheading,	// current heading
+				frames = 0,	// frames of animation remaining
+				rotframes,	// frames of animation in rotation remaining
 				anitimer;	// animation timer
-		var vlat, vlng, vrot;	// velocities for animation
+		var vlat, vlng, vrot;	// animation parameters
 
 		var map = L.map('map_div', {	// create map
 			attributionControl: false,
 			zoomControl: false,
+			zoomAnimation: true,
+			markerZoomAnimation: true,
 			layers: defaultlayers,
 			worldCopyJump: false,
 			inertia: false
@@ -186,7 +190,7 @@
 					if (!nodata) {
 						if (console && console.log) { console.log('position data lost '+timestamp); }
 						airplane.setActive(false);	// set airplane color to gray
-						setPositions(0);
+						setPositions(true);	// draw entire flight history
 					}
 					nodata = true;
 				}
@@ -248,7 +252,7 @@
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp, +pos.speedMph);
-					setPositions(updateRate);
+					setPositions();
 					setFlightLabel();
 					if (graph_on) { doGraph(); }
 				}
@@ -264,7 +268,7 @@
 								tracking = true;
 								$trackbutton.css('background-color', '#d8e');
 								settrackingview(this);
-								setPositions(updateRate);
+								setPositions();
 								L.DomEvent.stopPropagation(e);
 							}, map)).css({'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					// zoom out to show entire flight
@@ -339,7 +343,7 @@
 						layercontrol.addOverlay(plan, 'route');
 					}
 
-					setPositions(updateRate); // draw actual flight position data
+					setPositions(); // draw actual flight position data
 
 					// flight marker (airplane)
 					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
@@ -361,20 +365,24 @@
 
 				} // end mapReady
 
-				function setPositions(delay) { // draw flight positions
+				function setPositions(all) { // draw flight positions
 					var p = flightData.positions;
 					var positions = [];
-					var last = null, ct;
+					var last = null, ct, lon, tail;
 					var i = 0;
-					if (tracking && delay > 0) {
-						var delayts = timestamp - delay * 6;
+					if (tracking && !all) {	// find last position to draw
 						for ( ; i < p.length; i++) {
-							var ts = Date.parse(p[i].date);
-							if (ts < delayts) { i++; break; }
+							var pospt = p[i];
+							lon = +pospt.lon;
+							tail = L.latLng(+pospt.lat, wrap && lon>0 ? lon-360 : lon, true);
+							var h = calcHeading(curpos, tail);
+							var angle = Math.abs(curheading - h);
+							if (angle > 90) { break; }
 						}
+					} else {
+						lon = +p[i].lon;
+						tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
 					}
-					var lon = +p[i].lon;
-					var tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
 					multi = [[tail, tail]]; // dummy path for tail
 					for (; i < p.length; i++) {
 						ct = Date.parse(p[i].date);
@@ -403,6 +411,7 @@
 					if (curpos) {	// calculate heading from positions
 						h = calcHeading(curpos, p);
 					}
+					curheading = h;
 
 					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
 					airplane.stamp(t);
@@ -412,8 +421,8 @@
 						return;
 					}
 
-					if (Math.abs(s - speed) > 100 && console && console.log) { console.log('speed jump', s, speed); }
-					if (s) { speed = s; }	// valid speed
+					if (Math.abs(s - curspeed) > 100 && console && console.log) { console.log('speed jump', s, curspeed); }
+					if (s) { curspeed = s; }	// valid speed
 
 					currot = (currot + 360) % 360;
 					var turn = h - currot;	// calculate shortest turn
@@ -430,11 +439,12 @@
 					// console.log('calculated speed: '+(speed*2.237).toFixed(2)+ ', API speed: '+pos.speedMph);
 					// // frames = Math.ceil(frames/2);
 					// frames = Math.ceil(dt / aniRate) + 20;	// add number of frames for this move
-					var rotframes = Math.ceil(frames/2);
+					rotframes = Math.ceil(frames/2);
 					vlat = (p.lat - curpos.lat) / frames;
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / rotframes;
 
+					console.log('frames: '+frames);
 					frames += 60000 / aniRate;	// plus one more minute of frames
 
 					// if (speed > 343.2) { // limit to the speed of sound in meters/sec
@@ -449,32 +459,34 @@
 
      			// animation timer
 					if (!anitimer) {
-						anitimer = setInterval(function() {
-							var lon = curpos.lng + vlng;
-							curpos = L.latLng(curpos.lat + vlat, wrap && lon>0 ? lon-360 : lon, true);
-							currot += vrot;
-							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
-							// if (tracking) { map.panTo(curpos); }
-							if (path) {	// draw tail
-								multi[0][0] = curpos;
-								path.setLatLngs(multi);
-							}
-							if (frames <= 0) {	// stop movement
-								vlat = 0;
-								vlng = 0;
-								vrot = 0;
-								clearInterval(anitimer);
-								anitimer = null;
-							} else {
-								if (rotframes <= 0) {
-									vrot = 0;
-								} else {
-									rotframes--;
-								}
-								frames--;
-							}
-						}, aniRate);
+						anitimer = setInterval(step, aniRate);	// airplane animation
 					}
+
+					function step() {	// animation step
+						var lon = curpos.lng + vlng;
+						curpos = L.latLng(curpos.lat + vlat, wrap && lon>0 ? lon-360 : lon, true);
+						currot += vrot;
+						airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
+						// if (tracking) { map.panTo(curpos); }
+						if (path) {	// draw tail
+							multi[0][0] = curpos;
+							path.setLatLngs(multi);
+						}
+						if (frames <= 0) {	// stop movement
+							vlat = 0;
+							vlng = 0;
+							vrot = 0;
+							clearInterval(anitimer);
+							anitimer = null;
+						} else {
+							if (rotframes <= 0) {
+								vrot = 0;
+							} else {
+								rotframes--;
+							}
+							frames--;
+						}
+					}	// end step
 				}	// end phat
 
 			} // end getFlight
@@ -506,14 +518,15 @@
 				});	
 			}	// end doGraph
 
-			function calcHeading(p1, p2) {
+			function calcHeading(p1, p2) {	// heading in degrees of vector from p1 to p2
 				var toRad = L.LatLng.DEG_TO_RAD;
 				var lat1 = p1.lat * toRad,
 						lat2 = p2.lat * toRad,
-						dLon = (p2.lng - p1.lng) * toRad,
-						y = Math.sin(dLon)*Math.cos(lat2),
-						x = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
-				return (Math.atan2(y, x) * L.LatLng.RAD_TO_DEG + 360) % 360;
+						dLng = (p2.lng - p1.lng) * toRad;
+				return (Math.atan2(
+						Math.sin(dLng)*Math.cos(lat2),
+						Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLng)) *
+					L.LatLng.RAD_TO_DEG + 360) % 360;
 			}
 
 			//	function getStatus(data /*, status, xhr */) { // status callback

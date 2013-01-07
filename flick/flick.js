@@ -248,7 +248,7 @@
 					setfullview(map);
 
 				} else {	// update
-					if (tracking) { map.panTo(fpos); }
+					if (tracking) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
 					lon = +pos.lon;
 					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp, +pos.speedMph);
@@ -370,18 +370,22 @@
 					var positions = [];
 					var last = null, ct, lon, tail;
 					var i = 0;
-					if (tracking && !all) {	// find last position to draw
-						for ( ; i < p.length; i++) {
+					if (all || !curpos) {	// draw all positions
+						lon = +p[i].lon;
+						tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);
+					} else { // find last point in flight path to be displayed
+						var m = Math.min(p.length, 10);
+						for (i++ ; i < m; i++) {
 							var pospt = p[i];
 							lon = +pospt.lon;
 							tail = L.latLng(+pospt.lat, wrap && lon>0 ? lon-360 : lon, true);
 							var h = calcHeading(curpos, tail);
-							var angle = Math.abs(curheading - h);
-							if (angle > 90) { break; }
+							// console.log('angle for '+i+' = '+smallAngle(curheading, h), curheading, h);
+							if (Math.abs(smallAngle(curheading, h)) > 90) { break; }
+							// var angle = h - curheading;
+							// angle = angle > 180 ? angle - 360 : (angle < -180 ? angle + 360 : angle );
+							// if (angle > 90) { break; }
 						}
-					} else {
-						lon = +p[i].lon;
-						tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);	// last point in flight path displayed
 					}
 					multi = [[tail, tail]]; // dummy path for tail
 					for (; i < p.length; i++) {
@@ -424,15 +428,23 @@
 					if (Math.abs(s - curspeed) > 100 && console && console.log) { console.log('speed jump', s, curspeed); }
 					if (s) { curspeed = s; }	// valid speed
 
-					currot = (currot + 360) % 360;
-					var turn = h - currot;	// calculate shortest turn
-					turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
+					var fminute = 60000 / aniRate;	// a minute of frames
 
-					// number of frames to move that distance at current speed
+					currot = (currot + 360) % 360;
+					var turn = smallAngle(currot, h);
+					// var turn = h - currot;	// calculate shortest turn
+					// turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
+
+					// number of frames to move that distance at current speed (s)
 					frames = Math.floor(curpos.distanceTo(p) * 2236.936292 / (s * aniRate));
 					if (frames <= 0) {
 						curpos = p;
 						return;
+					}
+					console.log('frames: '+frames);
+					frames = Math.min(frames, fminute * 2);
+					if (frames > fminute) {
+						frames -= (frames - fminute) * 0.5;
 					}
 
 					// var speed = curpos.distanceTo(p) * 1000 / dt; // in meters / second
@@ -444,8 +456,7 @@
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / rotframes;
 
-					console.log('frames: '+frames);
-					frames += 60000 / aniRate;	// plus one more minute of frames
+					frames += fminute;	// plus one more minute of frames
 
 					// if (speed > 343.2) { // limit to the speed of sound in meters/sec
      //        var speedratio = 343.2 / speed;
@@ -529,6 +540,11 @@
 					L.LatLng.RAD_TO_DEG + 360) % 360;
 			}
 
+			function smallAngle(o, n) {	// smallest angle from o to n (degrees)
+				var t = n - o;	// difference between new and old
+				return t > 180 ? t - 360 : (t < -180 ? t + 360 : t );
+			}
+
 			//	function getStatus(data /*, status, xhr */) { // status callback
 			//		if (!data || data.error) {
 			//		alert('AJAX error: '+data.error.errorMessage);
@@ -596,6 +612,10 @@
 			} else {
 				flightLabel = airplane.bindLabel(label);					
 			}
+		}
+
+		function halfway(p1, p2) {	// return lat/lng halfway between two points
+			return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
 		}
 
 	});	// end document ready

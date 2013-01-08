@@ -207,8 +207,8 @@
 					nodata = false;
 					if (console && console.log) { console.log('position data reestablished '+timestamp); }
 					airplane.setActive(true);	// set airplane color back to purple
-					// lon = +pos.lon;
-					// curpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
+					lon = +pos.lon;
+					curpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
 				}
 
 				if (airports === undefined) { // first time called
@@ -351,10 +351,11 @@
 					if (flightData.positions.length >= 2) {
 						p = flightData.positions[1];
 						var a2 = +(p.altitudeFt || alt);
-						if (a2 > 5000) { a2 = alt; }	// fix bad data for airplanes on ground
+						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground
 						lon = +p.lon;
 						var fp2 = L.latLng(+p.lat, wrap && lon>0 ? lon-360 : lon, true);
 						curpos = fp2;
+						console.log('initial points: ', curpos, fpos, heading, +pos.speedMph);
 						airplane = flightMarker(fp2).addTo(map).rotate(heading).setShadow(a2).stamp(p.date);
 						phat(fpos, heading, +pos.altitudeFt, timestamp, +pos.speedMph);	// start airplane moving
 					} else {
@@ -371,6 +372,7 @@
 					var last = null, ct, lon, tail;
 					var i = 0;
 					if (all || !curpos) {	// draw all positions
+						console.log('all curpos: ', all, curpos);
 						lon = +p[i].lon;
 						tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);
 					} else { // find last point in flight path to be displayed

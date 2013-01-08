@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Flightstats Airport Tracker</title>
+<link rel="stylesheet" type="text/css" href="Leaflet/leaflet.css" />
+<!--[if lte IE 8]><link rel="stylesheet" type="text/css" href="Leaflet/leaflet.ie.css" /><![endif]-->
+<style type="text/css">
+#map_div.three {
+  transform-style: preserve-3d;
+  transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -webkit-transform-style: preserve-3d;
+  -webkit-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -moz-transform-style: preserve-3d;
+  -moz-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -ms-transform-style: preserve-3d;
+  -ms-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -o-transform-style: preserve-3d;
+  -o-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+}
+html, body, #map_div #overlay_div { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; }
+div.plane, div.shadow { position: absolute; }
+div.flabel {
+  position: absolute;
+  overflow: hidden;
+  font-family: helvetica, sans-serif;
+  white-space: nowrap;
+  color: black;
+  background-color: white; /* #555; */
+  box-shadow: 3px 2px 2px rgba(0, 0, 0, 0.5);
+  -webkit-box-shadow: 3px 2px 2px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 3px 2px 2px rgba(0, 0, 0, 0.5);
+  -o-box-shadow: 3px 2px 2px rgba(0, 0, 0, 0.5);
+  -ms-box-shadow: 3px 2px 2px rgba(0, 0, 0, 0.5);
+}
+div.flabel32 {
+  height: 32px;
+  line-height: 32px;
+  font-size: 27px;
+  border: solid black 2px;
+  border-radius: 7px;
+}
+div.flabel24 {
+  height: 24px;
+  line-height: 24px;
+  font-size: 21px;
+  border: solid black 1.5px;
+  border-radius: 5px;
+}
+div.flabel16 {
+  height: 16px;
+  line-height: 16px;
+  font-size: 14px;
+  border: solid black 1px;
+  border-radius: 4px;
+}
+div.flabel12 {
+  position: absolute;
+  height: 12px;
+  line-height: 12px;
+  font-size: 10px;
+  border: solid black 1px;
+  border-radius: 3px;
+}
+img.airlinelogo {
+  background-color: white;
+  margin-left: 2px;
+}
+span.delay {
+  padding: 0 1px 0 2px;
+}
+span.fnotext, span.delay {
+  position: relative;
+  bottom: 5px;
+  margin-left: 3px;
+}
+div.lineseg {
+  position: absolute;
+  border-top-style: solid;
+  border-top-width: 2px;
+  box-shadow: 1px 1px rgba(0,0,0,0.5);
+  -webkit-box-shadow: 1px 1px rgba(0,0,0,0.5);
+  -moz-box-shadow: 1px 1px rgba(0,0,0,0.5);
+  -o-box-shadow: 1px 1px rgba(0,0,0,0.5);
+  -ms-box-shadow: 1px 1px rgba(0,0,0,0.5);
+}
+
+div#brand {
+  position: absolute;
+  width: 100%;
+  height: 46px;
+  bottom: 0;
+  background-color: #293041;
+  z-index: 20000;
+  color: white;
+  font-family: helvetica, sans-serif;
+  font-size: 20px;
+  overflow: hidden;
+}
+img#fsimg {
+  margin-left: 12px;
+  padding-top: 4px;
+}
+div#delayed {
+  position: absolute;
+  right: 5px;
+  bottom: 6px;
+}
+#delayed span {
+  position: relative;
+  top: -11px;
+  font-size: 18px;
+  color: black;
+  background-color: yellow;
+  padding: 0 3px;
+}
+div#legend {
+  position: absolute;
+  left: 215px;
+  right: 150px;
+  bottom: 10px;
+  height: 34px;
+}
+#legend table {
+  height: 34px;
+  width: 100%;
+}
+#legend table td {
+  text-align: center;
+}
+#brand #dattribution {
+  position: absolute;
+  bottom: 0;
+  right: 5px;
+  font-size: 12px;
+  text-decoration: none;
+  color: #ddf;
+  white-space: nowrap;
+}
+#brand #dattribution a:link, #brand #dattribution a:visited {
+  color: #ddf;
+  text-decoration: none;
+}
+#config {
+  display: none;
+  z-index: 55000;
+  position: absolute;
+  background-color: rgba(255,255,255,0.75);
+  bottom: 46px;
+  left: 12px;
+  font-family: Helvetica, Arial, sans-serif;
+  border: solid black 1px;
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.75);
+  cursor: default;
+}
+#config td {
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+#ctitle {
+  font-size: 1.5em;
+  padding: 0.1em 0.4em;
+  cursor: move;
+}
+#cbutton {
+  position: absolute;
+  right: 5px;
+  top: 1px;
+  cursor: default;
+}
+#inczoom, #deczoom {
+  border: 1px solid gray;
+  background-color: white;
+  padding: 5px;
+  vertical-align: middle;
+  border-radius: 3px;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+  -ms-border-radius:3px;
+  -o-border-radius:3px;
+}
+output, #actualStation {
+  font-size: 13px;
+}
+/* slider root element */
+.slider {
+    background-color: #ddd;
+    height:3px;
+    position:relative;
+    cursor:pointer;
+    border:1px solid #444;
+    width:175px;
+    float:left;
+    clear:right;
+    margin-top:8px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+}
+
+/* drag handle */
+.handle {
+    background-color: #eee;
+    height:16px;
+    width:16px;
+    top:-9px;
+    position:absolute;
+    display:block;
+    margin-top:1px;
+    border:1px solid #000;
+    cursor:move;
+    -moz-box-shadow:0 0 3px #000;
+    -webkit-box-shadow:0 0 3px #000;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+
+}
+
+/* the input field */
+.range {
+    border:1px inset #ddd;
+    float:left;
+    font-size:11px;
+    margin:0 0 0 5px;
+    padding:2px 0;
+    text-align:center;
+    width:30px;
+}
+</style>
+<!--[if lte IE 8]>
+<style type="text/css">
+#config {
+  background-color: rgb(255,255,255);  
+}
+</style>
+<![endif]-->
+<script type="text/javascript" src="Leaflet/leaflet.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="jquery.tools.min.js"></script>
+<script type="text/javascript" src="raphael-min.js"></script>
+<script type="text/javascript" src="bigscreen-min.js"></script>
+<script type="text/javascript" src="airtrack-min.js"></script>
+</head>
+<body>
+<div id="map_div"></div>
+<div id="brand">
+  <img id="fsimg" src="http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/img/flightstats_logo_dk_bkgd.png" />
+  <div id="legend">
+    <table>
+      <tr><td><span style="color:#FAA71A">Landed:</span><span id="landing"></span></td>
+      <td><span style="color:#94C1E7">Taking Off:</span><span id="takeoff"></span></td></tr>
+    </table>
+  </div>
+  <div id="delayed"><span>Delay in Minutes</span></div>
+  <div id="dattribution"></div>
+</div>
+<div id="config">
+  <div id="ctitle">&nbsp;Airport Tracker Configuration<span id="cbutton">
+    <input type="button" value="Hide" />
+    <input type="button" value="Save" />
+    <input type="button" value="Reset" />
+    <input type="button" value="Help" />
+    <input type="button" value="Full" />
+  </span></div>
+  <table border="1">
+    <tr><th>parameter</th><th>value</th><th>default</th><th>description</th></tr>
+    <tr><td>airportCode</td><td><input id="airportCode" type="text" size="4" /></td><td>PDX</td><td>three letter airport code</td></tr>
+    <tr><td>mapType</td><td><select id="mapType">
+      <option value="automatic" selected="true">automatic</option>
+      <option value="mapboxterrain">terrain</option>
+      <option value="satellite">satellite</option>
+      <option value="road">road</option>
+      <option value="acetate">acetate</option>
+      <option value="blue">blue</option>
+      <option value="terrain">stamen terrain (US only)</option>
+      <option value="terrainbg">stamen terrainbg (US only)</option>
+    </select></td><td>automatic</td><td>style of map</td></tr>
+    <tr><td>zoomLevel</td><td><img id="deczoom" src="Leaflet/images/zoom-out.png" title="-" alt="-" />
+      <input id="zoomLevel" type="text" size="2" value="9" style="text-align: center" />
+      <img id="inczoom" src="Leaflet/images/zoom-in.png" title="+" alt="+" />
+      </td><td>9</td><td>0-12 (depends on map)</td></tr>
+
+    <tr><td>showLabels</td><td><input id="showLabels" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>label airplane with flight info</td></tr>
+    <tr><td>labelSize</td><td><select id="labelSize">
+      <option value="12">12</option>
+      <option value="16">16</option>
+      <option value="24" selected="true">24</option>
+      <option value="32">32</option>
+    </select></td><td>24</td><td>height of label in points</td></tr>
+    <tr><td>showAirlineLogos</td><td><input id="showAirlineLogos" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show airline logos in labels</td></tr>
+    <tr><td>showOtherAirport</td><td><input id="showOtherAirport" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show other airport in labels</td></tr>
+    <tr><td>showOperatorAirlines</td><td><input id="showOperatorAirlines" class="bool" type="button" value="false" /></td>
+      <td>false</td><td>show actual flight operator</td></tr>
+
+    <tr><td>flightMarker</td><td><select id="flightMarker">
+      <option value="smooth" selected="true">smooth</option>
+      <option value="shadow">shadow</option>
+      <option value="stripe">stripe</option>
+      <option value="icon">icon</option>
+      <option value="smooth-lights">smooth-lights</option>
+      <option value="shadow-lights">shadow-lights</option>
+      <option value="stripe-lights">stripe-lights</option>
+    </select></td><td>smooth</td><td>airplane image</td></tr>
+    <tr><td>flightMarkerScale</td>
+      <td><input id="flightMarkerScale" type="range" size="4" value="70" min="8" max="100" step="1" /></td>
+      <td>70</td><td>size of airplane (8-100)</td></tr>
+
+    <tr><td>airportMarker</td><td><select id="airportMarker">
+      <option value="classic" selected="true">classic</option>
+      <option value="modern">modern</option>
+      <option value="darktower">darktower</option>
+      <option value="boston">Boston</option>
+    </select></td><td>classic</td><td>control tower image</td></tr>
+    <tr><td>airportMarkerScale</td>
+      <td><input id="airportMarkerScale" type="range" size="4" value="55" min="10" max="150" step="1" /></td>
+      <td>55</td><td>size of control tower (10-150)</td></tr>
+
+    <tr><td>showLegend</td><td><input id="showLegend" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show legend at bottom</td></tr>
+
+    <tr><td>weatherFrames</td><td><input id="weatherFrames" type="text" size="3" /></td>
+      <td>0</td><td>number of frames (0-25)</td></tr>
+    <tr><td>weatherStation</td><td><input id="weatherStation" type="text" size="10" />&nbsp;<span id="actualStation"></span></td>
+      <td>automatic</td><td>weather station ID</td></tr>
+    <tr><td>weatherRadar</td><td><select id="weatherRadar">
+      <option value="NCR" selected="true">NCR - composite reflectivity</option>
+      <option value="N0R">N0R - base reflectivity</option>
+      <option value="N0Z">N0Z - long range base reflectivity</option>
+      <option value="NTP">NTP - storm total precipitation</option>
+      <option value="N1P">N1P - one hour precipitation</option>
+      <option value="N0S">N0S - storm relative motion</option>
+      <option value="N0V">N0V - base velocity</option>
+    </select></td><td>NCR</td><td>kind of radar</td></tr>
+    <tr><td>weatherOpacity</td>
+      <td><input id="weatherOpacity" type="range" size="4" value="30" min="1" max="100" step="1" /></td>
+        <td>30</td><td>100 is opaque</td></tr>
+  </table>
+</div>
+</body>
+</html>

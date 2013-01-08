@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Airport Tracker Documentation</title>
+<style type="text/css">
+h1, h2, h3 {
+  font-family: Helvetica, Arial, sans-serif;
+}
+h3 {
+  width: 100%;
+  background-color: #eee;
+  padding: 10px 10px;
+  margin: 0 0;
+}
+h4 {
+  margin: 12px 0 4px 0;
+  font-family: monospace;
+  font-size: 114%;
+}
+h4 + p {
+  margin: 3px 0;
+}
+table {
+  border-collapse:collapse;
+}
+table td {
+  padding: 1px 3px;
+}
+</style>
+</head>
+<body>
+<h1>Airport Tracker Documentation</h1>
+<p>To display this help page: <a class="link" href="?help" target="_blank"><span class="url"></span>?help</a> or press the "Help" button in the configurator.</p>
+<p>To open the app in a new window: <a class="link" href="" target="_blank"><span class="url"></span></a></p>
+<p>The airport tracker app is used to display flights departing from and arriving at a specified airport.
+It can also show weather images (including animated).
+The altitude of each airplane is indicated by the size of airplane (the higher the altitude, the larger the airplane) and by the shadow offset and fuzziness.
+Orange planes are arriving at the airport, while blue planes are departing.
+The smallest airplanes are taking off (blue) or landing (orange).</p>
+<h2>Configuration</h2>
+<p>The app can be configured using the interactive configuration tool.
+You can change any configuration parameter and see the results immediately.</p>
+<p>Open the configuration tool by clicking on the Flightstats logo below the map.
+When open, you can drag the configuration tool around the map by dragging its title bar.
+To close the configuration tool, click on the "Hide" button, or click the Flightstats logo again.</p>
+<p>Once you have configured the app, you can save your configuration by clicking on the "Save" button.
+Once saved, the app will always start up with your configuration.
+You can also reset the app back to the default configuration using the "Reset" button.
+Configurations are saved using a cookie on your local computer, so they are specific to that computer and browser.</p>
+<p>The "Help" button brings up this help page in a new window.</p>
+<p>The "Full" button puts the airport tracker into full screen mode, and if pushed again, back to windowed mode.
+Full screen mode is not supported on all browsers, so this button may not appear.
+When in full screen mode the mouse cursor is hidden when over the map (you can still see it over the legend).</p>
+
+<h2>Complete List of Parameters</h2>
+<table border="1">
+<tr><th>Name</th><th>Default</th><th>Range</th><th>Description</th></tr>
+
+<tr><td>airportCode</td><td>PDX</td><td>(any airport code)</td><td>Three letter airport code.
+Note that flight position information is less reliable outside the US or Europe, or for smaller airports or airplanes.</td></tr>
+<tr><td>mapType</td><td>automatic</td>
+  <td>see table below for all map types</td><td>"automatic" uses the "terrain" map in the continental US, and the "road" map elsewhere</td></tr>
+<tr><td>zoomLevel</td><td>9</td><td>0 to 12</td><td>Lower numbers show a larger area. Different maps have different zoomLevel ranges (see "Map Types" below).</td></tr>
+<tr><td>showLabels</td><td>true</td><td>(Boolean)</td><td>Label each airplane with flight info (carrier, flight number, delay)</td></tr>
+<tr><td>labelSize</td><td>24</td><td>12, 16, 24, 32</td><td>Height of the labels in pixels</td></tr>
+<tr><td>showAirlineLogos</td><td>true</td><td>(Boolean)</td><td>Show airline logos in labels</td></tr>
+<tr><td>showOtherAirport</td><td>true</td><td>(Boolean)</td><td>Show code of other airport in labels</td></tr>
+<tr><td>showOperatorAirlines</td><td>false</td><td>(Boolean)</td><td>If true show operator for flight, otherwise show main (ticketing) carrier</td></tr>
+<tr><td>flightMarker</a></td><td>smooth</td><td>shadow, stripe, icon</td><td>Style of airplane marker (append '-lights' for navigation lights)</td></tr>
+<tr><td>flightMarkerScale</td><td>70</td><td>8 to 100</td><td>Size of airplane marker</td></tr>
+<!-- <tr><td>flightLabelScale</td><td>100</td><td>1-100</td><td>(not implemented) Size of label</td></tr> -->
+<tr><td>airportMarker</td><td>classic</td>
+  <td>modern, darktower<td>Style of control tower marker</td></tr>
+<tr><td>airportMarkerScale</td><td>55</td><td>10 to 150</td><td>Size of control tower marker</td></tr>
+<tr><td>showLegend</td><td>true</td><td>(Boolean)</td><td>Show legend at bottom of screen</td></tr>
+<tr><td>weatherFrames</td><td>0</td><td>0 to 25</td><td>US only. Number of frames to animate, each frame represents 10 minutes. 0 means no image, 1 means single (non-animated) image of current radar.</td></tr>
+<tr><td>weatherStation</td><td>automatic</td><td>(any US station code)</td><td>Specify weather radar station code - see below (US only)</td></tr>
+<tr><td>weatherRadar</a></td><td>NCR</td>
+  <td>N0R, N0Z, NTP, N1P, N0S, N0V</td><td>NWS weather radar product - see below (US only)</td></tr>
+<tr><td>weatherOpacity</td><td>30</td><td>1 to 100</td><td>Opacity of weather overlay (100 is opaque)</td></tr>
+<!-- <tr><td>interactive</td><td>false</td><td>true</td><td>Interactive mode (scrolling enabled)</td></tr> -->
+<!-- <tr><td>view</td><td></td><td>3D</td><td>fake 3D mode</td></tr> -->
+</table>
+
+<h2>Map Types</h2>
+<p>The "Zoom" value in the table indicates which zoom levels are available for this map.
+<table border="1">
+<tr><th>Name</th><th>Zoom</th><th>Description</th></tr>
+<tr><td>terrain</td><td>4-12</td><td>Terrain with roads, boundaries, and labels (US only)</td></tr>
+<tr><td>terrainbg</td><td>4-11</td><td>Terrain background (US only)</td></tr>
+<tr><td>satellite</td><td>0-11</td><td>Satellite (zoomLevel 0 to 7) / Aerial (zoomLevel 8 to 11)</td></tr>
+<tr><td>road</td><td>0-11</td><td>Normal Road map</td></tr>
+<tr><td>acetate</td><td>0-10</td><td>Low contrast Terrain map</td></tr>
+<tr><td>blue</td><td>2-6</td><td>Simple map with political boundaries</td></tr>
+</table>
+
+<h2>Weather Options</h2>
+<p>The app can optionally show ground-based weather radar from the US National Weather Service (US only).
+To show the current weather radar, set weatherFrames to "1".
+Alternatively, set weatherFrames between 2 and 25 to show an animation of the recent weather.
+The weather frames are updated approximately every 10 minutes.</p>
+<p>If weatherStation is set to "automatic"
+then the app automatically finds the closest radar station to the specified airport.
+You can override this by specifying a station code. See the bottom of
+<a href="http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm" target="_blank">
+http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm</a>
+for a list of stations and their locations.
+This can be useful if the closest station doesn't have the best weather coverage for the airport.</p>
+
+<h2>Values for weatherRadar</h2>
+<table>
+<tr><td>NCR</td><td>Composite Reflectivity (default)</td></tr>
+<tr><td>N0R</td><td>Base Reflectivity (second letter is number 0)</td></tr>
+<tr><td>N0Z</td><td>Long Range Base Reflectivity (second letter is number 0)</td></tr>
+<tr><td>NTP</td><td>Storm Total Precipitation</td></tr>
+<tr><td>N1P</td><td>One Hour Precipitation (second letter is number 1)</td></tr>
+<tr><td>N0S</td><td>Storm Relative Motion (second letter is number 0)</td></tr>
+<tr><td>N0V</td><td>Base Velocity (second letter is number 0)</td></tr>
+</table>
+<p>(More information on National Weather Service products at <a href="http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm" target="_blank">http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm</a>).</p>
+
+<h2>Browser Compatibility</h2>
+<p>The app has been tested on recent versions of Chrome, Firefox, Safari, and on IE 8 and 9. If you encounter any problems, please let us know.</p>
+<p>There is a known issue with Safari that occasionally causes the airplanes to jiggle around on the screen
+(this might have been fixed in the most recent version of Safari).</p>
+
+<h2>Advanced/Experimental Options</h2>
+<p>These options must be specified in the URL, and are not available in the configurator and cannot be saved in a cookie.</p>
+<h4>interactive=true</h4>
+<p>Setting interactive to true allows you to drag the map using your mouse pointer and to zoom in by double clicking.
+It also enables the following keyboard shortcuts:
+<table border="1">
+  <tr><td>+ <em>or</em> =</td><td>zoom in</td></tr>
+  <tr><td>&ndash; <em>or</em> _</td><td>zoom out</td></tr>
+  <tr><td><em>arrow keys</em></td><td>scroll the map by 100 pixels</td></tr>
+  <tr><td><em>space bar</em></td><td>scroll back to original position (with the airport centered)</td></tr>
+  <tr><td><em>return key</em></td><td>return to original scroll and zoom</td></tr>
+  <tr><td>C</td><td>open/close the configuration tool</td></tr>
+  <tr><td>F</td><td>enter/exit full screen (if supported by the browser)</td></tr>
+  <tr><td>N</td><td>when flip=true, this advances to the next airport</td></tr>
+</table>
+When interactive is true, the mouse cursor does not hide when in full screen mode.
+</p>
+<h4>thumb=true</h4>
+<p>Setting thumb to true puts the map into thumbnail mode.
+This is used to draw small maps (thumbnails).
+The main difference is that this option removes the legend from the bottom of the map.</p>
+<h4>jump=true</h4>
+<p>Setting jump to true eliminates smooth airplane animation so that the map uses far fewer processor resources.
+The airplanes jump from one position to another, and the labels are turned off.
+This option is often used with thumb=true.</p>
+<h4>flip=true</h4>
+<p>Setting flip to true changes the airport every minute.
+Airports are displayed from west to east, around the world.
+The current airport is displayed in the legend.
+You can also adjust the number of seconds between airport changes using the flipTime parameter.
+For example, flipTime=120 displays each airport for 2 minutes.</p>
+<h4>view=3D</h4>
+<p>Setting view to 3D displays the map in psuedo-3D. Note that this does not work in all browsers.
+It also sets interactive mode to true, so you can drag the map around in 3D.</p>
+
+<hr />
+<h3><a href="http://flightstats.com" target="_blank">Flightstats Inc.</a></h3>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript">
+  var url = window.location.href;
+  url =  url.replace('help.html', (url.slice(0,5) === 'file:') ? 'index.html' : '');
+  $('.url').text(url);
+  $('.link').attr('href', function(i, olda) { return url+olda; });
+  // var baseloc = window.location.href.replace(/^.*\//,'');
+  // var baseloc = "http://www.flightstats.com/go/Signage/airportTrackerSignage.do";
+</script>
+</body>
+</html>
+
+<!-- 
+<p><strong>Examples:</strong></p>
+<ul><li><a class="link" href="" target="_blank"><span class="url"></span></a>
+<br />Displays with all defaults. The default airport is PDX (Portland, Oregon; the home of Flightstats).</li>
+<li><a class="link" href="?interactive=true" target="_blank"><span class="url"></span>?interactive=true</a>
+<br />Interactive mode lets you zoom and pan, change the base map, and add overlays. See below.</li>
+<li><a class="link" href="?airportCode=BOS&weatherAnimation=12&mapType=road"
+target="_blank"><span class="url"></span>?airportCode=BOS&weatherAnimation=12&mapType=road</a>
+<br />Show Boston airport, with 12 frames (about 2 hours) of weather radar data animated, over a road map.</li>
+<li><a class="link" href="?airportCode=SEA&zoomLevel=8&weatherStation=auto&mapType=acetate"
+target="_blank"><span class="url"></span>?airportCode=SEA&zoomLevel=8&weatherStation=auto&mapType=acetate</a>
+<br />Show Seattle/Tacoma airport, zoomed out a bit, with a low-saturation terrain map, and the current weather radar image (not animated).</li>
+<li><a class="link" href="?airportCode=ORD&flightMarkerScale=50&showAirlineLogos=false&showOtherAirport=false&mapType=satellite"
+target="_blank"><span class="url"></span>?airportCode=ORD&flightMarkerScale=50&showAirlineLogos=false&showOtherAirport=false&mapType=satellite</a>
+<br />Show a busy airport using satellite imagery, shrink the airplanes down, and show only the flight number in the label.</li>
+<li><a class="link" href="?airportCode=ATL&showLabels=false&mapType=terrainbg&showLegend=false"
+target="_blank"><span class="url"></span>?airportCode=ATL&showLabels=false&mapType=terrainbg&showLegend=false</a>
+<br />An even busier airport, but with simple terrain imagery, larger airplanes, no labels at all, and the legend turned off.
+</ul>

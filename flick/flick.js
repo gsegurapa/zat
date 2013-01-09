@@ -2,7 +2,7 @@
 /*global L:false, jQuery:false, Morris:false */
 
 (function($){
-	"use strict";
+	// "use strict";
 
 	var updateRate = 10000;	// 10 seconds
 	var aniRate = 250;	// 1/4 second
@@ -185,10 +185,9 @@
 					return;
 				}
 
-				var lon;	// temp variable for longitude
-
 				flightData = data.flightTrack;
 				var newpos = flightData.positions[0];
+				var newhead = +(flightData.heading || flightData.bearing);
 				var newdate = Date.parse(newpos.date);
 				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 				timestamp += updateRate;	// 10 seconds
@@ -197,7 +196,7 @@
 					if (!nodata) {
 						if (console && console.log) { console.log('position data lost '+timestamp); }
 						airplane.setActive(false);	// set airplane color to gray
-						setPositions(true);	// draw entire flight history
+						setFlightPath(true);	// draw entire flight history
 					}
 					nodata = true;
 				}
@@ -214,8 +213,7 @@
 					nodata = false;
 					if (console && console.log) { console.log('position data reestablished '+timestamp); }
 					airplane.setActive(true);	// set airplane color back to purple
-					lon = +pos.lon;
-					curpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
+					phat(fpos, newhead, +pos.altitudeFt, timestamp);	// jump position
 				}
 
 				if (airports === undefined) { // first time called
@@ -233,13 +231,10 @@
 					// See setfullview for hack to fix long Singapore flights
 					wrap = Math.abs(depa.longitude - arra.longitude) > 180; // does route cross anti-meridian?
 
-					lon = +depa.longitude;
-					dpos = L.latLng(+depa.latitude, wrap && lon>0 ? lon-360 : lon, true);
-					lon = +arra.longitude;
-					apos = L.latLng(+arra.latitude, wrap && lon>0 ? lon-360 : lon, true);
-					lon = +pos.lon;
-					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
-					currot = +(flightData.heading || flightData.bearing);
+					dpos = createLatLng(+depa.latitude, +depa.longitude, wrap);
+					apos = createLatLng(+arra.latitude, +arra.longitude, wrap);
+					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
+					// currot = +(flightData.heading || flightData.bearing);
 
 					var ac = flightData.carrierFsCode.toLowerCase();
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
@@ -255,11 +250,10 @@
 					setfullview(map);
 
 				} else {	// update
+					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					if (tracking) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
-					lon = +pos.lon;
-					fpos = L.latLng(+pos.lat, wrap && lon>0 ? lon-360 : lon, true);
-					phat(fpos, +(flightData.heading || flightData.bearing), +pos.altitudeFt, timestamp, +pos.speedMph);
-					setPositions();
+					aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
+					setFlightPath();
 					setFlightLabel();
 					if (graph_on) { doGraph(); }
 				}
@@ -275,7 +269,7 @@
 								tracking = true;
 								$trackbutton.css('background-color', '#d8e');
 								settrackingview(this);
-								setPositions();
+								setFlightPath();
 								L.DomEvent.stopPropagation(e);
 							}, map)).css({'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
 					// zoom out to show entire flight
@@ -338,8 +332,7 @@
 					if (p) { // there is a flight plan
 						var positions = new Array(p.length);
 						for (var i = 0; i < p.length; i++) {
-							lon = +p[i].lon;
-							positions[i] = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);
+							positions[i] = createLatLng(+p[i].lat, +p[i].lon, wrap);
 						}
 						plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel('flight plan').addTo(map);
 						layercontrol.addOverlay(plan, 'flight plan');
@@ -350,8 +343,6 @@
 						layercontrol.addOverlay(plan, 'route');
 					}
 
-					setPositions(); // draw actual flight position data
-
 					// flight marker (airplane)
 					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
 					var heading = +(flightData.heading || flightData.bearing);
@@ -359,35 +350,34 @@
 						p = flightData.positions[1];
 						var a2 = +(p.altitudeFt || alt);
 						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground
-						lon = +p.lon;
-						var fp2 = L.latLng(+p.lat, wrap && lon>0 ? lon-360 : lon, true);
-						curpos = fp2;
-						console.log('initial points: ', curpos, fpos, heading, +pos.speedMph);
-						airplane = flightMarker(fp2).addTo(map).rotate(heading).setShadow(a2).stamp(p.date);
-						phat(fpos, heading, +pos.altitudeFt, timestamp, +pos.speedMph);	// start airplane moving
+						var fp2 = createLatLng(+p.lat, +p.lon, wrap);
+						var speed = +pos.speedMph;
+						if (fp2.distanceTo(fpos) > speed * 53.6448) {	// more than 2 minutes of distance
+							phat(fpos, heading, alt, p.date);	// set initial position
+						} else {
+							phat(fp2, heading, a2, p.date);	// set initial position
+							aniPhats(fpos, heading, +pos.altitudeFt, timestamp, +pos.speedMph);	// start airplane moving
+						}
 					} else {
-						airplane = flightMarker(fpos).addTo(map).rotate(heading).setShadow(alt).stamp(p.date);
+						phat(fpos, heading, alt, p.date);	// set initial position
 					}
 					
 					setFlightLabel();
+					setFlightPath(); // draw actual flight position data
 
 				} // end mapReady
 
-				function setPositions(all) { // draw flight positions
+				function setFlightPath(all) { // draw flight positions
 					var p = flightData.positions;
 					var positions = [];
-					var last = null, ct, lon, tail;
-					var i = 0;
-					if (all || !curpos) {	// draw all positions
-						console.log('all curpos: ', all, curpos);
-						lon = +p[i].lon;
-						tail = L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true);
+					var last = null, ct, tail;
+					var i = 1;
+					if (all || !curpos || curspeed < 120) {	// draw all positions
+						tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
 					} else { // find last point in flight path to be displayed
 						var m = Math.min(p.length, 10);
-						for (i++ ; i < m; i++) {
-							var pospt = p[i];
-							lon = +pospt.lon;
-							tail = L.latLng(+pospt.lat, wrap && lon>0 ? lon-360 : lon, true);
+						for ( ; i < m; i++) {
+							tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
 							var h = calcHeading(curpos, tail);
 							// console.log('angle for '+i+' = '+smallAngle(curheading, h), curheading, h);
 							if (Math.abs(smallAngle(curheading, h)) > 90) { break; }
@@ -405,8 +395,7 @@
 								positions = [];
 							}
 						}
-						lon = +p[i].lon;
-						positions.push(L.latLng(+p[i].lat, wrap && lon>0 ? lon-360 : lon, true));
+						positions.push(createLatLng(+p[i].lat, +p[i].lon, wrap));
 						last = ct;
 					}
 					multi.push(positions);
@@ -416,10 +405,22 @@
 						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(map).bindLabel('flight path');
 						layercontrol.addOverlay(path, 'flight path');
 					}
-				} // end setPositions
+				} // end setFlightPath
+
+				// set position of airplane icon
+				function phat(p, h, a, t) {	// position, heading, altitude, time
+					curpos = p;
+					currot = h;
+					if (airplane) {
+						airplane.rotate(h).setShadow(a).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
+						if (tracking) { map.panTo(p); }
+					} else {
+						airplane = flightMarker(p).addTo(map).rotate(h).setShadow(a).stamp(t);
+					}
+				}	// end phat
 
 				// update position of airplane, using animation
-				function phat(p, h, a, t, s) {	// position, heading, altitude, time, speed
+				function aniPhats(p, h, a, t, s) {	// position, heading, altitude, time, speed
 					if (!isNaN(a)) { airplane.setShadow(a); }
 					if (curpos) {	// calculate heading from positions
 						h = calcHeading(curpos, p);
@@ -428,9 +429,11 @@
 
 					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
 					airplane.stamp(t);
-					if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
-						airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
-						if (tracking) { map.panTo(p); }
+					// if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
+					if (dt > 120000) {	// don't animate jumps
+						phat(p, h, a, t);
+						// airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
+						// if (tracking) { map.panTo(p); }
 						return;
 					}
 
@@ -445,12 +448,12 @@
 					// turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
 
 					// number of frames to move that distance at current speed (s)
-					frames = Math.floor(curpos.distanceTo(p) * 2236.936292 / (s * aniRate));
+					frames = Math.floor(curpos.distanceTo(p) * 2236.936292 / (curspeed * aniRate));
 					if (frames <= 0) {
 						curpos = p;
 						return;
 					}
-					console.log('frames: '+frames);
+					console.log('frames: '+frames+' at: '+curspeed+' mph');
 					frames = Math.min(frames, fminute * 2);
 					if (frames > fminute) {
 						frames -= (frames - fminute) * 0.5;
@@ -483,10 +486,9 @@
 					}
 
 					function step() {	// animation step
-						var lon = curpos.lng + vlng;
-						curpos = L.latLng(curpos.lat + vlat, wrap && lon>0 ? lon-360 : lon, true);
+						curpos = createLatLng(curpos.lat + vlat, curpos.lng + vlng, wrap);
 						currot += vrot;
-						if (!zooming) {
+						if (!zooming) {	// don't update position while zooming animation is in progress
 							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
 						// if (tracking) { map.panTo(curpos); }
 							if (path) {	// draw tail
@@ -509,7 +511,7 @@
 							frames--;
 						}
 					}	// end step
-				}	// end phat
+				}	// end aniPhats
 
 			} // end getFlight
 
@@ -631,6 +633,10 @@
 
 	});	// end document ready
 
+	function createLatLng(lat, lon, wrap) {
+				return L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
+	}
+
 	// airplane flight marker
 	var FlightMarker = L.Marker.extend({
 		defaultFlightMarkerOptions: {
@@ -708,10 +714,13 @@
 					var B = Math.sin(step * g) * isg;
 					var x = A * Math.cos(starty) * Math.cos(startx) + B * Math.cos(endy) * Math.cos(endx);
 					var y = A * Math.cos(starty) * Math.sin(startx) + B * Math.cos(endy) * Math.sin(endx);
-					var z = A * Math.sin(starty) + B * Math.sin(endy);
-					var lat = R2D * Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
-					var lon = R2D * Math.atan2(y, x);
-          points.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
+					// var z = A * Math.sin(starty) + B * Math.sin(endy);
+					points.push(createLatLng(R2D *
+							Math.atan2(A * Math.sin(starty) + B * Math.sin(endy), Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))),
+							R2D * Math.atan2(y, x), wrap));
+					// var lat = R2D * Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+					// var lon = R2D * Math.atan2(y, x);
+          // points.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
         }
 			}
 			this._latlngs = points;

@@ -132,6 +132,7 @@
 				rotframes,	// frames of animation in rotation remaining
 				anitimer;	// animation timer
 		var vlat, vlng, vrot;	// animation parameters
+		var zooming = false;	// true during zoom animation
 
 		var map = L.map('map_div', {	// create map
 			attributionControl: false,
@@ -153,6 +154,12 @@
 						return false;	
 					}
 				});
+			}).
+			on('zoomstart', function(/* e */) {
+				zooming = true;
+			}).
+			on('zoomend', function(/* e */) {
+				zooming = false;
 			});
 
 		// get position data from API
@@ -479,11 +486,13 @@
 						var lon = curpos.lng + vlng;
 						curpos = L.latLng(curpos.lat + vlat, wrap && lon>0 ? lon-360 : lon, true);
 						currot += vrot;
-						airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
+						if (!zooming) {
+							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
 						// if (tracking) { map.panTo(curpos); }
-						if (path) {	// draw tail
-							multi[0][0] = curpos;
-							path.setLatLngs(multi);
+							if (path) {	// draw tail
+								multi[0][0] = curpos;
+								path.setLatLngs(multi);
+							}
 						}
 						if (frames <= 0) {	// stop movement
 							vlat = 0;
@@ -640,7 +649,7 @@
 			this._stamp = 0;
 		},
 		rotate: function(deg) { // add rotate function to Marker class
-			$(this._icon).find('img').css('transform', 'rotate('+deg+'deg)');			
+			$(this._icon).find('img').rotate(deg); // css('transform', 'rotate('+deg+'deg)');			
 			return this;
 		},
 		stamp: function(ds) {

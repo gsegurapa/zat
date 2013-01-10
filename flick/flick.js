@@ -218,7 +218,7 @@
 					nodata = false;
 					showMessage('Position data reestablished at '+(new Date(timestamp)).toUTCString());
 					airplane.setActive(true);	// set airplane color back to purple
-					if (wrap) {	// jump position
+					if (wrap !== undefined) {	// jump to new position
 						phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
 					}
 					console.log('data restored ', curpos);

@@ -196,9 +196,9 @@
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
 						showMessage('<h3>Don\'t Worry</h3>'+
-							'A gray airplane means this flight is<br />'+
-							'temporarily beyond the range of our tracking<br />'+
-							'network or over a large body of water');
+							'This flight is temporarily beyond<br />'+
+							'the range of our tracking network<br />'+
+							'or over a large body of water');
 						airplane.setActive(false);	// set airplane color to gray
 						setFlightPath(true);	// draw entire flight history
 						console.log('data lost');

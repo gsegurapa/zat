@@ -6,6 +6,7 @@
 
 	var updateRate = 10000;	// 10 seconds
 	var aniRate = 250;	// 1/4 second
+	var rotRate = aniRate / 500;	// 2 degrees per second max
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -194,9 +195,13 @@
 				// if (console && console.log) console.log(timestamp - newdate);
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
-						if (console && console.log) { console.log('position data lost '+timestamp); }
+						showMessage('<h3>Don\'t Worry</h3>'+
+							'A gray airplane means this flight is<br />'+
+							'temporarily beyond the range of our tracking<br />'+
+							'network or over a large body of water');
 						airplane.setActive(false);	// set airplane color to gray
 						setFlightPath(true);	// draw entire flight history
+						console.log('data lost');
 					}
 					nodata = true;
 				}
@@ -211,9 +216,12 @@
 				timestamp = newdate;
 				if (nodata) {
 					nodata = false;
-					if (console && console.log) { console.log('position data reestablished '+timestamp); }
+					showMessage('Position data reestablished at '+(new Date(timestamp)).toUTCString());
 					airplane.setActive(true);	// set airplane color back to purple
-					phat(fpos, newhead, +pos.altitudeFt, timestamp);	// jump position
+					if (wrap) {	// jump position
+						phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
+					}
+					console.log('data restored ', curpos);
 				}
 
 				if (airports === undefined) { // first time called
@@ -459,26 +467,16 @@
 						frames -= (frames - fminute) * 0.5;
 					}
 
-					// var speed = curpos.distanceTo(p) * 1000 / dt; // in meters / second
-					// console.log('calculated speed: '+(speed*2.237).toFixed(2)+ ', API speed: '+pos.speedMph);
-					// // frames = Math.ceil(frames/2);
-					// frames = Math.ceil(dt / aniRate) + 20;	// add number of frames for this move
 					rotframes = Math.ceil(frames/2);
 					vlat = (p.lat - curpos.lat) / frames;
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / rotframes;
+					if (vrot > rotRate) {	// max 2 degrees per second
+						vrot = rotRate;
+						rotframes = turn / vrot;
+					}
 
 					frames += fminute;	// plus one more minute of frames
-
-					// if (speed > 343.2) { // limit to the speed of sound in meters/sec
-     //        var speedratio = 343.2 / speed;
-     //        vlat *= speedratio;
-     //        vlng *= speedratio;
-     //        frames = Math.floor(frames / speedratio);
-     //      }
-     //      if (Math.abs(turn / dt) > 2000) {  // maximum turn rate 2 degrees per second
-     //        vrot = (vrot > 0 ? 0.002 : -0.002) * dt;
-     //      }
 
      			// animation timer
 					if (!anitimer) {
@@ -635,6 +633,10 @@
 
 	function createLatLng(lat, lon, wrap) {
 				return L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
+	}
+
+	function showMessage(message) {
+		$('#message').html(message).show().on('click', function() { $(this).hide(); });
 	}
 
 	// airplane flight marker

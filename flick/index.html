@@ -82,7 +82,6 @@
 		.leaflet-label {
 			background: rgb(235, 235, 235);
 			background: rgba(235, 235, 235, 0.80);
-			background-clip: padding-box;
 			border-color: #777;
 			border-color: rgba(0,0,0,0.3);
 			border-radius: 6px;
@@ -111,11 +110,28 @@
 			top: 5px;
 			left: -8px;
 		}
+		#message {
+			display: none;
+			position: absolute;
+			color: black;
+			font-size: 1.3em;
+			font-weight: bold;
+			padding: 0.5em;
+			background: rgb(255, 255, 255);
+			background: rgba(255, 255, 255, 0.8);
+			background-clip: padding-box;
+			border: solid black 3px;
+			border-radius: 8px;
+			max-width: 50%;
+			left: 45%;
+			top: 45%;
+		}
 	</style>
 </head>
 <body>
 	<div id="map_div"></div>
 	<div id="graph1_div"></div>
 	<div id="graph2_div"></div>
+	<div id="message"></div>
 </body>
 </html>

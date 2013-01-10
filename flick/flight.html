@@ -16,6 +16,7 @@
 Departing airport:
 <input id="aircode" type="text" size="4" value="PDX" />
 <input id="lookup" type="button" value="Lookup" />
+<input id="debug" type="button" value="Debug" />
 </div>
 <div id="out">
 <table id="flights">
@@ -30,7 +31,10 @@ Departing airport:
 	$('#aircode').select();
 
 	$('#lookup').on('click', lookup);
+	$('#debug').on('click', lookup);
 	$('#aircode').on('keydown', lookup);
+
+	var debug = '';
 
 	function getAppendix(data) { // read in data from appendix and convert to dictionary
     ret = {};
@@ -45,6 +49,9 @@ Departing airport:
 
 	function lookup(e) {
 		if (e.type === 'keydown' && e.keyCode !== 13) { return; }
+		if (e.type === 'click' && $(e.target).attr('id') === 'debug') {
+			debug='&debug=true';
+		}
 		airportCode = $('#aircode').val().toUpperCase();
 		$.ajax({  // airport tracks departures
       url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
@@ -82,7 +89,7 @@ Departing airport:
 		$flights.append('<tr><td>ID</td><td>FLIGHT</td><td>TO</td><td>LEAVES</td></tr>');
 		$.each(deps, function(index, val) {
 			$flights.append('<tr><td><a href="index.html?id='+val.id+
-				'&airline='+val.airlineCode+'&flight='+val.flight+'">'+val.id+'</a></td><td>'+
+				'&airline='+val.airlineCode+'&flight='+val.flight+debug+'">'+val.id+'</a></td><td>'+
 				val.airline+' '+val.flight+'</td><td>'+val.to+' - '+val.city+
 				'</td><td>'+val.leaves+'</td></tr>');
 				// '</td><td><a href="http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+

@@ -16,7 +16,7 @@
 			units='metric', // metric or US
 			mapType = 'street', // name of map
 			showWeather = false,
-			graph_on = false; // true or false
+			debug = false;	// interactive debug
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -30,6 +30,7 @@
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
     if (params.airline) { airline = params.airline; }
     if (params.flight) { flightnum = params.flight; }
+    if (params.debug) { debug = params.debug === 'true'; }
 	}
 
 	getParams(window.location.href); // read parameters from URL
@@ -134,6 +135,11 @@
 				anitimer;	// animation timer
 		var vlat, vlng, vrot;	// animation parameters
 		var zooming = false;	// true during zoom animation
+		// debug stuff
+		var graph_on = false, // graph is showing
+				numpos,
+				data_off = 0,	// index of where data is off for testing
+				data_on = 0;	// index of where data is back on
 
 		var map = L.map('map_div', {	// create map
 			attributionControl: false,
@@ -187,7 +193,18 @@
 				}
 
 				flightData = data.flightTrack;
-				var newpos = flightData.positions[0];
+				var p = flightData.positions;
+				numpos = p.length;
+
+				if (data_off !== 0) {	// simulate data loss for testing
+					if (data_on === 0) {	// data is dead
+						p.splice(0, numpos-data_off);					
+					} else {	// data is back on
+						p.splice(-data_on, data_on-data_off);
+					}
+				}
+
+				var newpos = p[0];
 				var newhead = +(flightData.heading || flightData.bearing);
 				var newdate = Date.parse(newpos.date);
 				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
@@ -195,13 +212,12 @@
 				// if (console && console.log) console.log(timestamp - newdate);
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
-						showMessage('<h3>Don\'t Worry</h3>'+
+						showMessage('Don\'t Worry<br /><br />'+
 							'This flight is temporarily beyond<br />'+
 							'the range of our tracking network<br />'+
 							'or over a large body of water');
 						airplane.setActive(false);	// set airplane color to gray
 						setFlightPath(true);	// draw entire flight history
-						console.log('data lost');
 					}
 					nodata = true;
 				}
@@ -216,12 +232,11 @@
 				timestamp = newdate;
 				if (nodata) {
 					nodata = false;
-					showMessage('Position data reestablished at '+(new Date(timestamp)).toUTCString());
+					showMessage('Position data reestablished<br />'+(new Date(timestamp)).toUTCString());
 					airplane.setActive(true);	// set airplane color back to purple
 					if (wrap !== undefined) {	// jump to new position
 						phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
 					}
-					console.log('data restored ', curpos);
 				}
 
 				if (airports === undefined) { // first time called
@@ -232,7 +247,7 @@
 					arrivalAirport = flightData.arrivalAirportFsCode;
 					var arra = airports[arrivalAirport];
 
-					// Need to update this test to take into account flights that fly the "wrong" way around
+					// This test does not take into account flights that fly the "wrong" way around
 					// the world. In particular Singapore to New York (because of the wind).
 					// Could do this by looking at flight plan, except flight plan is sometimes wrong.
 					// See https://www.pivotaltracker.com/projects/709005#!/stories/40465187
@@ -287,27 +302,45 @@
 								$trackbutton.css('background-color', '');
 								setfullview(this);
 								L.DomEvent.stopPropagation(e);
-							}, map)).css({'background-image': 'url(img/icon-full.png)', margin: '5px 0' });
-					$(zoomcontrol._createButton('Show Graph', 'leaflet-control-show-graph', $zoomdiv[0],
-							function(e) {
-								if (graph_on) {	// hide graph
-									$('#map_div').animate({height: '100%'}, 'fast');
-									$('#graph1_div, #graph2_div').hide();
-									graph_on = false;
-								} else {	// show graph
-									$('#graph1_div, #graph2_div').show();
-									$('#map_div').animate({height: '80%'}, 'fast');
-									graph_on = true;
-									doGraph();
-								}
-								L.DomEvent.stopPropagation(e);
-							}, map)).css({'background-image': 'url(img/icon-graph.png)' });
+							}, map)).css({'background-image': 'url(img/icon-full.png)' });
 					map.on('dragstart', function(/* e */) {
 						if (tracking) {
 							tracking = false;
 							$trackbutton.css('background-color', '');							
 						}
 					});
+
+					if (debug) {	// interactive debug mode
+						$(document).keydown(function(e) {
+          		switch(e.which) {
+          			case 71: // "g" graph
+	          			if (graph_on) {	// hide graph
+										$('#map_div').animate({height: '100%'}, 'fast');
+										$('#graph1_div, #graph2_div').hide();
+										graph_on = false;
+									} else {	// show graph
+										$('#graph1_div, #graph2_div').show();
+										$('#map_div').animate({height: '80%'}, 'fast');
+										graph_on = true;
+										doGraph();
+									}
+          			break;
+          			case 83: // "s" stop data
+          				if (data_off === 0 || data_on !== 0) {	// first time
+          					data_off = numpos;
+          					data_on = 0;
+          				} else {
+          					data_on = numpos;
+          					if (data_on === data_off) {
+          						data_on = data_off = 0;
+          					}
+          				}
+          				if (console && console.log) {  console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames); }
+          			break;
+          		}
+          		e.stopPropagation();
+          	});
+					}
 
 					// departing airport marker
 					L.marker(dpos, {
@@ -398,7 +431,7 @@
 					for (; i < p.length; i++) {
 						ct = Date.parse(p[i].date);
 						if (last) {
-							if (Math.abs(ct - last) > 300000) {	// no data for 5 minutes
+							if (Math.abs(ct - last) > 120000) {	// no data for 2 minutes
 								multi.push(positions);
 								positions = [];
 							}
@@ -461,7 +494,7 @@
 						curpos = p;
 						return;
 					}
-					console.log('frames: '+frames+' at: '+curspeed+' mph');
+					if (console && console.log) {  console.log('frames: '+frames+' at: '+curspeed+' mph'); }
 
 					frames = Math.min(frames, fminute * 2);
 					if (frames > fminute) {

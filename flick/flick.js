@@ -462,16 +462,16 @@
 						return;
 					}
 					console.log('frames: '+frames+' at: '+curspeed+' mph');
+
 					frames = Math.min(frames, fminute * 2);
 					if (frames > fminute) {
-						frames -= (frames - fminute) * 0.5;
+						frames -= Math.ceil((frames - fminute) * 0.5);
 					}
-
 					rotframes = Math.ceil(frames/2);
 					vlat = (p.lat - curpos.lat) / frames;
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / rotframes;
-					if (vrot > rotRate) {	// max 2 degrees per second
+					if ((vrot > rotRate && curspeed > 100) || vrot > rotRate * 2) {	// max 2 degrees per second
 						vrot = rotRate;
 						rotframes = turn / vrot;
 					}

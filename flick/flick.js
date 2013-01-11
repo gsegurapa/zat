@@ -16,6 +16,7 @@
 			units='metric', // metric or US
 			mapType = 'street', // name of map
 			showWeather = false,
+			view = '2D',
 			debug = false;	// interactive debug
 
 	function getParams(p) {
@@ -30,6 +31,7 @@
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
     if (params.airline) { airline = params.airline; }
     if (params.flight) { flightnum = params.flight; }
+    if (params.view) { view = params.view.toUpperCase(); }	// 3D
     if (params.debug) { debug = params.debug === 'true'; }
 	}
 
@@ -141,6 +143,7 @@
 				data_off = 0,	// index of where data is off for testing
 				data_on = 0;	// index of where data is back on
 
+    // create map
 		var map = L.map('map_div', {	// create map
 			attributionControl: false,
 			zoomControl: false,
@@ -226,7 +229,7 @@
 						newpos.date === pos.date && pos.altitudeFt === newpos.altitudeFt) {
 					return; // data has not changed
 				}
-				if (console && console.log) { console.log('Flex API data: ', data); }
+				if (debug && console && console.log) { console.log('Flex API data: ', data); }
 
 				pos = newpos;
 				timestamp = newdate;
@@ -283,6 +286,10 @@
 
 				// map is ready, draw everything for the first time
 				function mapReady(/* e */) {
+
+			    if (view === '3D') {
+			      $('#map_div').addClass('three');
+			    }
 
 					// add additional zoom control buttons
 					var $zoomdiv = $('.leaflet-control-zoom');
@@ -478,7 +485,7 @@
 						return;
 					}
 
-					if (Math.abs(s - curspeed) > 100 && console && console.log) { console.log('speed jump', s, curspeed); }
+					if (Math.abs(s - curspeed) > 100 && debug && console && console.log) { console.log('speed jump', s, curspeed); }
 					if (s) { curspeed = s; }	// valid speed
 
 					var fminute = 60000 / aniRate;	// a minute of frames
@@ -494,7 +501,7 @@
 						curpos = p;
 						return;
 					}
-					if (console && console.log) {  console.log('frames: '+frames+' at: '+curspeed+' mph'); }
+					if (debug && console && console.log) {  console.log('frames: '+frames+' at: '+curspeed+' mph'); }
 
 					frames = Math.min(frames, fminute * 2);
 					if (frames > fminute) {
@@ -504,12 +511,13 @@
 					vlat = (p.lat - curpos.lat) / frames;
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / rotframes;
-					if ((vrot > rotRate && curspeed > 100) || vrot > rotRate * 2) {	// max 2 degrees per second
+					if ((vrot > rotRate && curspeed > 200) || vrot > rotRate * 2) {	// max 2 degrees per second
 						vrot = rotRate;
 						rotframes = turn / vrot;
 					}
 
-					frames += fminute;	// plus one more minute of frames
+					// only continue on after loss of data if plane is at altitude and speed
+					if (curspeed > 250 && a > 10000) { frames += fminute; }	// plus one more minute of frames
 
      			// animation timer
 					if (!anitimer) {

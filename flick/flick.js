@@ -31,7 +31,7 @@
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
     if (params.airline) { airline = params.airline; }
     if (params.flight) { flightnum = params.flight; }
-    if (params.view) { view = params.view.toUpperCase(); }	// 3D
+    if (params.view) { view = params.view.toUpperCase(); }	// 3D or 3d
     if (params.debug) { debug = params.debug === 'true'; }
 	}
 
@@ -288,7 +288,7 @@
 				function mapReady(/* e */) {
 
 			    if (view === '3D') {
-			      $('#map_div').addClass('three');
+			      $('#map_div').addClass('threed');
 			    }
 
 					// add additional zoom control buttons

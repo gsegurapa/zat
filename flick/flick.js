@@ -215,7 +215,7 @@
 				// if (console && console.log) console.log(timestamp - newdate);
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
-						showMessage('Don\'t Worry<br /><br />'+
+						showMessage(
 							'This flight is temporarily beyond<br />'+
 							'the range of our tracking network<br />'+
 							'or over a large body of water');
@@ -235,7 +235,7 @@
 				timestamp = newdate;
 				if (nodata) {
 					nodata = false;
-					showMessage('Position data reestablished<br />'+(new Date(timestamp)).toUTCString());
+					showMessage('Reestablishing position data<br />'+(new Date(timestamp)).toUTCString());
 					airplane.setActive(true);	// set airplane color back to purple
 					if (wrap !== undefined) {	// jump to new position
 						phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
@@ -677,7 +677,8 @@
 	}
 
 	function showMessage(message) {
-		$('#message').html(message).show().on('click', function() { $(this).hide(); });
+		$('#message').html(message);
+		$('#messagepopup').show().on('click', function() { $(this).hide(); });
 	}
 
 	// airplane flight marker

@@ -37,6 +37,18 @@
 
 	getParams(window.location.href); // read parameters from URL
 
+	if (!window.console) {	// make sure console functions don't cause an error
+    (function() {
+      var stub = function(){};
+      var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+      "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+      window.console = {};
+      for (var i = 0; i < names.length; ++i) {
+        window.console[names[i]] = stub;
+      }
+    }());
+	}
+
 	if (flightID === undefined) { window.location = "flight.html"; } // setup tool -- remove for production
 
 	var appId = '9543a3e8',
@@ -58,10 +70,10 @@
 			{ subdomains: 'abcd',
 				minZoom: 0, maxZoom: 11
 		}),
-		acetate: L.tileLayer(
-			'http://maptiles-{s}.flightstats-ops.com/acetate/{z}/{x}/{y}.png',
+		stamen: L.tileLayer(
+			'http://maptiles-{s}.flightstats-ops.com/terrain/{z}/{x}/{y}.jpg',
 			{ subdomains: 'abcd',
-				minZoom: 0, maxZoom: 10
+				minZoom: 4, maxZoom: 12
 		})
 	};
 
@@ -212,7 +224,7 @@
 				var newdate = Date.parse(newpos.date);
 				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 				timestamp += updateRate;	// 10 seconds
-				// if (console && console.log) console.log(timestamp - newdate);
+				// if (debug) console.log(timestamp - newdate);
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
 						showMessage(
@@ -229,7 +241,7 @@
 						newpos.date === pos.date && pos.altitudeFt === newpos.altitudeFt) {
 					return; // data has not changed
 				}
-				if (debug && console && console.log) { console.log('Flex API data: ', data); }
+				if (debug) { console.log('Flex API data: ', data); }
 
 				pos = newpos;
 				timestamp = newdate;
@@ -342,7 +354,7 @@
           						data_on = data_off = 0;
           					}
           				}
-          				if (console && console.log) {  console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames); }
+          				console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames);
           			break;
           		}
           		e.stopPropagation();
@@ -485,7 +497,7 @@
 						return;
 					}
 
-					if (Math.abs(s - curspeed) > 100 && debug && console && console.log) { console.log('speed jump', s, curspeed); }
+					if (Math.abs(s - curspeed) > 100 && debug) { console.log('speed jump', s, curspeed); }
 					if (s) { curspeed = s; }	// valid speed
 
 					var fminute = 60000 / aniRate;	// a minute of frames
@@ -501,7 +513,7 @@
 						curpos = p;
 						return;
 					}
-					if (debug && console && console.log) {  console.log('frames: '+frames+' at: '+curspeed+' mph'); }
+					if (debug) {  console.log('frames: '+frames+' at: '+curspeed+' mph'); }
 
 					frames = Math.min(frames, fminute * 2);
 					if (frames > fminute) {
@@ -512,6 +524,7 @@
 					vlng = (p.lng - curpos.lng) / frames;
 					vrot =  turn / rotframes;
 					if ((vrot > rotRate && curspeed > 200) || vrot > rotRate * 2) {	// max 2 degrees per second
+						if (debug) { console.log('rotate limit: '+vrot); }
 						vrot = rotRate;
 						rotframes = turn / vrot;
 					}

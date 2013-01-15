@@ -2,7 +2,8 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densityDpi=device-dpi" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<!-- , target-densityDpi=device-dpi -->
   <title>FlightStats Flight Tracker</title>
   <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.css" />
 	<!--[if lte IE 8]>
@@ -137,7 +138,7 @@
 		#message {
 			margin-top: 0.5em;
 		}
-		div.threed {
+		div.threed {	/* 3D */
 		  transform-style: preserve-3d;
 		  transform: perspective(600px) rotateX(30deg) translateZ(300px);
 		  -webkit-transform-style: preserve-3d;
@@ -148,6 +149,9 @@
 		  -ms-transform: perspective(600px) rotateX(30deg) translateZ(300px);
 		  -o-transform-style: preserve-3d;
 		  -o-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+		}
+		img.leaflet-tile {
+			outline: 1px solid transparent;
 		}
 	</style>
 </head>

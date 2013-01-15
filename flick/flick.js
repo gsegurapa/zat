@@ -60,16 +60,16 @@
 			{ subdomains: 'abcd',
 				minZoom: 0, maxZoom: 11
 		}),
-		terrain: L.tileLayer(
-			'http://maptiles-{s}.flightstats-ops.com/mapboxterrain/{z}/{x}/{y}.png',
-			{	subdomains: 'abcd',
-				minZoom: 0, maxZoom: 11
-			}),
 		satellite: L.tileLayer(
 			'http://maptiles-{s}.flightstats-ops.com/satellite/{z}/{x}/{y}.png',
 			{ subdomains: 'abcd',
 				minZoom: 0, maxZoom: 11
 		}),
+		terrain: L.tileLayer(
+			'http://maptiles-{s}.flightstats-ops.com/mapboxterrain/{z}/{x}/{y}.png',
+			{	subdomains: 'abcd',
+				minZoom: 0, maxZoom: 11
+			}),
 		stamen: L.tileLayer(
 			'http://maptiles-{s}.flightstats-ops.com/terrain/{z}/{x}/{y}.jpg',
 			{ subdomains: 'abcd',

@@ -7,8 +7,11 @@ deploy-setup:
 	cp ${APP}/*.html ${APP}/build/.
 	tar -zcvf deploy.tar.gz ${APP}/build/*
 clean:
-	./clean.sh ${APP}
+	bash clean.sh ${APP}
 compile:
-	./compile.sh ${APP}
+	bash compile.sh ${APP}
+deploy-clean:
+	make clean APP=${APP}
+	bash deploy-clean.sh ${APP} ${BUCKET}
 deploy:deploy-setup
 	bash ./deploy.sh ${APP} ${BUCKET}

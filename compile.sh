@@ -8,6 +8,6 @@ do
 	count=$((count+1))
 done
 
-java -jar ./closure/compiler.jar --compilation_level SIMPLE_OPTIMIZATIONS ${fileparams} --js_output_file ${1}/build/${1}-min.js
+java -jar ./closure/compiler.jar --compilation_level SIMPLE_OPTIMIZATIONS ${fileparams} --js_output_file ${1}/build/${1}.js
 
 echo "${count} files compiled to  ${1}/build/${1}-min.js"

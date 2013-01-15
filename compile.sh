@@ -1,4 +1,7 @@
 #/bin/bash
+# usage: ./compile <app>
+# example: ./compile flick
+
 mkdir -p ${1}/build
 for js in $(find ${1}/src/*.js -maxdepth 1)
 do

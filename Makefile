@@ -3,7 +3,7 @@ default:
 deploy-setup:
 	make compile APP=${APP}
 	cp -r ${APP}/img ${APP}/build/.
-	cp ${APP}/lib/* ${APP}/build/.
+	cp -r ${APP}/lib/* ${APP}/build/.
 	cp ${APP}/*.html ${APP}/build/.
 	tar -zcvf deploy.tar.gz ${APP}/build/*
 clean:

@@ -1,6 +1,6 @@
 #/bin/bash
-# usage: ./deploy <app> <bucket>
-# example: ./deploy flick flightstats-webapps-staging
+# usage: ./deploy.sh <app> <bucket>
+# example: ./deploy.sh flick flightstats-webapps-staging
 
 for f in $(find ./${1}/build)
 do

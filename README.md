@@ -20,3 +20,20 @@ Deployment is controlled by a series of bash scripts and a Makefile.  The script
 
     make deploy-clean APP=airtrack BUCKET=flightstats-webapps-staging
 
+The scripts that do the actual building and deployment are as follows:
+* compile.sh - compiles the src javascript with the Google closure compiler.  Syntax is:
+
+    ./compile.sh <app>
+
+* deploy.sh - Copies all artifacts in the build directory to the given S3 bucket.  Syntax is:
+
+    ./deploy.sh <app> <bucket>
+
+* clean.sh - Delete the contents of the build directory.  Syntax is:
+    
+    ./clean.sh <app>
+
+* clean-deploy.sh - Delete the contents of a deployed app.  Syntax is:
+
+    ./deploy-clean.sh <app> <bucket>
+

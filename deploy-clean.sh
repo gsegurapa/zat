@@ -1,5 +1,5 @@
 #/bin/bash
-# usage: ./deploy-clean.sh app bucket
+# usage: ./deploy-clean.sh <app> <bucket>
 # example: ./deploy-clean.sh flick flightstats-webapps-staging
 
 list=`s3ls ${2}/${1} -1`

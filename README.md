@@ -16,7 +16,7 @@ Jenkins Jobs
 
 Deployment
 ==========
-Deployment is controlled by a series of bash scripts and a Makefile.  The scripts and Makefile are located in the root of the repository.  A deployment consists of compiling any source javascript (minimizing and obfuscation), packaging the source with dependencies, then copying the bundle to a selected S3 bucket.  A simple deployment command looks like this:
+Deployment is controlled by a series of bash scripts and a Makefile.  The scripts and Makefile are located in the root of the repository.  A deployment consists of compiling any source javascript (minimization and obfuscation), packaging the source with dependencies and assets, then copying the bundle to a selected S3 bucket.  A simple deployment command looks like this:
 
     make deploy-clean APP=airtrack BUCKET=flightstats-webapps-staging
 

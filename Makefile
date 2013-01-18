@@ -5,7 +5,7 @@ deploy-setup:
 	cp -r ${APP}/img ${APP}/build/.
 	cp -r ${APP}/lib ${APP}/build/.
 	cp ${APP}/*.html ${APP}/build/.
-	tar -zcvf deploy.tar.gz ${APP}/build/*
+	# tar -zcvf deploy.tar.gz ${APP}/build/*
 clean:
 	bash clean.sh ${APP}
 compile:

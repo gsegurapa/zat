@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <title>Flightstats Airport Tracker</title>
-<link rel="stylesheet" type="text/css" href="Leaflet/leaflet.css" />
-<!--[if lte IE 8]><link rel="stylesheet" type="text/css" href="Leaflet/leaflet.ie.css" /><![endif]-->
+<link rel="stylesheet" type="text/css" href="lib/Leaflet/leaflet.css" />
+<!--[if lte IE 8]><link rel="stylesheet" type="text/css" href="lib/Leaflet/leaflet.ie.css" /><![endif]-->
 <style type="text/css">
 #map_div.three {
   transform-style: preserve-3d;
@@ -233,12 +233,12 @@ output, #actualStation {
 }
 </style>
 <![endif]-->
-<script type="text/javascript" src="Leaflet/leaflet.js"></script>
+<script type="text/javascript" src="lib/Leaflet/leaflet.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script type="text/javascript" src="jquery.tools.min.js"></script>
-<script type="text/javascript" src="raphael-min.js"></script>
-<script type="text/javascript" src="bigscreen-min.js"></script>
-<script type="text/javascript" src="airtrack-min.js"></script>
+<script type="text/javascript" src="lib/jquery.tools.min.js"></script>
+<script type="text/javascript" src="lib/raphael-min.js"></script>
+<script type="text/javascript" src="lib/bigscreen-min.js"></script>
+<script type="text/javascript" src="src/airtrack.js"></script>
 </head>
 <body>
 <div id="map_div"></div>
@@ -274,9 +274,9 @@ output, #actualStation {
       <option value="terrain">stamen terrain (US only)</option>
       <option value="terrainbg">stamen terrainbg (US only)</option>
     </select></td><td>automatic</td><td>style of map</td></tr>
-    <tr><td>zoomLevel</td><td><img id="deczoom" src="Leaflet/images/zoom-out.png" title="-" alt="-" />
+    <tr><td>zoomLevel</td><td><img id="deczoom" src="lib/Leaflet/images/zoom-out.png" title="-" alt="-" />
       <input id="zoomLevel" type="text" size="2" value="9" style="text-align: center" />
-      <img id="inczoom" src="Leaflet/images/zoom-in.png" title="+" alt="+" />
+      <img id="inczoom" src="lib/Leaflet/images/zoom-in.png" title="+" alt="+" />
       </td><td>9</td><td>0-12 (depends on map)</td></tr>
 
     <tr><td>showLabels</td><td><input id="showLabels" class="bool" type="button" value="true" /></td>

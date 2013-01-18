@@ -20,7 +20,7 @@
       minZoom: 4, maxZoom: 12
     },
     terrainbg: {
-      name: 'Flightstats f Terrain US Background',
+      name: 'Flightstats Terrain US Background',
       url: 'http://maptiles-{s}.flightstats-ops.com/terrainbg/{z}/{x}/{y}.jpg',
       subdomains: 'abcd',
       attribution: 'Map data <a href="http://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a> <a href="http://stamen.com/">Stamen Design</a>, <a href="http://www.openstreetmap.org/">OpenStreetMap</a>',

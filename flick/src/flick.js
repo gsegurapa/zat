@@ -406,13 +406,14 @@
 					// flight marker (airplane)
 					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
 					var heading = +(flightData.heading || flightData.bearing);
-					if (flightData.positions.length >= 2) {
-						p = flightData.positions[1];
+					if (flightData.positions.length > 2) {
+						p = flightData.positions[2];
 						var a2 = +(p.altitudeFt || alt);
 						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground
 						var fp2 = createLatLng(+p.lat, +p.lon, wrap);
 						var speed = +pos.speedMph;
-						if (fp2.distanceTo(fpos) > speed * 53.6448) {	// more than 2 minutes of distance
+						// if (fp2.distanceTo(fpos) > speed * 53.6448) {	// more than 2 minutes of distance
+						if (fp2.distanceTo(fpos) > speed * 100) {	// more than 3.7 minutes of distance
 							phat(fpos, heading, alt, p.date);	// set initial position
 						} else {
 							phat(fp2, heading, a2, p.date);	// set initial position
@@ -490,22 +491,23 @@
 					var dt = t - airplane.stamp();	// time delta between updates in milliseconds
 					airplane.stamp(t);
 					// if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
-					if (dt > 120000) {	// don't animate jumps
+					if (dt > 240000) {	// don't animate jumps
 						phat(p, h, a, t);
 						// airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
 						// if (tracking) { map.panTo(p); }
 						return;
 					}
 
-					if (Math.abs(s - curspeed) > 100 && debug) { console.log('speed jump', s, curspeed); }
+					if (debug && curspeed && Math.abs(s - curspeed) > 100) { console.log('speed jump', s, curspeed); }
 					if (s) { curspeed = s; }	// valid speed
 
 					var fminute = 60000 / aniRate;	// a minute of frames
 
 					currot = (currot + 360) % 360;
 					var turn = smallAngle(currot, h);
-					// var turn = h - currot;	// calculate shortest turn
-					// turn = turn > 180 ? turn - 360 : (turn < -180 ? turn + 360 : turn );
+					// if (Math.abs(turn) > 90 && speed > 200) {	// stop plane from going backwards
+					// 	return;
+					// }					
 
 					// number of frames to move that distance at current speed (s)
 					frames = Math.floor(curpos.distanceTo(p) * 2236.936292 / (curspeed * aniRate));
@@ -530,7 +532,9 @@
 					}
 
 					// only continue on after loss of data if plane is at altitude and speed
-					if (curspeed > 250 && a > 10000) { frames += fminute; }	// plus one more minute of frames
+					if (curspeed > 250 && a > 10000) {
+						frames += fminute; // plus one more minute of frames
+					}	
 
      			// animation timer
 					if (!anitimer) {

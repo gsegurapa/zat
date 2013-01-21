@@ -11,6 +11,8 @@ do
 		shortpath=${f:length}
 		s3path=${2}/${1}/${shortpath}
 		echo "s3put ${s3path} ${f}"
-		s3put "${s3path}" "${f}" 
+		s3put "${s3path}" "${f}"
 	fi
 done
+echo "setacl s3://${2} --acl-public --recursive"
+s3cmd setacl "s3://${2}" --acl-public --recursive

@@ -37,3 +37,7 @@ The scripts that do the actual building and deployment are as follows:
 
     deploy-clean.sh app bucket
 
+The scripts depend on two different s3 tools for uploading and changing permissions.  They can be downloaded here
+http://s3tools.org/s3cmd
+and here
+http://timkay.com/aws/

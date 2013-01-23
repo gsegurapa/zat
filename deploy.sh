@@ -1,6 +1,7 @@
 #/bin/bash
 # usage: ./deploy.sh <app> <bucket>
 # example: ./deploy.sh flick flightstats-webapps-staging
+# need more comments
 
 for f in $(find ./${1}/build)
 do

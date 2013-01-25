@@ -133,7 +133,7 @@
 				path,	// L.polyline of actual flight path
 				multi,	// lat/lngs for flight path
 				wrap;	// does route cross the anti-meridian?
-		var tracking = false, $trackbutton, maxZoom = 11;
+		var tracking = 0, $trackbutton, maxZoom = 11;
 		var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
 		var flightLabel;	// label for the airplane icon
 		var flightData,	// flight data returned by API
@@ -306,25 +306,31 @@
 					// add additional zoom control buttons
 					var $zoomdiv = $('.leaflet-control-zoom');
 					// zoom in and turn on tracking
-					$trackbutton = $(zoomcontrol._createButton('Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0],
+					$trackbutton = $(zoomcontrol._createButton('', 'Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0],
 							function(e) {
-								tracking = true;
-								$trackbutton.css('background-color', '#d8e');
-								settrackingview(this);
-								setFlightPath();
+								if (tracking === 2) {
+									tracking = 0;
+									$trackbutton.css('background-color', '');
+									setfullview(this);
+								} else {
+									tracking = 2;
+									$trackbutton.css('background-color', '#d8e');
+									settrackingview(this);
+									setFlightPath();
+								}
 								L.DomEvent.stopPropagation(e);
-							}, map)).css({'background-image': 'url(img/icon-track.png)', margin: '5px 0' });
-					// zoom out to show entire flight
-					$(zoomcontrol._createButton('Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0],
-							function(e) {
-								tracking = false;
-								$trackbutton.css('background-color', '');
-								setfullview(this);
-								L.DomEvent.stopPropagation(e);
-							}, map)).css({'background-image': 'url(img/icon-full.png)' });
+							}, map)).css({'background-image': 'url(img/icon-track.png)', 'border-top': 'solid rgb(170, 170, 170) 1px' });
+					// // zoom out to show entire flight
+					// $(zoomcontrol._createButton('', 'Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0],
+					// 		function(e) {
+					// 			tracking = false;
+					// 			$trackbutton.css('background-color', '');
+					// 			setfullview(this);
+					// 			L.DomEvent.stopPropagation(e);
+					// 		}, map)).css({'background-image': 'url(img/icon-full.png)' });
 					map.on('dragstart', function(/* e */) {
-						if (tracking) {
-							tracking = false;
+						if (tracking === 2) {
+							tracking = 1;
 							$trackbutton.css('background-color', '');							
 						}
 					});

@@ -9,9 +9,11 @@ do
 		namespace="./${1}/build"
 		length=${#namespace}+1
 		shortpath=${f:length}
-		s3path=${2}/${1}/${shortpath}
-		echo "s3put ${s3path} ${f}"
-		s3put "${s3path}" "${f}"
+		s3path=s3://${2}/${1}/${shortpath}
+#		echo "s3put ${s3path} ${f}"
+#		s3put "${s3path}" "${f}"
+		echo "s3cmd put --acl-public ${f} ${s3path}"
+		s3cmd put --acl-public "${f}" "${s3path}"
 	fi
 done
 echo "setacl s3://${2} --acl-public --recursive"

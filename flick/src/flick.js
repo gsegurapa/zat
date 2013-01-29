@@ -2,10 +2,9 @@
 /*global L:false, jQuery:false, Morris:false */
 
 (function($){
-	// "use strict";
+	"use strict";
 
-
-
+	// tuning parameters
 	var updateRate = 10000;	// 10 seconds
 	var aniRate = 250;	// 1/4 second
 	var rotRate = aniRate / 500;	// 2 degrees per second max
@@ -128,22 +127,22 @@
 
 	var overlays = {
 		'US weather': new L.TileLayer.FSWeather({
-      opacity: '0.5',
-      // attribution: "Weather data &copy; 2011 IEM Nexrad",
-      minZoom: 2, maxZoom: 6
-  	}),
-  	labels: L.tileLayer(
-  		'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
-  		{ subdomains: '',
-  			minZoom: 0, maxZoom: 11
-  	}),
-  	terrain: L.tileLayer(
-  		'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
-  		{ subdomains: '',
-  			opacity: 0.5,
-  			minZoom: 0, maxZoom: 11
-  	})
-  };
+			opacity: '0.5',
+			// attribution: "Weather data &copy; 2011 IEM Nexrad",
+			minZoom: 2, maxZoom: 6
+		}),
+		labels: L.tileLayer(
+			'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
+			{ subdomains: '',
+				minZoom: 0, maxZoom: 11
+		}),
+		terrain: L.tileLayer(
+			'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
+			{ subdomains: '',
+				opacity: 0.5,
+				minZoom: 0, maxZoom: 11
+		})
+	};
 
 	// layers and layer control
 	var layercontrol = L.control.layers(tiles, overlays);
@@ -157,7 +156,7 @@
 		var attributioncontrol = L.control.attribution({ prefix: false }).
 				addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
 
-	  var trackcontrol = new TrackControl();
+		var trackcontrol = new TrackControl();
 		var zoomcontrol = L.control.zoom({position: 'bottomleft'});
 
     // create map
@@ -304,49 +303,49 @@
 				// map is ready, draw everything for the first time
 				function mapReady(/* e */) {
 
-			    if (view === '3D') {
-			      $('#map_div').addClass('threed');
-			    }
+					if (view === '3D') {
+						$('#map_div').addClass('threed');
+					}
 
 					// add additional zoom control buttons
 					// var $zoomdiv = $('.leaflet-control-zoom');
 					// zoom in and turn on tracking
 					// $trackbutton = $(zoomcontrol._createButton('', 'Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0],
-					// 		function(e) {
-					// 			if (tracking === 2) {
-					// 				tracking = 0;
-					// 				$trackbutton.css('background-color', '');
-					// 				setfullview(this);
-					// 			} else {
-					// 				tracking = 2;
-					// 				$trackbutton.css('background-color', '#d8e');
-					// 				settrackingview(this);
-					// 				setFlightPath();
-					// 			}
-					// 			L.DomEvent.stopPropagation(e);
-					// 		}, map)).css({'background-image': 'url(img/icon-track.png)', 'border-top': 'solid rgb(170, 170, 170) 1px' });
+					//		function(e) {
+					//			if (tracking === 2) {
+					//				tracking = 0;
+					//				$trackbutton.css('background-color', '');
+					//				setfullview(this);
+					//			} else {
+					//				tracking = 2;
+					//				$trackbutton.css('background-color', '#d8e');
+					//				settrackingview(this);
+					//				setFlightPath();
+					//			}
+					//			L.DomEvent.stopPropagation(e);
+					//		}, map)).css({'background-image': 'url(img/icon-track.png)', 'border-top': 'solid rgb(170, 170, 170) 1px' });
 					// // zoom out to show entire flight
 					// $(zoomcontrol._createButton('', 'Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0],
-					// 		function(e) {
-					// 			tracking = false;
-					// 			$trackbutton.css('background-color', '');
-					// 			setfullview(this);
-					// 			L.DomEvent.stopPropagation(e);
-					// 		}, map)).css({'background-image': 'url(img/icon-full.png)' });
+					//		function(e) {
+					//			tracking = false;
+					//			$trackbutton.css('background-color', '');
+					//			setfullview(this);
+					//			L.DomEvent.stopPropagation(e);
+					//		}, map)).css({'background-image': 'url(img/icon-full.png)' });
 					// map.on('dragstart', function(/* e */) {
-					// 	if (tracking === 2) {
-					// 		tracking = 1;
-					// 		$trackbutton.css('background-color', '');							
-					// 	}
+					//	if (tracking === 2) {
+					//		tracking = 1;
+					//		$trackbutton.css('background-color', '');							
+					//	}
 					// });
 
-					map.on('dragstart', trackcontrol.reset, trackcontrol); 	// turn off tracking on drag
+					map.on('dragstart', trackcontrol.reset, trackcontrol);	// turn off tracking on drag
 
 					if (debug) {	// interactive debug mode
 						$(document).keydown(function(e) {
-          		switch(e.which) {
-          			case 71: // "g" graph
-	          			if (graph_on) {	// hide graph
+							switch(e.which) {
+								case 71: // "g" graph
+									if (graph_on) {	// hide graph
 										$('#map_div').animate({height: '100%'}, 'fast');
 										$('#graph1_div, #graph2_div').hide();
 										graph_on = false;
@@ -356,22 +355,22 @@
 										graph_on = true;
 										doGraph();
 									}
-          			break;
-          			case 83: // "s" stop data
-          				if (data_off === 0 || data_on !== 0) {	// first time
-          					data_off = numpos;
-          					data_on = 0;
-          				} else {
-          					data_on = numpos;
-          					if (data_on === data_off) {
-          						data_on = data_off = 0;
-          					}
-          				}
-          				console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames);
-          			break;
-          		}
-          		e.stopPropagation();
-          	});
+								break;
+								case 83: // "s" stop data
+									if (data_off === 0 || data_on !== 0) {	// first time
+										data_off = numpos;
+										data_on = 0;
+									} else {
+										data_on = numpos;
+										if (data_on === data_off) {
+											data_on = data_off = 0;
+										}
+									}
+									console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames);
+								break;
+							}
+							e.stopPropagation();
+						});
 					}
 
 					// departing airport marker
@@ -481,7 +480,7 @@
 					currot = (currot + 360) % 360;
 					var turn = smallAngle(currot, h);
 					// if (Math.abs(turn) > 90 && speed > 200) {	// stop plane from going backwards
-					// 	return;
+					//	return;
 					// }					
 
 					// number of frames to move that distance at current speed (s)
@@ -511,7 +510,7 @@
 						frames += fminute; // plus one more minute of frames
 					}	
 
-     			// animation timer
+					// animation timer
 					if (!anitimer) {
 						anitimer = setInterval(step, aniRate);	// airplane animation
 					}
@@ -742,14 +741,14 @@
 			this._link.href= '#';
 			this._link.title = 'Track Flight';
 			L.DomEvent
-			    .on(this._link, 'click', L.DomEvent.stop)
-			    .on(this._link, 'mousedown', L.DomEvent.stop)
-			    .on(this._link, 'dblclick', L.DomEvent.stop)
-			    .on(this._link, 'click', L.DomEvent.preventDefault)
-			    .on(this._link, 'click', this._settrack, this);
+					.on(this._link, 'click', L.DomEvent.stop)
+					.on(this._link, 'mousedown', L.DomEvent.stop)
+					.on(this._link, 'dblclick', L.DomEvent.stop)
+					.on(this._link, 'click', L.DomEvent.preventDefault)
+					.on(this._link, 'click', this._settrack, this);
 		},
 
-		onRemove: function (map) {
+		onRemove: function (/* map */) {
 			$(this._link).remove();
 		},
 
@@ -764,7 +763,7 @@
 			return this._tracking === 2;
 		},
 
-		_settrack: function(e) {
+		_settrack: function(/* e */) {
 			if (this._tracking === 2) {
 				this._tracking = 0;
 				this._link.style.backgroundColor = '';

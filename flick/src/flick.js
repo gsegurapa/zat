@@ -774,7 +774,7 @@
 				setfullview(this._map);
 			} else {
 				this._tracking = 2;
-				this._link.style.backgroundColor = '#d8e';
+				this._link.style.backgroundColor = '#95b';
 				settrackingview(this._map);
 				setFlightPath();
 			}

@@ -4,9 +4,46 @@
 (function($){
 	// "use strict";
 
+
+
 	var updateRate = 10000;	// 10 seconds
 	var aniRate = 250;	// 1/4 second
 	var rotRate = aniRate / 500;	// 2 degrees per second max
+
+	var map;
+	var airports, airlines;	// appendices from API
+	var departureAirport,	// code of departure airport
+			dpos,	// lat/lng position of departure airport
+			arrivalAirport,	// code of arrival airport
+			apos,	// lat/lng position of arrival airport
+			airplane,	// L.marker for airplane icon
+			fpos,	// lat/lng position of airplane
+			plan,	// L.polyline of flight plan (or great circle)
+			path,	// L.polyline of actual flight path
+			multi,	// lat/lngs for flight path
+			wrap;	// does route cross the anti-meridian?
+	var maxZoom = 11;
+	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
+	var flightLabel;	// label for the airplane icon
+	var flightData,	// flight data returned by API
+			pos,	// position data returned by API
+			timestamp,	// time of API call
+			nodata;	// haven't received data from API recently
+	var curpos,	// current lat/lng of animation
+			currot, // current heading of animation
+			curspeed, // current speed of airplane in mph
+			curheading,	// current heading
+			frames = 0,	// frames of animation remaining
+			rotframes,	// frames of animation in rotation remaining
+			anitimer;	// animation timer
+	var vlat, vlng, vrot;	// animation parameters
+	var zooming = false;	// true during zoom animation
+	// debug stuff
+	var graph_on = false, // graph is showing
+			numpos,
+			data_off = 0,	// index of where data is off for testing
+			data_on = 0;	// index of where data is back on
+
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -14,7 +51,7 @@
 			flightnum,
 			timeFormat=12, // 12 or 24
 			units='metric', // metric or US
-			mapType = 'street', // name of map
+			mapType = 'satellite', // name of map
 			showWeather = false,
 			view = '2D',
 			debug = false;	// interactive debug
@@ -55,25 +92,15 @@
 			appKey = '91d511451d9dbf38ede3efafefac5f09';
 
 	var tiles = { // base maps
-		street: L.tileLayer(
-			'http://maptiles-{s}.flightstats-ops.com/surfer/{z}/{x}/{y}.png',
-			{ subdomains: 'abcd',
-				minZoom: 0, maxZoom: 11
-		}),
 		satellite: L.tileLayer(
 			'http://maptiles-{s}.flightstats-ops.com/satellite/{z}/{x}/{y}.png',
 			{ subdomains: 'abcd',
 				minZoom: 0, maxZoom: 11
 		}),
-		terrain: L.tileLayer(
-			'http://maptiles-{s}.flightstats-ops.com/mapboxterrain/{z}/{x}/{y}.png',
-			{	subdomains: 'abcd',
-				minZoom: 0, maxZoom: 11
-			}),
-		stamen: L.tileLayer(
-			'http://maptiles-{s}.flightstats-ops.com/terrain/{z}/{x}/{y}.jpg',
+		map: L.tileLayer(
+			'http://maptiles-{s}.flightstats-ops.com/surfer/{z}/{x}/{y}.png',
 			{ subdomains: 'abcd',
-				minZoom: 4, maxZoom: 12
+				minZoom: 0, maxZoom: 11
 		})
 	};
 
@@ -99,64 +126,42 @@
 			6: { x: {min: 0, max: 20}, y: {min: 16, max: 28} }
   };
 
-	var weather = new L.TileLayer.FSWeather({
+	var overlays = {
+		'US weather': new L.TileLayer.FSWeather({
       opacity: '0.5',
       // attribution: "Weather data &copy; 2011 IEM Nexrad",
       minZoom: 2, maxZoom: 6
-  });
+  	}),
+  	labels: L.tileLayer(
+  		'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
+  		{ subdomains: '',
+  			minZoom: 0, maxZoom: 11
+  	}),
+  	terrain: L.tileLayer(
+  		'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
+  		{ subdomains: '',
+  			opacity: 0.5,
+  			minZoom: 0, maxZoom: 11
+  	})
+  };
 
 	// layers and layer control
-	var layercontrol = L.control.layers(
-		tiles,
-		{ weather: weather }
-	);
+	var layercontrol = L.control.layers(tiles, overlays);
 	var defaultlayers = [tiles[mapType]];
-	if (showWeather) { defaultlayers.push(weather); }
+	if (showWeather) { defaultlayers.push(overlays.weather); }
 
 	// var scalecontrol = L.control.scale();
 
-	var attributioncontrol = L.control.attribution({ prefix: false }).
-			addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
-
-	var zoomcontrol = L.control.zoom();
-
 	$(document).ready(function() {
 
-		var airports, airlines;	// appendices from API
-		var departureAirport,	// code of departure airport
-				dpos,	// lat/lng position of departure airport
-				arrivalAirport,	// code of arrival airport
-				apos,	// lat/lng position of arrival airport
-				airplane,	// L.marker for airplane icon
-				fpos,	// lat/lng position of airplane
-				plan,	// L.polyline of flight plan (or great circle)
-				path,	// L.polyline of actual flight path
-				multi,	// lat/lngs for flight path
-				wrap;	// does route cross the anti-meridian?
-		var tracking = 0, $trackbutton, maxZoom = 11;
-		var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
-		var flightLabel;	// label for the airplane icon
-		var flightData,	// flight data returned by API
-				pos,	// position data returned by API
-				timestamp,	// time of API call
-				nodata;	// haven't received data from API recently
-		var curpos,	// current lat/lng of animation
-				currot, // current heading of animation
-				curspeed, // current speed of airplane in mph
-				curheading,	// current heading
-				frames = 0,	// frames of animation remaining
-				rotframes,	// frames of animation in rotation remaining
-				anitimer;	// animation timer
-		var vlat, vlng, vrot;	// animation parameters
-		var zooming = false;	// true during zoom animation
-		// debug stuff
-		var graph_on = false, // graph is showing
-				numpos,
-				data_off = 0,	// index of where data is off for testing
-				data_on = 0;	// index of where data is back on
+		var attributioncontrol = L.control.attribution({ prefix: false }).
+				addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
+
+	  var trackcontrol = new TrackControl();
+		var zoomcontrol = L.control.zoom({position: 'bottomleft'});
 
     // create map
-		var map = L.map('map_div', {	// create map
+		map = L.map('map_div', {	// create map
 			attributionControl: false,
 			zoomControl: false,
 			zoomAnimation: true,
@@ -164,7 +169,7 @@
 			layers: defaultlayers,
 			worldCopyJump: false,
 			inertia: false
-		}).addControl(layercontrol).addControl(attributioncontrol).addControl(zoomcontrol).
+		}).addControl(layercontrol).addControl(attributioncontrol).addLayer(trackcontrol).addControl(zoomcontrol).
 			on('layeradd', function(e) { // reset zoom on basemap change
 				var layer = e.layer;
 				var m = layer._map;
@@ -289,7 +294,7 @@
 
 				} else {	// update
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
-					if (tracking) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
+					if (trackcontrol.isTracking()) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
 					aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
 					setFlightPath();
 					setFlightLabel();
@@ -304,22 +309,22 @@
 			    }
 
 					// add additional zoom control buttons
-					var $zoomdiv = $('.leaflet-control-zoom');
+					// var $zoomdiv = $('.leaflet-control-zoom');
 					// zoom in and turn on tracking
-					$trackbutton = $(zoomcontrol._createButton('', 'Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0],
-							function(e) {
-								if (tracking === 2) {
-									tracking = 0;
-									$trackbutton.css('background-color', '');
-									setfullview(this);
-								} else {
-									tracking = 2;
-									$trackbutton.css('background-color', '#d8e');
-									settrackingview(this);
-									setFlightPath();
-								}
-								L.DomEvent.stopPropagation(e);
-							}, map)).css({'background-image': 'url(img/icon-track.png)', 'border-top': 'solid rgb(170, 170, 170) 1px' });
+					// $trackbutton = $(zoomcontrol._createButton('', 'Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0],
+					// 		function(e) {
+					// 			if (tracking === 2) {
+					// 				tracking = 0;
+					// 				$trackbutton.css('background-color', '');
+					// 				setfullview(this);
+					// 			} else {
+					// 				tracking = 2;
+					// 				$trackbutton.css('background-color', '#d8e');
+					// 				settrackingview(this);
+					// 				setFlightPath();
+					// 			}
+					// 			L.DomEvent.stopPropagation(e);
+					// 		}, map)).css({'background-image': 'url(img/icon-track.png)', 'border-top': 'solid rgb(170, 170, 170) 1px' });
 					// // zoom out to show entire flight
 					// $(zoomcontrol._createButton('', 'Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0],
 					// 		function(e) {
@@ -328,12 +333,14 @@
 					// 			setfullview(this);
 					// 			L.DomEvent.stopPropagation(e);
 					// 		}, map)).css({'background-image': 'url(img/icon-full.png)' });
-					map.on('dragstart', function(/* e */) {
-						if (tracking === 2) {
-							tracking = 1;
-							$trackbutton.css('background-color', '');							
-						}
-					});
+					// map.on('dragstart', function(/* e */) {
+					// 	if (tracking === 2) {
+					// 		tracking = 1;
+					// 		$trackbutton.css('background-color', '');							
+					// 	}
+					// });
+
+					map.on('dragstart', trackcontrol.reset, trackcontrol); 	// turn off tracking on drag
 
 					if (debug) {	// interactive debug mode
 						$(document).keydown(function(e) {
@@ -400,8 +407,10 @@
 						for (var i = 0; i < p.length; i++) {
 							positions[i] = createLatLng(+p[i].lat, +p[i].lon, wrap);
 						}
-						plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel('flight plan').addTo(map);
-						layercontrol.addOverlay(plan, 'flight plan');
+						// plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel('flight plan').addTo(map);
+						plan = L.polyline(positions, { color: '#3f3', opacity: 0.5, weight: 3}).bindLabel('flight plan').addTo(map).bringToBack();
+						var planHalo = L.polyline(positions, { color: '#000', opacity: 0.3, weight: 5}).bindLabel('flight plan').addTo(map).bringToBack();
+						layercontrol.addOverlay(planHalo, 'flight plan halo').addOverlay(plan, 'flight plan');
 					} else { // if there is NO flight plan, draw great circle
 						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
 						plan = L.polyline([dpos, apos], { color: '#939', weight: 6, dashArray: '1, 15'}).
@@ -434,53 +443,13 @@
 
 				} // end mapReady
 
-				function setFlightPath(all) { // draw flight positions
-					var p = flightData.positions;
-					var positions = [];
-					var last = null, ct, tail;
-					var i = 1;
-					if (all || !curpos || curspeed < 120) {	// draw all positions
-						tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
-					} else { // find last point in flight path to be displayed
-						var m = Math.min(p.length, 10);
-						for ( ; i < m; i++) {
-							tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
-							var h = calcHeading(curpos, tail);
-							// console.log('angle for '+i+' = '+smallAngle(curheading, h), curheading, h);
-							if (Math.abs(smallAngle(curheading, h)) > 90) { break; }
-							// var angle = h - curheading;
-							// angle = angle > 180 ? angle - 360 : (angle < -180 ? angle + 360 : angle );
-							// if (angle > 90) { break; }
-						}
-					}
-					multi = [[tail, tail]]; // dummy path for tail
-					for (; i < p.length; i++) {
-						ct = Date.parse(p[i].date);
-						if (last) {
-							if (Math.abs(ct - last) > 120000) {	// no data for 2 minutes
-								multi.push(positions);
-								positions = [];
-							}
-						}
-						positions.push(createLatLng(+p[i].lat, +p[i].lon, wrap));
-						last = ct;
-					}
-					multi.push(positions);
-					if (path) {	// layer already exists
-						path.setLatLngs(multi);
-					} else {	// create layer
-						path = L.multiPolyline(multi, { color: '#606', opacity: 0.8, weight: 2 }).addTo(map).bindLabel('flight path');
-						layercontrol.addOverlay(path, 'flight path');
-					}
-				} // end setFlightPath
-
 				// set position of airplane icon
 				function phat(p, h, a, t) {	// position, heading, altitude, time
 					curpos = p;
 					currot = h;
 					if (airplane) {
 						airplane.rotate(h).setShadow(a).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
-						if (tracking) { map.panTo(p); }
+						if (trackcontrol.isTracking()) { map.panTo(p); }
 					} else {
 						airplane = flightMarker(p).addTo(map).rotate(h).setShadow(a).stamp(t);
 					}
@@ -604,22 +573,6 @@
 				});	
 			}	// end doGraph
 
-			function calcHeading(p1, p2) {	// heading in degrees of vector from p1 to p2
-				var toRad = L.LatLng.DEG_TO_RAD;
-				var lat1 = p1.lat * toRad,
-						lat2 = p2.lat * toRad,
-						dLng = (p2.lng - p1.lng) * toRad;
-				return (Math.atan2(
-						Math.sin(dLng)*Math.cos(lat2),
-						Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLng)) *
-					L.LatLng.RAD_TO_DEG + 360) % 360;
-			}
-
-			function smallAngle(o, n) {	// smallest angle from o to n (degrees)
-				var t = n - o;	// difference between new and old
-				return t > 180 ? t - 360 : (t < -180 ? t + 360 : t );
-			}
-
 			//	function getStatus(data /*, status, xhr */) { // status callback
 			//		if (!data || data.error) {
 			//		alert('AJAX error: '+data.error.errorMessage);
@@ -638,30 +591,6 @@
 					}
 				}
 				return ret;
-			}
-
-			function setfullview(m) { // set map view including both airports and current position of flight
-				var flightBounds;	// area of world to display
-				if (Math.abs(180 - Math.abs(dpos.lng - apos.lng)) < 5) {
-					m.fitWorld();
-					return;
-				}
-				if (wrap) { // shift by 180 degrees if flight crosses anti-meridian
-					flightBounds = L.latLngBounds([
-							[dpos.lat, dpos.lng+180],
-							[apos.lat, apos.lng+180],
-							[fpos.lat, fpos.lng+180]
-						]).pad(0.05);
-					var c = flightBounds.getCenter();
-					m.setView(L.latLng(c.lat, c.lng - 180, true), m.getBoundsZoom(flightBounds));
-				} else {
-					flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
-					m.fitBounds(flightBounds);
-				}
-			}
-
-			function settrackingview(m) {
-				if (fpos) { m.setView(fpos, maxZoom > 9 ? 9 : maxZoom); }
 			}
 
 		} // end mainloop
@@ -794,6 +723,146 @@
 			return this;
 		}
 	});
+
+	/*
+	 * TrackControl is used to track the flight and zoom the map
+	 */
+
+	var TrackControl = L.Class.extend({
+
+		onAdd: function (map) {
+
+			this._map = map;
+			this._tracking = 0;
+
+			// if (L.Browser.touch) { }
+
+			var container = L.DomUtil.get('control');
+			this._link = L.DomUtil.create('a', 'control-track', container);
+			this._link.href= '#';
+			this._link.title = 'Track Flight';
+			L.DomEvent
+			    .on(this._link, 'click', L.DomEvent.stop)
+			    .on(this._link, 'mousedown', L.DomEvent.stop)
+			    .on(this._link, 'dblclick', L.DomEvent.stop)
+			    .on(this._link, 'click', L.DomEvent.preventDefault)
+			    .on(this._link, 'click', this._settrack, this);
+		},
+
+		onRemove: function (map) {
+			$(this._link).remove();
+		},
+
+		reset: function() {
+			if (this._tracking === 2) {
+				this._tracking = 1;
+				this._link.style.backgroundColor = '';							
+			}			
+		},
+
+		isTracking: function() {
+			return this._tracking === 2;
+		},
+
+		_settrack: function(e) {
+			if (this._tracking === 2) {
+				this._tracking = 0;
+				this._link.style.backgroundColor = '';
+				setfullview(this._map);
+			} else {
+				this._tracking = 2;
+				this._link.style.backgroundColor = '#d8e';
+				settrackingview(this._map);
+				setFlightPath();
+			}
+
+		}
+
+	});
+
+	function setfullview(m) { // set map view including both airports and current position of flight
+		var flightBounds;	// area of world to display
+		if (Math.abs(180 - Math.abs(dpos.lng - apos.lng)) < 5) {
+			m.fitWorld();
+			return;
+		}
+		if (wrap) { // shift by 180 degrees if flight crosses anti-meridian
+			flightBounds = L.latLngBounds([
+					[dpos.lat, dpos.lng+180],
+					[apos.lat, apos.lng+180],
+					[fpos.lat, fpos.lng+180]
+				]).pad(0.05);
+			var c = flightBounds.getCenter();
+			m.setView(L.latLng(c.lat, c.lng - 180, true), m.getBoundsZoom(flightBounds));
+		} else {
+			flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
+			m.fitBounds(flightBounds);
+		}
+	}
+
+	function settrackingview(m) {
+		if (fpos) { m.setView(fpos, maxZoom > 9 ? 9 : maxZoom); }
+	}
+
+	function setFlightPath(all) { // draw flight positions
+		var p = flightData.positions;
+		var positions = [];
+		var last = null, ct, tail;
+		var i = 1;
+		if (all || !curpos || curspeed < 120) {	// draw all positions
+			tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
+		} else { // find last point in flight path to be displayed
+			var m = Math.min(p.length, 10);
+			for ( ; i < m; i++) {
+				tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
+				var h = calcHeading(curpos, tail);
+				// console.log('angle for '+i+' = '+smallAngle(curheading, h), curheading, h);
+				if (Math.abs(smallAngle(curheading, h)) > 90) { break; }
+				// var angle = h - curheading;
+				// angle = angle > 180 ? angle - 360 : (angle < -180 ? angle + 360 : angle );
+				// if (angle > 90) { break; }
+			}
+		}
+		multi = [[tail, tail]]; // dummy path for tail
+		for (; i < p.length; i++) {
+			ct = Date.parse(p[i].date);
+			if (last) {
+				if (Math.abs(ct - last) > 120000) {	// no data for 2 minutes
+					multi.push(positions);
+					positions = [];
+				}
+			}
+			positions.push(createLatLng(+p[i].lat, +p[i].lon, wrap));
+			last = ct;
+		}
+		multi.push(positions);
+		if (path) {	// layer already exists
+			path.setLatLngs(multi);
+		} else {	// create layer
+			var pathHalo = L.multiPolyline(multi, { color: '#000', opacity: 0.5, weight: 4 }).addTo(map).bindLabel('actual path');
+			path = L.multiPolyline(multi, { color: '#a2a', opacity: 0.8, weight: 2 }).addTo(map).bindLabel('actual path');
+			layercontrol.addOverlay(pathHalo, 'actual path halo').addOverlay(path, 'actual path');
+		}
+	} // end setFlightPath
+
+	function calcHeading(p1, p2) {	// heading in degrees of vector from p1 to p2
+		var toRad = L.LatLng.DEG_TO_RAD;
+		var lat1 = p1.lat * toRad,
+				lat2 = p2.lat * toRad,
+				dLng = (p2.lng - p1.lng) * toRad;
+		return (Math.atan2(
+				Math.sin(dLng)*Math.cos(lat2),
+				Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLng)) *
+			L.LatLng.RAD_TO_DEG + 360) % 360;
+	}
+
+	function smallAngle(o, n) {	// smallest angle from o to n (degrees)
+		var t = n - o;	// difference between new and old
+		return t > 180 ? t - 360 : (t < -180 ? t + 360 : t );
+	}
+
+
+
 
 }(jQuery));
 

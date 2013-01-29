@@ -157,7 +157,6 @@
 				addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
 
 		var trackcontrol = new TrackControl();
-		var zoomcontrol = L.control.zoom({position: 'bottomleft'});
 
     // create map
 		map = L.map('map_div', {	// create map
@@ -168,7 +167,7 @@
 			layers: defaultlayers,
 			worldCopyJump: false,
 			inertia: false
-		}).addControl(layercontrol).addControl(attributioncontrol).addLayer(trackcontrol).addControl(zoomcontrol).
+		}).addControl(layercontrol).addControl(attributioncontrol).addLayer(trackcontrol).
 			on('layeradd', function(e) { // reset zoom on basemap change
 				var layer = e.layer;
 				var m = layer._map;
@@ -187,6 +186,11 @@
 			on('zoomend', function(/* e */) {
 				zooming = false;
 			});
+
+		if (!L.Browser.touch) {
+			map.addControl(L.control.zoom());
+			$('.leaflet-control-zoom.leaflet-bar').css('margin','60px 0 0 18px');
+		}
 
 		// get position data from API
 		function mainloop() {

@@ -145,7 +145,6 @@
 	};
 
 	// layers and layer control
-	var layercontrol = L.control.layers(tiles, overlays);
 	var defaultlayers = [tiles[mapType]];
 	if (showWeather) { defaultlayers.push(overlays.weather); }
 
@@ -157,6 +156,7 @@
 				addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
 
 		var trackcontrol = new TrackControl();
+		var layercontrol = new LayerControl();
 
     // create map
 		map = L.map('map_div', {	// create map
@@ -167,7 +167,8 @@
 			layers: defaultlayers,
 			worldCopyJump: false,
 			inertia: false
-		}).addControl(layercontrol).addControl(attributioncontrol).addLayer(trackcontrol).
+		});
+		map.addControl(attributioncontrol).addLayer(layercontrol).addLayer(trackcontrol).
 			on('layeradd', function(e) { // reset zoom on basemap change
 				var layer = e.layer;
 				var m = layer._map;
@@ -413,12 +414,12 @@
 						// plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel('flight plan').addTo(map);
 						plan = L.polyline(positions, { color: '#3f3', opacity: 0.5, weight: 3}).bindLabel('flight plan').addTo(map).bringToBack();
 						var planHalo = L.polyline(positions, { color: '#000', opacity: 0.3, weight: 5}).bindLabel('flight plan').addTo(map).bringToBack();
-						layercontrol.addOverlay(planHalo, 'flight plan halo').addOverlay(plan, 'flight plan');
+						// layercontrol.addOverlay(planHalo, 'flight plan halo').addOverlay(plan, 'flight plan');
 					} else { // if there is NO flight plan, draw great circle
 						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
 						plan = L.polyline([dpos, apos], { color: '#939', weight: 6, dashArray: '1, 15'}).
 								greatCircle(npoints).addTo(map).bindLabel(airline+flightnum+' route');
-						layercontrol.addOverlay(plan, 'route');
+						// layercontrol.addOverlay(plan, 'route');
 					}
 
 					// flight marker (airplane)
@@ -728,6 +729,57 @@
 	});
 
 	/*
+	 * LayerControl is used to select basemaps and overlays
+	 */
+
+	var LayerControl = L.Class.extend({
+
+		onAdd: function(map) {
+			this._map = map;
+			var className = 'control-layer';
+			var parent = L.DomUtil.get('control');
+			var container = this._container = L.DomUtil.create('div', className, parent);
+
+			var toggle = this._toggle = L.DomUtil.create('a', className + '-toggle', container);
+			toggle.href = '#';
+			toggle.title = 'Map Layers';
+			var form = this._form = L.DomUtil.create('form', className + '-list', container);
+
+			if (L.Browser.touch) {
+				L.DomEvent.on(container, 'click', L.DomEvent.stopPropagation)
+						.on(toggle, 'click', L.DomEvent.stopPropagation)
+				    .on(toggle, 'click', L.DomEvent.preventDefault)
+				    .on(toggle, 'click', this._expand, this);
+			} else {
+				L.DomEvent.disableClickPropagation(container);
+				L.DomEvent.on(container, 'mousewheel', L.DomEvent.stopPropagation)
+						.on(toggle, 'click', this._expand, this);
+			}
+
+			this._map.on('movestart', this._collapse, this);
+
+		},
+
+		onRemove: function(map) {
+
+		},
+
+		_expand: function(e) {
+			console.log('expand');
+		},
+
+		_collapse: function(e) {
+			console.log('collapse');
+		},
+
+		addOverlay: function (layer, name) {
+			return this;
+		}
+		
+	});
+
+
+	/*
 	 * TrackControl is used to track the flight and zoom the map
 	 */
 
@@ -740,8 +792,8 @@
 
 			// if (L.Browser.touch) { }
 
-			var container = L.DomUtil.get('control');
-			this._link = L.DomUtil.create('a', 'control-track', container);
+			var parent = L.DomUtil.get('control');
+			this._link = L.DomUtil.create('a', 'control-track', parent);
 			this._link.href= '#';
 			this._link.title = 'Track Flight';
 			L.DomEvent
@@ -844,7 +896,7 @@
 		} else {	// create layer
 			var pathHalo = L.multiPolyline(multi, { color: '#000', opacity: 0.5, weight: 4 }).addTo(map).bindLabel('actual path');
 			path = L.multiPolyline(multi, { color: '#a2a', opacity: 0.8, weight: 2 }).addTo(map).bindLabel('actual path');
-			layercontrol.addOverlay(pathHalo, 'actual path halo').addOverlay(path, 'actual path');
+			// layercontrol.addOverlay(pathHalo, 'actual path halo').addOverlay(path, 'actual path');
 		}
 	} // end setFlightPath
 
@@ -863,8 +915,6 @@
 		var t = n - o;	// difference between new and old
 		return t > 180 ? t - 360 : (t < -180 ? t + 360 : t );
 	}
-
-
 
 
 }(jQuery));

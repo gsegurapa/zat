@@ -835,13 +835,13 @@
 			if (this._expanded) {
 				this._collapse();
 			} else {
-				$('#control-layer-list').show();
+				$('#control-layer-list').show(100,'linear');
 				this._expanded = true;
 			}
 		},
 
 		_collapse: function(e) {
-			$('#control-layer-list').hide();
+			$('#control-layer-list').hide(100,'linear');
 			this._expanded = false;
 		},
 

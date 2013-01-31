@@ -48,9 +48,9 @@
 	var flightID, // flightstats flight id
 			airline,
 			flightnum,
-			timeFormat=12, // 12 or 24
-			units='metric', // metric or US
-			mapType = 'satellite', // name of map
+			// timeFormat=12, // 12 or 24
+			// units='metric', // metric or US
+			mapType = 'sat', // name of map
 			showWeather = false,
 			view = '2D',
 			debug = false;	// interactive debug
@@ -61,8 +61,8 @@
         function(m,key,value) { params[key] = value; });
 
     if (params.id) { flightID = params.id; }
-    if (params.timeFormat) { timeFormat = +params.timeFormat; }
-    if (params.units) { units = params.units; }
+    // if (params.timeFormat) { timeFormat = +params.timeFormat; }
+    // if (params.units) { units = params.units; }
     if (params.mapType) { mapType = params.mapType; }
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
     if (params.airline) { airline = params.airline; }
@@ -91,14 +91,16 @@
 			appKey = '91d511451d9dbf38ede3efafefac5f09';
 
 	var tiles = { // base maps
-		satellite: L.tileLayer(
+		sat: L.tileLayer(
 			'http://maptiles-{s}.flightstats-ops.com/satellite/{z}/{x}/{y}.png',
 			{ subdomains: 'abcd',
+				zIndex: 2,
 				minZoom: 0, maxZoom: 11
 		}),
 		map: L.tileLayer(
 			'http://maptiles-{s}.flightstats-ops.com/surfer/{z}/{x}/{y}.png',
 			{ subdomains: 'abcd',
+				zIndex: 2,
 				minZoom: 0, maxZoom: 11
 		})
 	};
@@ -126,20 +128,23 @@
   };
 
 	var overlays = {
-		'US weather': new L.TileLayer.FSWeather({
+		weather: new L.TileLayer.FSWeather({
 			opacity: '0.5',
 			// attribution: "Weather data &copy; 2011 IEM Nexrad",
+			zIndex: 4,
 			minZoom: 2, maxZoom: 6
 		}),
 		labels: L.tileLayer(
 			'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
 			{ subdomains: '',
+			zIndex: 5,
 				minZoom: 0, maxZoom: 11
 		}),
 		terrain: L.tileLayer(
 			'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
 			{ subdomains: '',
-				opacity: 0.5,
+				opacity: 0.6,
+				zIndex: 3,
 				minZoom: 0, maxZoom: 11
 		})
 	};
@@ -156,7 +161,7 @@
 				addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
 
 		var trackcontrol = new TrackControl();
-		var layercontrol = new LayerControl();
+		var layercontrol = new LayerControl($.extend({ plan: null, path: null, mini: null }, tiles, overlays));
 
     // create map
 		map = L.map('map_div', {	// create map
@@ -634,7 +639,7 @@
 
 	function showMessage(message) {
 		$('#message').html(message);
-		$('#messagepopup').show().on('click', function() { $(this).hide(); });
+		$('#messagepopup').show().on('click', function(e) { $(this).hide(); });
 	}
 
 	// airplane flight marker
@@ -734,29 +739,92 @@
 
 	var LayerControl = L.Class.extend({
 
+		initialize: function(layers) {
+			this._layers = layers;
+		},
+
 		onAdd: function(map) {
 			this._map = map;
-			var className = 'control-layer';
-			var parent = L.DomUtil.get('control');
-			var container = this._container = L.DomUtil.create('div', className, parent);
+			this._expanded = false;
+			this._overlays = { labels: false, terrain: false };
 
-			var toggle = this._toggle = L.DomUtil.create('a', className + '-toggle', container);
-			toggle.href = '#';
-			toggle.title = 'Map Layers';
-			var form = this._form = L.DomUtil.create('form', className + '-list', container);
+			var toggle = L.DomUtil.get('control-layer-toggle');
+			var list = L.DomUtil.get('control-layer-list');
 
+			L.DomEvent.on(toggle, 'click', this._expand, this)
+						.on(toggle, 'click', L.DomEvent.stop);
+			this._map.on('dragstart', this._collapse, this)
+						.on('click', this._collapse, this);
 			if (L.Browser.touch) {
-				L.DomEvent.on(container, 'click', L.DomEvent.stopPropagation)
-						.on(toggle, 'click', L.DomEvent.stopPropagation)
-				    .on(toggle, 'click', L.DomEvent.preventDefault)
-				    .on(toggle, 'click', this._expand, this);
+				L.DomEvent.on(list, 'click', L.DomEvent.stop)
+						.on(toggle, 'click', L.DomEvent.stop);
 			} else {
-				L.DomEvent.disableClickPropagation(container);
-				L.DomEvent.on(container, 'mousewheel', L.DomEvent.stopPropagation)
-						.on(toggle, 'click', this._expand, this);
+				L.DomEvent.on(list, 'mousewheel', L.DomEvent.stopPropagation);
 			}
 
-			this._map.on('movestart', this._collapse, this);
+			if (this._map.hasLayer(this._layers.sat)) {
+				$('#layer-sat').attr('checked', 'checked');
+				$('#layer-overlay-name').text('LABELS');
+				if (this._map.hasLayer(this._layers.labels)) { this._labels = true; }
+			} else {
+				$('#layer-map').attr('checked', 'checked');
+				$('#layer-overlay-name').text('TERRAIN');				
+				if (this._map.hasLayer(this._layers.terrain)) { this._terrain = true; }
+			}
+
+			// click on satellite
+			L.DomEvent.on(L.DomUtil.get('layer-sat'), 'click', function(e) {
+				if (this._map.hasLayer(this._layers.map)) {
+					this._map.removeLayer(this._layers.map);
+					$('#layer-overlay').removeProp('checked');
+					if (this._overlays.terrain) { this._map.removeLayer(this._layers.terrain) }
+					this._map.addLayer(this._layers.sat, true);
+					$('#layer-overlay-name').text('LABELS');
+					if (this._overlays.labels) {
+						$('#layer-overlay').prop('checked', 'checked');
+						this._map.addLayer(this._layers.labels);
+					}
+				}
+			}, this);
+
+			// click on map
+			L.DomEvent.on(L.DomUtil.get('layer-map'), 'click', function(e) {
+				if (this._map.hasLayer(this._layers.sat)) {
+					this._map.removeLayer(this._layers.sat);
+					$('#layer-overlay').removeProp('checked');
+					if (this._overlays.labels) { this._map.removeLayer(this._layers.labels); }
+					this._map.addLayer(this._layers.map, true);
+					$('#layer-overlay-name').text('TERRAIN');
+					if (this._overlays.terrain) {
+						$('#layer-overlay').prop('checked', 'checked');
+						this._map.addLayer(this._layers.terrain);
+					}
+					
+				}
+			}, this);
+
+			// click on overlay (labels or terrain)
+			L.DomEvent.on(L.DomUtil.get('layer-overlay'), 'click', function(e) {
+				var overlay = $('#layer-overlay:checked');
+				var layer = $('#layer-overlay-name').text() === 'LABELS' ? 'labels' : 'terrain';
+				if (overlay.length > 0) {
+					this._map.addLayer(this._layers[layer]);
+					this._overlays[layer] = true;
+				} else {
+					this._map.removeLayer(this._layers[layer]);
+					this._overlays[layer] = false;
+				}
+			}, this);
+
+			// click on weather
+			L.DomEvent.on(L.DomUtil.get('layer-weather'), 'click', function(e) {
+				if ($('#layer-weather:checked').length > 0) {
+					this._map.addLayer(this._layers.weather);
+				} else {
+					this._map.removeLayer(this._layers.weather);
+				}
+
+			}, this);
 
 		},
 
@@ -765,11 +833,17 @@
 		},
 
 		_expand: function(e) {
-			console.log('expand');
+			if (this._expanded) {
+				this._collapse();
+			} else {
+				$('#control-layer-list').show();
+				this._expanded = true;
+			}
 		},
 
 		_collapse: function(e) {
-			console.log('collapse');
+			$('#control-layer-list').hide();
+			this._expanded = false;
 		},
 
 		addOverlay: function (layer, name) {
@@ -785,27 +859,21 @@
 
 	var TrackControl = L.Class.extend({
 
-		onAdd: function (map) {
+		onAdd: function(map) {
 
 			this._map = map;
 			this._tracking = 0;
 
-			// if (L.Browser.touch) { }
-
-			var parent = L.DomUtil.get('control');
-			this._link = L.DomUtil.create('a', 'control-track', parent);
-			this._link.href= '#';
-			this._link.title = 'Track Flight';
+			var link = this._link = L.DomUtil.get('control-track');
 			L.DomEvent
-					.on(this._link, 'click', L.DomEvent.stop)
-					.on(this._link, 'mousedown', L.DomEvent.stop)
-					.on(this._link, 'dblclick', L.DomEvent.stop)
-					.on(this._link, 'click', L.DomEvent.preventDefault)
-					.on(this._link, 'click', this._settrack, this);
+					.on(link, 'click', L.DomEvent.stop)
+					.on(link, 'mousedown', L.DomEvent.stop)
+					.on(link, 'dblclick', L.DomEvent.stop)
+					.on(link, 'click', L.DomEvent.preventDefault)
+					.on(link, 'click', this._settrack, this);
 		},
 
 		onRemove: function (/* map */) {
-			$(this._link).remove();
 		},
 
 		reset: function() {

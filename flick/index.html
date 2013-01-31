@@ -160,14 +160,14 @@
 		img.leaflet-tile {
 			outline: 1px solid transparent;
 		}
-		.control-track {
+		#control-track {
 			display: block;
 			position: absolute;
 			width: 40px;
 			height: 40px;
 			background-position: 50% 50%;
 			background-repeat: no-repeat;
-			background-color: #362F2D;
+			background-color: rgba(54, 47, 45, 0.75);
 			background-image: url(img/tracking-icon.png);
 			margin: 10px 0 0 10px;
 			-webkit-border-radius: 8px;
@@ -175,10 +175,10 @@
 			box-shadow: 0 1px 7px rgba(0,0,0,0.4);
 			pointer-events: auto;
 		}
-		.control-track:hover {
+		#control-track:hover {
 			background-color: black;
 		}
-		.control-layer-toggle {
+		#control-layer-toggle {
 			display: block;
 			position: absolute;
 			width: 40px;
@@ -186,7 +186,7 @@
 			right: 0;
 			background-position: 50% 50%;
 			background-repeat: no-repeat;
-			background-color: #362F2D;
+			background-color: rgba(54, 47, 45, 0.75);
 			background-image: url(img/layers.png);
 			margin: 10px 10px 0 0 ;
 			-webkit-border-radius: 8px;
@@ -194,15 +194,54 @@
 			box-shadow: 0 1px 7px rgba(0,0,0,0.4);
 			pointer-events: auto;
 		}
-		.control-layer-toggle:hover {
+		#control-layer-toggle:hover {
 			background-color: black;
 		}
-
+		#control-layer-list {
+			display: none;
+			position: absolute;
+			right: 0;
+			background-color: rgba(126, 126, 126, 0.9);
+			margin: 50px 10px 0 0;
+			-webkit-border-radius: 8px;
+			border-radius: 8px;
+			box-shadow: 0 1px 7px rgba(0,0,0,0.4);
+			pointer-events: auto;
+			font-size: 11pt;
+			font-family: Helvetica, sans-serif;
+			color: #FAA718;
+			padding: 5px 10px;
+		}
+		#control-layer-list #layer-divider {
+			height: 0;
+			border-bottom: 1px solid black;
+			margin: 3px 0px;
+		}
+		#control-layer-list label {
+			display: block;
+			padding: 3px 0;
+		}
+		#control-layer-list label.div-bel {
+			border-bottom: 1px dotted black;
+		}
 	</style>
 </head>
 <body>
 	<div id="map_div"></div>
-	<div id="control"></div>
+	<div id="control">
+		<a id="control-track" href="#" title="Track Flight"></a>
+		<a id="control-layer-toggle" href="#" title="Map Layers"></a>
+		<form id="control-layer-list">
+			<label class="div-bel"><input id="layer-sat" type="radio" name="layers-base" /> SATELLITE</label>
+			<label><input id="layer-map" type="radio" name="layers-base" /> MAP</label>
+			<div id="layer-divider"></div>
+			<label class="div-bel"><input id="layer-overlay" type="checkbox" /> <span id="layer-overlay-name"></span></label>
+			<label class="div-bel"><input id="layer-weather" type="checkbox" /> US WEATHER</label>
+			<label class="div-bel"><input id="layer-plan" type="checkbox" /> FLIGHT PLAN</label>
+			<label class="div-bel"><input id="layer-path" type="checkbox" /> ACTUAL PATH</label>
+			<label><input id="layer-mini" type="checkbox" /> MINI TRACKER</label>
+		</form>
+	</div>
 	<div id="graph1_div"></div>
 	<div id="graph2_div"></div>
 	<div id="messagepopup">

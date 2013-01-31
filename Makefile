@@ -15,3 +15,5 @@ deploy-clean:
 	bash deploy-clean.sh ${APP} ${BUCKET}
 deploy:deploy-setup
 	bash ./deploy.sh ${APP} ${BUCKET}
+version:deploy-setup
+	bash version.sh ${APP} ${VERSION}

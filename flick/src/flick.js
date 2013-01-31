@@ -170,7 +170,7 @@
 			zoomAnimation: true,
 			markerZoomAnimation: true,
 			layers: defaultlayers,
-			worldCopyJump: false,
+			worldCopyJump: false
 		});
 		map.addControl(attributioncontrol).addLayer(layercontrol).addLayer(trackcontrol).
 			on('layeradd', function(e) { // reset zoom on basemap change

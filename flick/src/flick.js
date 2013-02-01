@@ -755,8 +755,8 @@
 			this._map.on('dragstart', this._collapse, this)
 						.on('click', this._collapse, this);
 			if (L.Browser.touch) {
-				L.DomEvent.on(list, 'click', L.DomEvent.stop)
-						.on(toggle, 'click', L.DomEvent.stop);
+				L.DomEvent.on(list, 'click', L.DomEvent.stopPropagation)
+						.on(toggle, 'click', L.DomEvent.stopPropagation);
 			} else {
 				L.DomEvent.on(list, 'mousewheel', L.DomEvent.stopPropagation);
 			}

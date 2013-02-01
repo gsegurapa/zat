@@ -13,5 +13,7 @@ compile:
 deploy-clean:
 	make clean APP=${APP}
 	bash deploy-clean.sh ${APP} ${BUCKET}
-deploy:deploy-setup
+deploy:version
 	bash ./deploy.sh ${APP} ${BUCKET}
+version:deploy-setup
+	bash version.sh ${APP} ${VERSION}

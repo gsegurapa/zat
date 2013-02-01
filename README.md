@@ -12,6 +12,8 @@ Jenkins Jobs
 ============
 * Webapps-airtrack-staging-deploy (http://jenkins.dev.pdx.office/view/Client%20Team/job/Webapps-airtrack-staging-deploy/)
 * Webapps-flick-staging-deploy (http://jenkins.dev.pdx.office/view/Client%20Team/job/Webapps-flick-staging-deploy/)
+* Webapps-airtrack-demo-deploy (http://jenkins.dev.pdx.office/view/Client%20Team/job/Webapps-airtrack-demo-deploy/)
+* Webapps-flick-demo-deploy (http://jenkins.dev.pdx.office/view/Client%20Team/job/Webapps-flick-demo-deploy/)
 * Unit/Integration/Regression Tests (NEEDED!)
 
 Deployment

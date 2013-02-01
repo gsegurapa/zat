@@ -166,6 +166,7 @@
     // create map
 		map = L.map('map_div', {	// create map
 			attributionControl: false,
+			doubleClickZoom: false,
 			zoomControl: false,
 			zoomAnimation: true,
 			markerZoomAnimation: true,
@@ -196,6 +197,16 @@
 			map.addControl(L.control.zoom());
 			$('.leaflet-control-zoom.leaflet-bar').css('margin','60px 0 0 18px');
 		}
+
+		// if tracking is on, don't recenter on double-click zoom
+		map.on('dblclick', function(e) {
+			if (trackcontrol.isTracking()) {
+				map.zoomIn(1);
+			} else {
+				map.setView(e.latlng, this._zoom + 1);
+			}
+			return false;
+		}).on('dragstart', trackcontrol.reset, trackcontrol);	// turn off tracking on drag
 
 		// get position data from API
 		function mainloop() {
@@ -237,7 +248,6 @@
 				var newdate = Date.parse(newpos.date);
 				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 				timestamp += updateRate;	// 10 seconds
-				// if (debug) console.log(timestamp - newdate);
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
 						showMessage(
@@ -290,10 +300,10 @@
 					var ac = flightData.carrierFsCode.toLowerCase();
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_120x40.png';
+					// prefetch image
 					logoimg = $('<img/>'); // prefetch
 					logoimg.load(function(/* e */) {	// if image exists, use it
 						logo = true;
-						// setFlightLabel();
 					});
 					logoimg.attr('src', logourl);	// prefetch image
 
@@ -347,8 +357,6 @@
 					//		$trackbutton.css('background-color', '');							
 					//	}
 					// });
-
-					map.on('dragstart', trackcontrol.reset, trackcontrol);	// turn off tracking on drag
 
 					if (debug) {	// interactive debug mode
 						$(document).keydown(function(e) {

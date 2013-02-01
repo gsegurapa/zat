@@ -37,6 +37,14 @@ The scripts that do the actual building and deployment are as follows:
 
     deploy-clean.sh app bucket
 
+* version.sh - Version the .js files and do a token replacement in the build directory
+
+	version.sh app version_name
+
+By default, a deployment creates non-publicly readable files on S3.  If the deployment should be made public,
+use the target 'deploy-public' which will set the public ACL on each file uploaded to S3.
+
+
 The scripts depend on two different s3 tools for uploading and changing permissions.  They can be downloaded here
 http://s3tools.org/s3cmd
 and here

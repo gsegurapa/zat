@@ -1,7 +1,7 @@
 webapps
 =======
 
-This repository houses html5/css/js standa-alone apps and widgets.  Any client app that can be deployed to an Amazon S3 bucket should live here.  
+This repository houses html5/css/js stand alone apps and widgets.  Any client app that can be deployed to an Amazon S3 bucket should live here.  
 
 Current Apps
 ============

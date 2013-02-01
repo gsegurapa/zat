@@ -1,6 +1,7 @@
 #/bin/bash
-# usage: ./deploy.sh <app> <bucket>
-# example: ./deploy.sh flick flightstats-webapps-staging
+# usage: ./deploy.sh <app> <bucket> <public=true|false>
+# example: ./deploy.sh flick flightstats-webapps-staging false
+# the public parameter determines public read access in the s3 bucket
 # need more comments
 
 for f in $(find ./${1}/build)
@@ -11,11 +12,13 @@ do
 		length=${#namespace}+1
 		shortpath=${f:length}
 		s3path=s3://${2}/${1}/${shortpath}
-#		echo "s3put ${s3path} ${f}"
-#		s3put "${s3path}" "${f}"
-		echo "s3cmd put --acl-public ${f} ${s3path}"
-		s3cmd put --acl-public "${f}" "${s3path}"
+		if [ $3 ]
+		then
+			echo "s3cmd put --acl-public ${f} ${s3path}"
+			s3cmd put --acl-public "${f}" "${s3path}"
+		else
+			echo "s3cmd put ${f} ${s3path}"
+	    	s3cmd put "${f}" "${s3path}"
+	    fi
 	fi
 done
-echo "setacl s3://${2} --acl-public --recursive"
-s3cmd setacl "s3://${2}" --acl-public --recursive

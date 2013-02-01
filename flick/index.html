@@ -12,11 +12,7 @@
   <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
   <script src="lib/leaflet.label.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.0.js"></script>
-  <script type="text/javascript" src="lib/jQueryRotateCompressed.2.2.js"></script>
-  <!-- the following two scripts are for the graphs and should be removed before releasing -->
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
-  <script type="text/javascript" src="lib/morris.min.js"></script>
-  
+  <script type="text/javascript" src="lib/jQueryRotateCompressed.2.2.js"></script>  
   <script type="text/javascript" src="src/flick.js"></script>
 	<style type="text/css">
 		body {
@@ -172,9 +168,9 @@
 			margin: 10px 0 0 10px;
 			-webkit-border-radius: 8px;
 			border-radius: 8px;
-			box-shadow: 0 1px 7px rgba(0,0,0,0.4);
+			box-shadow: 0 1px 7px rgba(220,220,220,0.4);
 			pointer-events: auto;
-			border: 1px solid #D1D1D2;
+			border: 1px solid rgba(209,209,210, 0.75);
 		}
 		#control-track:hover {
 			background-color: black;
@@ -192,9 +188,9 @@
 			margin: 10px 10px 0 0 ;
 			-webkit-border-radius: 8px;
 			border-radius: 8px;
-			box-shadow: 0 1px 7px rgba(0,0,0,0.4);
+			box-shadow: 0 1px 7px rgba(220,220,220,0.4);
 			pointer-events: auto;
-			border: 1px solid #D1D1D2;
+			border: 1px solid rgba(209,209,210, 0.75);
 		}
 		#control-layer-toggle:hover {
 			background-color: black;
@@ -207,25 +203,56 @@
 			margin: 50px 10px 0 0;
 			-webkit-border-radius: 8px;
 			border-radius: 8px;
-			box-shadow: 0 1px 7px rgba(0,0,0,0.4);
-			pointer-events: auto;
+			box-shadow: 0 1px 7px rgba(220,220,220,0.4);
+			pointer-events: none;
 			font-size: 11pt;
 			font-family: Helvetica, sans-serif;
 			color: #FAA718;
 			padding: 5px 10px;
-			border: 1px solid #D1D1D2;
+			border: 1px solid rgba(209,209,210, 0.75);
 		}
 		#control-layer-list #layer-divider {
 			height: 0;
-			border-bottom: 1px solid #326F2D;
+			border-bottom: 1px solid #362F2D;
 			margin: 3px 0px;
 		}
 		#control-layer-list label {
 			display: block;
 			padding: 3px 0;
+			pointer-events: auto;
 		}
 		#control-layer-list label.div-bel {
-			border-bottom: 1px dotted black;
+			border-bottom: 1px dotted #362F2D;
+		}
+		#mini-tracker {
+			position: absolute;
+			bottom: 30px;
+			left: 10%;
+			width: 80%;
+			height: 50px;
+			border: 2px solid rgba(209,209,210, 0.75);
+			-webkit-border-radius: 8px;
+			border-radius: 8px;
+			background-color: rgba(126, 126, 126, 0.9);
+			display: none;
+		}
+		#drawer {
+			position: absolute;
+			height: 10px;
+			width: 300px;
+			bottom: 0;
+			left: 50%;
+			margin-left: -150px;
+			border: 2px solid rgba(209,209,210, 0.75);
+			background-color: rgba(126, 126, 126, 0.9);
+		}
+		#drawer-pull {
+			position: absolute;
+			top: 0;
+			width: 30px;
+			height: 10px;
+			background-image: url(img/grabber.png);
+			margin: 0px 135px;
 		}
 	</style>
 </head>
@@ -240,13 +267,15 @@
 			<div id="layer-divider"></div>
 			<label class="div-bel"><input id="layer-overlay" type="checkbox" /> <span id="layer-overlay-name"></span></label>
 			<label class="div-bel"><input id="layer-weather" type="checkbox" /> US WEATHER</label>
-			<label class="div-bel"><input id="layer-plan" type="checkbox" /> FLIGHT PLAN</label>
-			<label class="div-bel"><input id="layer-path" type="checkbox" /> ACTUAL PATH</label>
+			<label class="div-bel"><input id="layer-plan" type="checkbox" checked="checked" /> <span id="layer-plan-name">FLIGHT PLAN</label>
+			<label class="div-bel"><input id="layer-path" type="checkbox" checked="checked" /> ACTUAL PATH</label>
 			<label><input id="layer-mini" type="checkbox" /> MINI TRACKER</label>
 		</form>
 	</div>
-	<div id="graph1_div"></div>
-	<div id="graph2_div"></div>
+	<div id="mini-tracker"></div>
+	<div id="drawer">
+		<div id="drawer-pull"></div>
+	</div>
 	<div id="messagepopup">
 		<span id="messagetitle">FLIGHT TRACKER NOTE</span>
 		<div class="close">X</div>

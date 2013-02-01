@@ -17,9 +17,8 @@
 			apos,	// lat/lng position of arrival airport
 			airplane,	// L.marker for airplane icon
 			fpos,	// lat/lng position of airplane
-			plan,	// L.polyline of flight plan (or great circle)
-			path,	// L.polyline of actual flight path
 			multi,	// lat/lngs for flight path
+			layers = { planHalo: null, plan: null, pathHalo: null, path: null, mini: null },
 			wrap;	// does route cross the anti-meridian?
 	var maxZoom = 11;
 	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
@@ -37,9 +36,7 @@
 			anitimer;	// animation timer
 	var vlat, vlng, vrot;	// animation parameters
 	var zooming = false;	// true during zoom animation
-	// debug stuff
-	var graph_on = false, // graph is showing
-			numpos,
+	var numpos, // debug stuff
 			data_off = 0,	// index of where data is off for testing
 			data_on = 0;	// index of where data is back on
 
@@ -143,7 +140,7 @@
 		terrain: L.tileLayer(
 			'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
 			{ subdomains: '',
-				opacity: 0.6,
+				opacity: 0.7,
 				zIndex: 3,
 				minZoom: 0, maxZoom: 11
 		})
@@ -161,11 +158,13 @@
 				addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
 
 		var trackcontrol = new TrackControl();
-		var layercontrol = new LayerControl($.extend({ plan: null, path: null, mini: null }, tiles, overlays));
+		layers = $.extend(layers, tiles, overlays);
+		var layercontrol = new LayerControl(layers);
 
     // create map
 		map = L.map('map_div', {	// create map
 			attributionControl: false,
+			doubleClickZoom: false,
 			zoomControl: false,
 			zoomAnimation: true,
 			markerZoomAnimation: true,
@@ -197,12 +196,22 @@
 			$('.leaflet-control-zoom.leaflet-bar').css('margin','60px 0 0 18px');
 		}
 
+		// if tracking is on, don't recenter on double-click zoom
+		map.on('dblclick', function(e) {
+			if (trackcontrol.isTracking()) {
+				map.zoomIn(1);
+			} else {
+				map.setView(e.latlng, this._zoom + 1);
+			}
+			return false;
+		}).on('dragstart', trackcontrol.reset, trackcontrol);	// turn off tracking on drag
+
 		// get position data from API
 		function mainloop() {
 
 			$.ajax({  // Call Flight Track by flight ID API
 					url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
-					data: { appId: appId, appKey: appKey, includeFlightPlan: plan===undefined, extendedOptions: 'includeNewFields' },
+					data: { appId: appId, appKey: appKey, includeFlightPlan: layers.plan===null, extendedOptions: 'includeNewFields' },
 					dataType: 'jsonp',
 					success: getFlight
 				});
@@ -237,7 +246,6 @@
 				var newdate = Date.parse(newpos.date);
 				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 				timestamp += updateRate;	// 10 seconds
-				// if (debug) console.log(timestamp - newdate);
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
 						showMessage(
@@ -290,10 +298,10 @@
 					var ac = flightData.carrierFsCode.toLowerCase();
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_120x40.png';
+					// prefetch image
 					logoimg = $('<img/>'); // prefetch
 					logoimg.load(function(/* e */) {	// if image exists, use it
 						logo = true;
-						// setFlightLabel();
 					});
 					logoimg.attr('src', logourl);	// prefetch image
 
@@ -306,7 +314,6 @@
 					aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
 					setFlightPath();
 					setFlightLabel();
-					if (graph_on) { doGraph(); }
 				}
 
 				// map is ready, draw everything for the first time
@@ -316,55 +323,9 @@
 						$('#map_div').addClass('threed');
 					}
 
-					// add additional zoom control buttons
-					// var $zoomdiv = $('.leaflet-control-zoom');
-					// zoom in and turn on tracking
-					// $trackbutton = $(zoomcontrol._createButton('', 'Track Flight', 'leaflet-control-zoom-track', $zoomdiv[0],
-					//		function(e) {
-					//			if (tracking === 2) {
-					//				tracking = 0;
-					//				$trackbutton.css('background-color', '');
-					//				setfullview(this);
-					//			} else {
-					//				tracking = 2;
-					//				$trackbutton.css('background-color', '#d8e');
-					//				settrackingview(this);
-					//				setFlightPath();
-					//			}
-					//			L.DomEvent.stopPropagation(e);
-					//		}, map)).css({'background-image': 'url(img/icon-track.png)', 'border-top': 'solid rgb(170, 170, 170) 1px' });
-					// // zoom out to show entire flight
-					// $(zoomcontrol._createButton('', 'Whole Flight', 'leaflet-control-zoom-flight', $zoomdiv[0],
-					//		function(e) {
-					//			tracking = false;
-					//			$trackbutton.css('background-color', '');
-					//			setfullview(this);
-					//			L.DomEvent.stopPropagation(e);
-					//		}, map)).css({'background-image': 'url(img/icon-full.png)' });
-					// map.on('dragstart', function(/* e */) {
-					//	if (tracking === 2) {
-					//		tracking = 1;
-					//		$trackbutton.css('background-color', '');							
-					//	}
-					// });
-
-					map.on('dragstart', trackcontrol.reset, trackcontrol);	// turn off tracking on drag
-
 					if (debug) {	// interactive debug mode
 						$(document).keydown(function(e) {
 							switch(e.which) {
-								case 71: // "g" graph
-									if (graph_on) {	// hide graph
-										$('#map_div').animate({height: '100%'}, 'fast');
-										$('#graph1_div, #graph2_div').hide();
-										graph_on = false;
-									} else {	// show graph
-										$('#graph1_div, #graph2_div').show();
-										$('#map_div').animate({height: '80%'}, 'fast');
-										graph_on = true;
-										doGraph();
-									}
-								break;
 								case 83: // "s" stop data
 									if (data_off === 0 || data_on !== 0) {	// first time
 										data_off = numpos;
@@ -408,22 +369,21 @@
 								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode);
 								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
 					
-					// do flight plan (waypoints)
+					// do flight plan (waypoints) or geodesic
 					var p = flightData.waypoints;
+					console.log(flightData);
 					if (p) { // there is a flight plan
 						var positions = new Array(p.length);
 						for (var i = 0; i < p.length; i++) {
 							positions[i] = createLatLng(+p[i].lat, +p[i].lon, wrap);
 						}
-						// plan = L.polyline(positions, { color: '#939', weight: 5, dashArray: '18, 12'}).bindLabel('flight plan').addTo(map);
-						plan = L.polyline(positions, { color: '#3f3', opacity: 0.5, weight: 3}).bindLabel('flight plan').addTo(map).bringToBack();
-						var planHalo = L.polyline(positions, { color: '#000', opacity: 0.3, weight: 5}).bindLabel('flight plan').addTo(map).bringToBack();
-						// layercontrol.addOverlay(planHalo, 'flight plan halo').addOverlay(plan, 'flight plan');
+						layers.planHalo = L.polyline(positions, { color: '#000', opacity: 0.3, weight: 5 }).addTo(map);
+						layers.plan = L.polyline(positions, { color: '#3f3', opacity: 0.5, weight: 3 }).addTo(map);
 					} else { // if there is NO flight plan, draw great circle
+						layercontrol.isGeodesic();
 						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
-						plan = L.polyline([dpos, apos], { color: '#939', weight: 6, dashArray: '1, 15'}).
-								greatCircle(npoints).addTo(map).bindLabel(airline+flightnum+' route');
-						// layercontrol.addOverlay(plan, 'route');
+						layers.planHalo = L.polyline([dpos, apos], { color: '#000', opacity: 0.3, weight: 3}).greatCircle(npoints).addTo(map);
+						layers.plan = L.polyline([dpos, apos], { color: '#3f3', opacity: 0.5, weight: 1}).greatCircle(npoints).addTo(map);
 					}
 
 					// flight marker (airplane)
@@ -530,9 +490,10 @@
 						if (!zooming) {	// don't update position while zooming animation is in progress
 							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
 						// if (tracking) { map.panTo(curpos); }
-							if (path) {	// draw tail
+							if (layers.path) {	// draw tail
 								multi[0][0] = curpos;
-								path.setLatLngs(multi);
+								layers.pathHalo.setLatLngs(multi);
+								layers.path.setLatLngs(multi);
 							}
 						}
 						if (frames <= 0) {	// stop movement
@@ -755,8 +716,8 @@
 			this._map.on('dragstart', this._collapse, this)
 						.on('click', this._collapse, this);
 			if (L.Browser.touch) {
-				L.DomEvent.on(list, 'click', L.DomEvent.stop)
-						.on(toggle, 'click', L.DomEvent.stop);
+				L.DomEvent.on(list, 'click', L.DomEvent.stopPropagation)
+						.on(toggle, 'click', L.DomEvent.stopPropagation);
 			} else {
 				L.DomEvent.on(list, 'mousewheel', L.DomEvent.stopPropagation);
 			}
@@ -822,7 +783,41 @@
 				} else {
 					this._map.removeLayer(this._layers.weather);
 				}
+			}, this);
 
+			// click on flight plan
+			L.DomEvent.on(L.DomUtil.get('layer-plan'), 'click', function(e) {
+				if ($('#layer-plan:checked').length > 0) {
+					this._map.addLayer(this._layers.planHalo).addLayer(this._layers.plan);
+					this._layers.plan.bringToBack();
+					this._layers.planHalo.bringToBack();
+				} else {
+					this._map.removeLayer(this._layers.planHalo);
+					this._map.removeLayer(this._layers.plan);
+				}
+			}, this);
+
+			// click on actual path
+			L.DomEvent.on(L.DomUtil.get('layer-path'), 'click', function(e) {
+				if ($('#layer-path:checked').length > 0) {
+					this._map.addLayer(this._layers.pathHalo).addLayer(this._layers.path);
+					this._layers.pathHalo.bringToFront();
+					this._layers.path.bringToFront();
+				} else {
+					this._map.removeLayer(this._layers.pathHalo);
+					this._map.removeLayer(this._layers.path);
+				}
+			}, this);
+
+			// click on mini-tracker
+			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function(e) {
+				if ($('#layer-mini:checked').length > 0) {
+					// this._map.addLayer(this._layers.mini);
+					$('#mini-tracker').show();
+				} else {
+					// this._map.removeLayer(this._layers.mini);
+					$('#mini-tracker').hide();
+				}
 			}, this);
 
 		},
@@ -843,6 +838,10 @@
 		_collapse: function(e) {
 			$('#control-layer-list').hide(100,'linear');
 			this._expanded = false;
+		},
+
+		isGeodesic: function() {
+			$('#layer-plan-name').text('GEODESIC');
 		},
 
 		addOverlay: function (layer, name) {
@@ -958,12 +957,12 @@
 			last = ct;
 		}
 		multi.push(positions);
-		if (path) {	// layer already exists
-			path.setLatLngs(multi);
+		if (layers.path) {	// layer already exists
+			layers.pathHalo.setLatLngs(multi);
+			layers.path.setLatLngs(multi);
 		} else {	// create layer
-			var pathHalo = L.multiPolyline(multi, { color: '#000', opacity: 0.5, weight: 4 }).addTo(map).bindLabel('actual path');
-			path = L.multiPolyline(multi, { color: '#a2a', opacity: 0.8, weight: 2 }).addTo(map).bindLabel('actual path');
-			// layercontrol.addOverlay(pathHalo, 'actual path halo').addOverlay(path, 'actual path');
+			layers.pathHalo = L.multiPolyline(multi, { color: '#000', opacity: 0.5, weight: 4 }).addTo(map).bringToFront();
+			layers.path = L.multiPolyline(multi, { color: '#a2a', opacity: 0.8, weight: 2 }).addTo(map).bringToFront();
 		}
 	} // end setFlightPath
 

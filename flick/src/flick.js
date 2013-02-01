@@ -36,9 +36,7 @@
 			anitimer;	// animation timer
 	var vlat, vlng, vrot;	// animation parameters
 	var zooming = false;	// true during zoom animation
-	// debug stuff
-	var graph_on = false, // graph is showing
-			numpos,
+	var numpos, // debug stuff
 			data_off = 0,	// index of where data is off for testing
 			data_on = 0;	// index of where data is back on
 
@@ -142,7 +140,7 @@
 		terrain: L.tileLayer(
 			'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
 			{ subdomains: '',
-				opacity: 0.6,
+				opacity: 0.7,
 				zIndex: 3,
 				minZoom: 0, maxZoom: 11
 		})
@@ -316,7 +314,6 @@
 					aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
 					setFlightPath();
 					setFlightLabel();
-					if (graph_on) { doGraph(); }
 				}
 
 				// map is ready, draw everything for the first time
@@ -329,18 +326,6 @@
 					if (debug) {	// interactive debug mode
 						$(document).keydown(function(e) {
 							switch(e.which) {
-								case 71: // "g" graph
-									if (graph_on) {	// hide graph
-										$('#map_div').animate({height: '100%'}, 'fast');
-										$('#graph1_div, #graph2_div').hide();
-										graph_on = false;
-									} else {	// show graph
-										$('#graph1_div, #graph2_div').show();
-										$('#map_div').animate({height: '80%'}, 'fast');
-										graph_on = true;
-										doGraph();
-									}
-								break;
 								case 83: // "s" stop data
 									if (data_off === 0 || data_on !== 0) {	// first time
 										data_off = numpos;
@@ -812,7 +797,7 @@
 				}
 			}, this);
 
-			// click on flight path
+			// click on actual path
 			L.DomEvent.on(L.DomUtil.get('layer-path'), 'click', function(e) {
 				if ($('#layer-path:checked').length > 0) {
 					this._map.addLayer(this._layers.pathHalo).addLayer(this._layers.path);
@@ -824,6 +809,16 @@
 				}
 			}, this);
 
+			// click on mini-tracker
+			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function(e) {
+				if ($('#layer-mini:checked').length > 0) {
+					// this._map.addLayer(this._layers.mini);
+					$('#mini-tracker').show();
+				} else {
+					// this._map.removeLayer(this._layers.mini);
+					$('#mini-tracker').hide();
+				}
+			}, this);
 
 		},
 

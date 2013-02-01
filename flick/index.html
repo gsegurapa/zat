@@ -12,11 +12,7 @@
   <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
   <script src="lib/leaflet.label.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.0.js"></script>
-  <script type="text/javascript" src="lib/jQueryRotateCompressed.2.2.js"></script>
-  <!-- the following two scripts are for the graphs and should be removed before releasing -->
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
-  <script type="text/javascript" src="lib/morris.min.js"></script>
-  
+  <script type="text/javascript" src="lib/jQueryRotateCompressed.2.2.js"></script>  
   <script type="text/javascript" src="src/flick.js"></script>
 	<style type="text/css">
 		body {
@@ -228,6 +224,36 @@
 		#control-layer-list label.div-bel {
 			border-bottom: 1px dotted #362F2D;
 		}
+		#mini-tracker {
+			position: absolute;
+			bottom: 30px;
+			left: 10%;
+			width: 80%;
+			height: 50px;
+			border: 2px solid rgba(209,209,210, 0.75);
+			-webkit-border-radius: 8px;
+			border-radius: 8px;
+			background-color: rgba(126, 126, 126, 0.9);
+			display: none;
+		}
+		#drawer {
+			position: absolute;
+			height: 10px;
+			width: 300px;
+			bottom: 0;
+			left: 50%;
+			margin-left: -150px;
+			border: 2px solid rgba(209,209,210, 0.75);
+			background-color: rgba(126, 126, 126, 0.9);
+		}
+		#drawer-pull {
+			position: absolute;
+			top: 0;
+			width: 30px;
+			height: 10px;
+			background-image: url(img/grabber.png);
+			margin: 0px 135px;
+		}
 	</style>
 </head>
 <body>
@@ -246,8 +272,10 @@
 			<label><input id="layer-mini" type="checkbox" /> MINI TRACKER</label>
 		</form>
 	</div>
-	<div id="graph1_div"></div>
-	<div id="graph2_div"></div>
+	<div id="mini-tracker"></div>
+	<div id="drawer">
+		<div id="drawer-pull"></div>
+	</div>
 	<div id="messagepopup">
 		<span id="messagetitle">FLIGHT TRACKER NOTE</span>
 		<div class="close">X</div>

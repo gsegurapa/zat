@@ -18,7 +18,7 @@ Deployment
 ==========
 Deployment is controlled by a series of bash scripts and a Makefile.  The scripts and Makefile are located in the root of the repository.  A deployment consists of compiling any source javascript (minimization and obfuscation), packaging the source with dependencies and assets, then copying the bundle to a selected S3 bucket.  A simple deployment command looks like this:
 
-    make deploy-clean deploy APP=airtrack BUCKET=flightstats-webapps-staging
+    make deploy-clean deploy APP=airtrack BUCKET=flightstats-webapps-staging VERSION=1.0
 
 The scripts that do the actual building and deployment are as follows:
 * compile.sh - compiles the src javascript with the Google closure compiler.  Syntax is:

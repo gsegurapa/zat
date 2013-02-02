@@ -225,7 +225,7 @@
 		};
 
 		if (L.Browser.touch) {
-			fullscreentimer = setTimeout(hidecontrols, 5000);
+			fullscreentimer = setTimeout(hidecontrols, 10000);
 			map.on('click', unhidecontrols);
 		} else {
 			map.addControl(L.control.zoom());

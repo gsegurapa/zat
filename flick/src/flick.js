@@ -39,6 +39,7 @@
 	var numpos, // debug stuff
 			data_off = 0,	// index of where data is off for testing
 			data_on = 0;	// index of where data is back on
+	var fullscreentimer, hidecontrols, unhidecontrols;	// hide buttons and drawer timer
 
 
 	// process URL parameters
@@ -173,7 +174,6 @@
 					'<tr><td>Heading:</td><td class="t2">'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
 					'<tr><td>Equipment:</td><td class="t2">'+flightData.equipment+'</td></tr></table>';
 		}
-
 		var drawercontrol = new DrawerControl(flightinfo);
 
     // create map
@@ -206,7 +206,28 @@
 				zooming = false;
 			});
 
-		if (!L.Browser.touch) {
+		hidecontrols = function() {
+			if (L.Browser.touch && !drawercontrol.expanded() && !layercontrol.expanded()) {
+				$('#control').fadeOut(1000);
+				$('.leaflet-control-container').fadeOut(1000);
+				drawercontrol.hide();
+			}
+		};
+
+		unhidecontrols = function() {	// unhide
+			if (L.Browser.touch) {
+				clearTimeout(fullscreentimer);
+				$('#control').finish().fadeIn(100);
+				$('.leaflet-control-container').finish().fadeIn(100);
+				drawercontrol.unhide();
+				fullscreentimer = setTimeout(hidecontrols, 5000);
+			}
+		};
+
+		if (L.Browser.touch) {
+			fullscreentimer = setTimeout(hidecontrols, 5000);
+			map.on('click', unhidecontrols);
+		} else {
 			map.addControl(L.control.zoom());
 			$('.leaflet-control-zoom.leaflet-bar').css('margin','60px 0 0 18px');
 		}
@@ -263,10 +284,7 @@
 				timestamp += updateRate;	// 10 seconds
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
-						showMessage(
-							'This flight is temporarily beyond<br />'+
-							'the range of our tracking network<br />'+
-							'or over a large body of water');
+						showMessage('This flight is temporarily beyond the range of our tracking network or over a large body of water');
 						airplane.setActive(false);	// set airplane color to gray
 						setFlightPath(true);	// draw entire flight history
 					}
@@ -543,33 +561,6 @@
 
 			} // end getFlight
 
-			function doGraph() {	// draw graph
-				$('#graph1_div, #graph2_div').empty();
-				Morris.Line({
-					element: 'graph1_div',
-					data: flightData.positions,
-					xkey: 'date',
-					ykeys: ['altitudeFt'],
-					labels: ['Altitude'],
-					postUnits: ' ft',
-					smooth: false,
-					pointSize: 2,
-					hideHover: true
-				});	
-				Morris.Line({
-					element: 'graph2_div',
-					data: flightData.positions,
-					xkey: 'date',
-					ykeys: ['speedMph'],
-					labels: ['Speed'],
-					postUnits: ' mph',
-					smooth: false,
-					pointSize: 2,
-					hideHover: true,
-					lineColors: ['#f08']
-				});	
-			}	// end doGraph
-
 			//	function getStatus(data /*, status, xhr */) { // status callback
 			//		if (!data || data.error) {
 			//		alert('AJAX error: '+data.error.errorMessage);
@@ -701,12 +692,13 @@
 		}
 	});
 
+	// ---------------------------------------------------------
 	// DrawerControl displays information about items on the map
 	var DrawerControl = L.Class.extend({
 
-		initialize: function(d) {
-			this._defaultfun = d;
-			this._fun = d;
+		initialize: function(dfun) {
+			this._defaultfun = dfun;
+			this._fun = dfun;
 		},
 
 		onAdd: function(map) {
@@ -727,12 +719,14 @@
 		_toggle: function(e) {
 			if (this._expanded) {
 				this.collapse(e);
+				fullscreentimer = setTimeout(hidecontrols, 5000);
 			} else {
+				unhidecontrols();
 				this.expand(e);
 			}
 		},
 
-		expand: function(e) {
+		expand: function() {
 			if ($('#drawer-content').html() === '') {
 				$('#drawer-content').html(this._fun());
 			}
@@ -742,11 +736,26 @@
 			return this;
 		},
 
-		collapse: function(e) {
+		collapse: function() {
 			$('#drawer').animate({bottom: -200}, 200);
 			this._expanded = false;
 			$('#drawer-pull').css('cursor', 'n-resize');
 			return this;
+		},
+
+		expanded: function() {
+			return this._expanded;
+		},
+
+		hide: function() {
+			$('#drawer').animate({bottom: -215}, 500);
+		},
+
+		unhide: function() {
+			if (!this._expanded) {
+				$('#drawer').finish();
+				$('#drawer').animate({bottom: -200}, 200);
+			}
 		},
 
 		content: function(fun) {
@@ -765,6 +774,7 @@
 
 	});
 
+	// ---------------------------------------------------------
 	// LayerControl is used to select basemaps and overlays
 	var LayerControl = L.Class.extend({
 
@@ -895,9 +905,15 @@
 
 		},
 
+		expanded: function() {
+			return this._expanded;
+		},
+
 		_expand: function(e) {
+			unhidecontrols();
 			if (this._expanded) {
 				this._collapse();
+				fullscreentimer = setTimeout(hidecontrols, 5000);
 			} else {
 				$('#control-layer-list').show(100,'linear');
 				this._expanded = true;
@@ -912,14 +928,11 @@
 		setGeodesic: function() {
 			$('#layer-plan-name').text('GEODESIC');
 		}
-		
+
 	});
 
-
-	/*
-	 * TrackControl is used to track the flight and zoom the map
-	 */
-
+	// ---------------------------------------------------------
+	// TrackControl is used to track the flight and zoom the map
 	var TrackControl = L.Class.extend({
 
 		onAdd: function(map) {
@@ -951,6 +964,7 @@
 		},
 
 		_settrack: function(/* e */) {
+			unhidecontrols();
 			if (this._tracking === 2) {
 				this._tracking = 0;
 				this._link.style.backgroundColor = '';
@@ -961,7 +975,6 @@
 				settrackingview(this._map);
 				setFlightPath();
 			}
-
 		}
 
 	});

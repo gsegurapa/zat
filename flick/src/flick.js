@@ -161,6 +161,21 @@
 		layers = $.extend(layers, tiles, overlays);
 		var layercontrol = new LayerControl(layers);
 
+		function flightinfo() {	// info about flight for drawer
+			var airlinename = airlines[flightData.carrierFsCode].name
+			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
+							'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
+					'<div style="text-align:center;width:100%">('+flightData.carrierFsCode+') '+airlinename+' #'+flightData.flightNumber+
+					(flightData.delayMinutes > 1 ? '<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')+'</div>'+
+					'<table id="flightinfo"><tr><td>Route:</td><td class="t2">'+departureAirport+' to '+arrivalAirport+'</td></tr>'+
+					'<tr><td>Altitude:</td><td class="t2">'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
+					'<tr><td>Speed:</td><td class="t2">'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
+					'<tr><td>Heading:</td><td class="t2">'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
+					'<tr><td>Equipment:</td><td class="t2">'+flightData.equipment+'</td></tr></table>';
+		}
+
+		var drawercontrol = new DrawerControl(flightinfo);
+
     // create map
 		map = L.map('map_div', {	// create map
 			attributionControl: false,
@@ -171,7 +186,7 @@
 			layers: defaultlayers,
 			worldCopyJump: false
 		});
-		map.addControl(attributioncontrol).addLayer(layercontrol).addLayer(trackcontrol).
+		map.addControl(attributioncontrol).addLayer(layercontrol).addLayer(trackcontrol).addLayer(drawercontrol).
 			on('layeradd', function(e) { // reset zoom on basemap change
 				var layer = e.layer;
 				var m = layer._map;
@@ -297,9 +312,9 @@
 
 					var ac = flightData.carrierFsCode.toLowerCase();
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
-					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_120x40.png';
+					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
 					// prefetch image
-					logoimg = $('<img/>'); // prefetch
+					logoimg = $('<img/>'); // prefetch logo
 					logoimg.load(function(/* e */) {	// if image exists, use it
 						logo = true;
 					});
@@ -313,7 +328,7 @@
 					if (trackcontrol.isTracking()) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
 					aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
 					setFlightPath();
-					setFlightLabel();
+					drawercontrol.update();
 				}
 
 				// map is ready, draw everything for the first time
@@ -343,6 +358,12 @@
 						});
 					}
 
+					function depinfo() {
+						return '<div class="labelhead">Departing '+departureAirport+'</div>'+depa.name+
+								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode;
+							// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString();
+					}
+
 					// departing airport marker
 					L.marker(dpos, {
 							icon: L.icon({	// departing airport icon
@@ -352,9 +373,15 @@
 									popupAnchor: [2, -93],
 									labelAnchor: [7, -60]
 							})
-						}).addTo(map).bindLabel('<div class="labelhead">Depart '+departureAirport+'</div>'+depa.name+
-								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode);
-								// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString());
+						}).addTo(map).on('click', function(e) {
+							drawercontrol.content(depinfo);
+						});								
+
+					function arrinfo() {
+						return '<div class="labelhead">Arriving '+arrivalAirport+'</div>'+arra.name+
+								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode;
+								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString();
+					}
 
 					// arriving airport marker
 					L.marker(apos, {
@@ -365,13 +392,12 @@
 									popupAnchor: [2, -93],
 									labelAnchor: [7, -60]
 							})
-						}).addTo(map).bindLabel('<div class="labelhead">Arrive '+arrivalAirport+'</div>'+arra.name+
-								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode);
-								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString());	
+						}).addTo(map).on('click', function(e) {
+							drawercontrol.content(arrinfo);
+						});
 					
 					// do flight plan (waypoints) or geodesic
 					var p = flightData.waypoints;
-					console.log(flightData);
 					if (p) { // there is a flight plan
 						var positions = new Array(p.length);
 						for (var i = 0; i < p.length; i++) {
@@ -380,7 +406,7 @@
 						layers.planHalo = L.polyline(positions, { color: '#000', opacity: 0.3, weight: 5 }).addTo(map);
 						layers.plan = L.polyline(positions, { color: '#3f3', opacity: 0.5, weight: 3 }).addTo(map);
 					} else { // if there is NO flight plan, draw great circle
-						layercontrol.isGeodesic();
+						layercontrol.setGeodesic();
 						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
 						layers.planHalo = L.polyline([dpos, apos], { color: '#000', opacity: 0.3, weight: 3}).greatCircle(npoints).addTo(map);
 						layers.plan = L.polyline([dpos, apos], { color: '#3f3', opacity: 0.5, weight: 1}).greatCircle(npoints).addTo(map);
@@ -406,7 +432,6 @@
 						phat(fpos, heading, alt, p.date);	// set initial position
 					}
 					
-					setFlightLabel();
 					setFlightPath(); // draw actual flight position data
 
 				} // end mapReady
@@ -420,6 +445,9 @@
 						if (trackcontrol.isTracking()) { map.panTo(p); }
 					} else {
 						airplane = flightMarker(p).addTo(map).rotate(h).setShadow(a).stamp(t);
+						airplane.on('click', function(e) {
+							drawercontrol.content(flightinfo);
+						});
 					}
 				}	// end phat
 
@@ -567,26 +595,6 @@
 		mainloop();
 		setInterval(mainloop, updateRate); // update every 10 seconds
 
-		function setFlightLabel() {
-			var label = (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
-						'<div class="labelhead fakelogo">'+airlines[flightData.carrierFsCode].name+'&nbsp;</div>')+
-				'Flight: '+flightData.carrierFsCode+' #'+flightData.flightNumber+
-				'<br />Route: '+departureAirport+' to '+arrivalAirport+
-				(flightData.delayMinutes ? '<br />Delayed: '+flightData.delayMinutes+' min' : '<br />On Time')+
-				'<br />Altitude: '+pos.altitudeFt+' ft'+
-				'<br />Speed: '+pos.speedMph+' mph'+
-				'<br />Heading: '+(+flightData.heading).toFixed()+'&deg;'+
-				'<br />Bearing to '+arrivalAirport+': '+(+flightData.bearing).toFixed()+'&deg;'+
-				'<br />Latitude: '+fpos.lat.toFixed(2)+
-				'<br />Longitude: '+fpos.lng.toFixed(2)+
-				'<br />Equipment: '+flightData.equipment;
-			if (flightLabel) {
-				flightLabel.updateLabelContent(label);
-			} else {
-				flightLabel = airplane.bindLabel(label);					
-			}
-		}
-
 		function halfway(p1, p2) {	// return lat/lng halfway between two points
 			return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
 		}
@@ -693,10 +701,71 @@
 		}
 	});
 
-	/*
-	 * LayerControl is used to select basemaps and overlays
-	 */
+	// DrawerControl displays information about items on the map
+	var DrawerControl = L.Class.extend({
 
+		initialize: function(d) {
+			this._defaultfun = d;
+			this._fun = d;
+		},
+
+		onAdd: function(map) {
+			this._map = map;
+			this._expanded = false;	// is drawer open?
+			this._visible = true;	// is drawer and pull showing or hidden
+
+			var drawer = L.DomUtil.get('drawer');
+
+			L.DomEvent.on(drawer, 'click', this._toggle, this)
+						.on(drawer, 'click', L.DomEvent.stop);
+		},
+
+		onRemove: function(map) {
+
+		},
+
+		_toggle: function(e) {
+			if (this._expanded) {
+				this.collapse(e);
+			} else {
+				this.expand(e);
+			}
+		},
+
+		expand: function(e) {
+			if ($('#drawer-content').html() === '') {
+				$('#drawer-content').html(this._fun());
+			}
+			$('#drawer').animate({bottom: 0}, 200);
+			this._expanded = true;
+			$('#drawer-pull').css('cursor', 's-resize');
+			return this;
+		},
+
+		collapse: function(e) {
+			$('#drawer').animate({bottom: -200}, 200);
+			this._expanded = false;
+			$('#drawer-pull').css('cursor', 'n-resize');
+			return this;
+		},
+
+		content: function(fun) {
+			this._fun = fun;
+			$('#drawer-content').html(fun());
+			if (!this._expanded) { this.expand(); }
+		},
+
+		update: function() {
+			if (this._fun !== this._defaultfun) { return; }
+			var info = this._fun();
+			if (info !== $('#drawer-content').html()) {
+				$('#drawer-content').html(info);
+			}
+		}
+
+	});
+
+	// LayerControl is used to select basemaps and overlays
 	var LayerControl = L.Class.extend({
 
 		initialize: function(layers) {
@@ -732,7 +801,7 @@
 				if (this._map.hasLayer(this._layers.terrain)) { this._terrain = true; }
 			}
 
-			// click on satellite
+			// click on satellite basemap
 			L.DomEvent.on(L.DomUtil.get('layer-sat'), 'click', function(e) {
 				if (this._map.hasLayer(this._layers.map)) {
 					this._map.removeLayer(this._layers.map);
@@ -747,7 +816,7 @@
 				}
 			}, this);
 
-			// click on map
+			// click on map basemap (street)
 			L.DomEvent.on(L.DomUtil.get('layer-map'), 'click', function(e) {
 				if (this._map.hasLayer(this._layers.sat)) {
 					this._map.removeLayer(this._layers.sat);
@@ -776,27 +845,6 @@
 				}
 			}, this);
 
-			// click on weather
-			L.DomEvent.on(L.DomUtil.get('layer-weather'), 'click', function(e) {
-				if ($('#layer-weather:checked').length > 0) {
-					this._map.addLayer(this._layers.weather);
-				} else {
-					this._map.removeLayer(this._layers.weather);
-				}
-			}, this);
-
-			// click on flight plan
-			L.DomEvent.on(L.DomUtil.get('layer-plan'), 'click', function(e) {
-				if ($('#layer-plan:checked').length > 0) {
-					this._map.addLayer(this._layers.planHalo).addLayer(this._layers.plan);
-					this._layers.plan.bringToBack();
-					this._layers.planHalo.bringToBack();
-				} else {
-					this._map.removeLayer(this._layers.planHalo);
-					this._map.removeLayer(this._layers.plan);
-				}
-			}, this);
-
 			// click on actual path
 			L.DomEvent.on(L.DomUtil.get('layer-path'), 'click', function(e) {
 				if ($('#layer-path:checked').length > 0) {
@@ -809,6 +857,18 @@
 				}
 			}, this);
 
+			// click on flight plan (or geodesic)
+			L.DomEvent.on(L.DomUtil.get('layer-plan'), 'click', function(e) {
+				if ($('#layer-plan:checked').length > 0) {
+					this._map.addLayer(this._layers.planHalo).addLayer(this._layers.plan);
+					this._layers.plan.bringToBack();
+					this._layers.planHalo.bringToBack();
+				} else {
+					this._map.removeLayer(this._layers.planHalo);
+					this._map.removeLayer(this._layers.plan);
+				}
+			}, this);
+
 			// click on mini-tracker
 			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function(e) {
 				if ($('#layer-mini:checked').length > 0) {
@@ -817,6 +877,15 @@
 				} else {
 					// this._map.removeLayer(this._layers.mini);
 					$('#mini-tracker').hide();
+				}
+			}, this);
+
+			// click on weather
+			L.DomEvent.on(L.DomUtil.get('layer-weather'), 'click', function(e) {
+				if ($('#layer-weather:checked').length > 0) {
+					this._map.addLayer(this._layers.weather);
+				} else {
+					this._map.removeLayer(this._layers.weather);
 				}
 			}, this);
 
@@ -840,12 +909,8 @@
 			this._expanded = false;
 		},
 
-		isGeodesic: function() {
+		setGeodesic: function() {
 			$('#layer-plan-name').text('GEODESIC');
-		},
-
-		addOverlay: function (layer, name) {
-			return this;
 		}
 		
 	});
@@ -995,7 +1060,7 @@
 			//			lon = p[i].longitude;
 			//			positions[i] = L.latLng(p[i].latitude, lon>90 ? lon-360:lon, true);
 			//		}
-			//		var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).bindLabel('flight path').addTo(map);
+			//		var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).addTo(map);
 			//		layercontrol.addOverlay(path, 'mobile API path');
 			//	}	// end handleResponse
 			// Call the mobile API

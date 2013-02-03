@@ -51,7 +51,9 @@
 			mapType = 'sat', // name of map
 			showWeather = false,
 			view = '2D',
-			debug = false;	// interactive debug
+			debug = false,	// interactive debug
+			zoom = 'auto',	// show zoom control
+			hide = 'auto';	// auto hide controls
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -67,23 +69,49 @@
     if (params.flight) { flightnum = params.flight; }
     if (params.view) { view = params.view.toUpperCase(); }	// 3D or 3d
     if (params.debug) { debug = params.debug === 'true'; }
+    if (params.hide) { hide = params.hide === 'true'; }
+    if (params.zoom) { zoom = params.zoom === 'true'; }
 	}
 
 	getParams(window.location.href); // read parameters from URL
+	if (hide === 'auto') { hide = L.Browser.touch; }
+	if (zoom === 'auto') { zoom = !L.Browser.touch; }
 
-	if (!window.console) {	// make sure console functions don't cause an error
-    (function() {
-      var stub = function(){};
-      var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
-      "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-      window.console = {};
-      for (var i = 0; i < names.length; ++i) {
-        window.console[names[i]] = stub;
-      }
-    }());
+	if (flightID === undefined) { // setup tool -- remove for production
+		window.location = 'flight.html?debug='+debug+'&hide='+hide+'&zoom='+zoom;
+	} 
+
+	if (debug) {	// interactive debug mode
+		$(document).keydown(function(e) {
+			switch(e.which) {
+				case 83: // "s" stop data
+					if (data_off === 0 || data_on !== 0) {	// first time
+						data_off = numpos;
+						data_on = 0;
+					} else {
+						data_on = numpos;
+						if (data_on === data_off) {
+							data_on = data_off = 0;
+						}
+					}
+					console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames);
+				break;
+			}
+			e.stopPropagation();
+		});
+
+		if (!window.console) {	// make sure console functions don't cause an error
+	    (function() {
+	      var stub = function(){};
+	      var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+	      "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+	      window.console = {};
+	      for (var i = 0; i < names.length; ++i) {
+	        window.console[names[i]] = stub;
+	      }
+	    }());
+		}
 	}
-
-	if (flightID === undefined) { window.location = "flight.html"; } // setup tool -- remove for production
 
 	var appId = '9543a3e8',
 			appKey = '91d511451d9dbf38ede3efafefac5f09';
@@ -207,7 +235,7 @@
 			});
 
 		hidecontrols = function() {
-			if (L.Browser.touch && !drawercontrol.expanded() && !layercontrol.expanded()) {
+			if (hide && !drawercontrol.expanded() && !layercontrol.expanded()) {
 				$('#control').fadeOut(1000);
 				$('.leaflet-control-container').fadeOut(1000);
 				drawercontrol.hide();
@@ -215,7 +243,7 @@
 		};
 
 		unhidecontrols = function() {	// unhide
-			if (L.Browser.touch) {
+			if (hide) {
 				clearTimeout(fullscreentimer);
 				$('#control').finish().fadeIn(100);
 				$('.leaflet-control-container').finish().fadeIn(100);
@@ -224,10 +252,12 @@
 			}
 		};
 
-		if (L.Browser.touch) {
+		if (hide) {
 			fullscreentimer = setTimeout(hidecontrols, 10000);
 			map.on('click', unhidecontrols);
-		} else {
+		}
+
+		if (zoom) {
 			map.addControl(L.control.zoom());
 			$('.leaflet-control-zoom.leaflet-bar').css('margin','60px 0 0 18px');
 		}
@@ -242,6 +272,7 @@
 			return false;
 		}).on('dragstart', trackcontrol.reset, trackcontrol);	// turn off tracking on drag
 
+		// --------------------------
 		// get position data from API
 		function mainloop() {
 
@@ -259,6 +290,7 @@
 			//		success: getStatus
 			//	});
 
+			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
 				if (!data || data.error) {
 					alert('AJAX error: '+data.error.errorMessage);
@@ -349,31 +381,12 @@
 					drawercontrol.update();
 				}
 
+				// ------------------------------------------------
 				// map is ready, draw everything for the first time
 				function mapReady(/* e */) {
 
 					if (view === '3D') {
 						$('#map_div').addClass('threed');
-					}
-
-					if (debug) {	// interactive debug mode
-						$(document).keydown(function(e) {
-							switch(e.which) {
-								case 83: // "s" stop data
-									if (data_off === 0 || data_on !== 0) {	// first time
-										data_off = numpos;
-										data_on = 0;
-									} else {
-										data_on = numpos;
-										if (data_on === data_off) {
-											data_on = data_off = 0;
-										}
-									}
-									console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames);
-								break;
-							}
-							e.stopPropagation();
-						});
 					}
 
 					function depinfo() {

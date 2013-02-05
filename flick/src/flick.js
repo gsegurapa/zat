@@ -801,7 +801,7 @@
 
 			var toggle = L.DomUtil.get('control-layer-toggle');
 			var list = L.DomUtil.get('control-layer-list');
-			// $(list).find("input[type=checkbox], input[type=radio]").picker();
+			if (debug) { $(list).find("input[type=checkbox], input[type=radio]").picker(); }
 
 			L.DomEvent.on(toggle, 'click', this._expand, this)
 						.on(toggle, 'click', L.DomEvent.stop);

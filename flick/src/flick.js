@@ -799,6 +799,7 @@
 			this._map = map;
 			this._expanded = false;
 			this._overlays = { labels: false, terrain: false };
+			this._mini = true;	// mini-tracker
 
 			var toggle = L.DomUtil.get('control-layer-toggle');
 			var list = L.DomUtil.get('control-layer-list');
@@ -895,10 +896,12 @@
 			// click on mini-tracker
 			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function(e) {
 				if ($('#layer-mini:checked').length > 0) {
-					// this._map.addLayer(this._layers.mini);
+					// $('<iframe>', { src: 'http://client-test.cloud-east.dev:3500/tracker'}).appendTo('#mini-tracker');
+					this._mini = true;
 					$('#mini-tracker').show();
 				} else {
-					// this._map.removeLayer(this._layers.mini);
+					// $('#mini-tracker').empty();
+					this._mini = false;
 					$('#mini-tracker').hide();
 				}
 			}, this);
@@ -940,6 +943,10 @@
 
 		setGeodesic: function() {
 			$('#layer-plan-name').text('GEODESIC');
+		},
+
+		isMini: function() {
+			return this._mini;
 		}
 
 	});

@@ -169,17 +169,17 @@
 		#control-layer-list label.dot-bel {
 			border-bottom: 1px dotted #362F2D;
 		}
-		#mini-tracker {
+		#mini-tracker iframe {
 			position: absolute;
 			bottom: 30px;
 			left: 10%;
 			width: 80%;
-			height: 50px;
+			height: 67px;
 			border: 1px solid rgba(209,209,210, 0.75);
+			border-right-width: 2px;
 			-webkit-border-radius: 8px;
 			border-radius: 8px;
 			background-color: rgba(70,70,70, 0.9);
-			display: none;
 		}
 		#drawer {
 			position: absolute;
@@ -256,11 +256,14 @@
 			<label class="dot-bel"><input id="layer-overlay" type="checkbox" /> <span id="layer-overlay-name"></span></label>
 			<label class="dot-bel"><input id="layer-path" type="checkbox" checked="checked" /> ACTUAL PATH</label>
 			<label class="dot-bel"><input id="layer-plan" type="checkbox" checked="checked" /> <span id="layer-plan-name">FLIGHT PLAN</label>
-			<label class="dot-bel"><input id="layer-mini" type="checkbox" /> MINI TRACKER</label>
+			<label class="dot-bel"><input id="layer-mini" type="checkbox" checked="checked" /> MINI TRACKER</label>
 			<label><input id="layer-weather" type="checkbox" /> US WEATHER</label>
 		</form>
 	</div>
-	<div id="mini-tracker"></div>
+	<div id="mini-tracker">
+		<!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1&totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622 -->
+		<iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
+	</div>
 	<div id="drawer">
 		<div id="drawer-pull"></div>
 		<div id="drawer-content"></div>

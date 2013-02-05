@@ -79,7 +79,7 @@ Departing airport:
 			$flights.text('AJAX error: '+data.error.errorMessage)
 			return;
 		}
-		console.log('departing flights: ',data);
+		if (debug) { console.log('departing flights: ',data); }
 		var airlines = getAppendix(data.appendix.airlines);
 		var airports = getAppendix(data.appendix.airports);
 		var deps = [];

@@ -175,10 +175,8 @@
 		})
 	};
 
-	// layers and layer control
-	var defaultlayers = [tiles[mapType]];
+	var defaultlayers = [tiles[mapType]];	// default map layers
 	if (showWeather) { defaultlayers.push(overlays.weather); }
-
 	// var scalecontrol = L.control.scale();
 
 	$(document).ready(function() {
@@ -803,6 +801,7 @@
 
 			var toggle = L.DomUtil.get('control-layer-toggle');
 			var list = L.DomUtil.get('control-layer-list');
+			// $(list).find("input[type=checkbox], input[type=radio]").picker();
 
 			L.DomEvent.on(toggle, 'click', this._expand, this)
 						.on(toggle, 'click', L.DomEvent.stop);

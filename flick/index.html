@@ -10,11 +10,49 @@
 	    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.ie.css" />
 	<![endif]-->
   <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
-  <script src="lib/leaflet.label.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.0.js"></script>
-  <script type="text/javascript" src="lib/jQueryRotateCompressed.2.2.js"></script>  
+  <script type="text/javascript" src="lib/jQueryRotateCompressed.2.2.js"></script>
+  <script type="text/javascript" src="lib/jquery.fs.picker.min.js"></script>
   <script type="text/javascript" src="src/flick.js"></script>
+
 	<style type="text/css">
+		/* picker */
+	 	.picker-element { left: -999999px; position: absolute; }
+		.picker { margin: 0 0 10px 0; overflow: hidden; display: inline;}
+		.picker .picker-label { color: #888; cursor: pointer; display: block; float: left; font-size: 14px; float: left; line-height: 16px; }
+		.picker .picker-handle { border: 1px solid #ccc; cursor: pointer; display: block; float: left; height: 16px; margin: 0 5px 0 0; width: 16px; }
+		
+		.picker:hover .picker-label,
+		.picker.focus .picker-label { color: #555; }
+		.picker:hover .picker-handle,
+		.picker.focus .picker-handle { border-color: #aaa; }
+		
+		/* Radio Input */
+		.picker.picker-radio .picker-handle { border-radius: 8px; }
+		.picker.picker-radio .picker-flag { background: #fff; display: block; border-radius: 4px; height: 8px; margin: 4px; width: 8px; }
+		
+		.picker.picker-radio:hover .picker-flag,
+		.picker.picker-radio.focus .picker-flag { background: #ddd; }
+		.picker.picker-radio.checked .picker-flag { background: #999; } 
+		
+		/* Checkbox Input */
+		.picker.picker-checkbox .picker-handle { border-radius: 3px; }
+		.picker.picker-checkbox .picker-flag::after {
+			content: ''; color: #ccc; display: block; border-radius: 1px;
+			font-family: Helvetica, Arial, sans-serif; font-size: 15px;
+			height: 100%; line-height: 16px; margin: 0; text-align: center; width: 100%;
+		}
+		
+		.picker.picker-checkbox.checked .picker-flag::after { color: #eee; content: '\2714'; } /* #999 */
+		
+		/* 'Disabled' State */
+		.picker.disabled .picker-label { color: #ccc; cursor: default; }
+		.picker.disabled .picker-handle { border-color: #eee; cursor: default; }
+		.picker.picker-radio.disabled .picker-flag { background: #fff; }
+		.picker.picker-radio.disabled.checked .picker-flag { background: #eee; }
+		.picker.picker-checkbox.disabled .picker-flag::after { color: #eee; content: ''; }
+		.picker.picker-checkbox.disabled.checked .picker-flag::after { color: #eee; content: '\2714'; }
+
 		body {
 		  margin: 0;
 		  padding: 0;			
@@ -261,8 +299,8 @@
 		</form>
 	</div>
 	<div id="mini-tracker">
-		<!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1&totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622 -->
-		<iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
+		<!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1&totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622 
+		<iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe> -->
 	</div>
 	<div id="drawer">
 		<div id="drawer-pull"></div>

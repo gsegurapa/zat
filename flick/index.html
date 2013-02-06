@@ -16,43 +16,6 @@
   <script type="text/javascript" src="src/flick.js"></script>
 
 	<style type="text/css">
-		/* picker */
-	 	.picker-element { left: -999999px; position: absolute; }
-		.picker { margin: 0 0 10px 0; overflow: hidden; display: inline;}
-		.picker .picker-label { color: #888; cursor: pointer; display: block; float: left; font-size: 14px; float: left; line-height: 16px; }
-		.picker .picker-handle { border: 1px solid #ccc; cursor: pointer; display: block; float: left; height: 16px; margin: 0 5px 0 0; width: 16px; }
-		
-		.picker:hover .picker-label,
-		.picker.focus .picker-label { color: #555; }
-		.picker:hover .picker-handle,
-		.picker.focus .picker-handle { border-color: #aaa; }
-		
-		/* Radio Input */
-		.picker.picker-radio .picker-handle { border-radius: 8px; }
-		.picker.picker-radio .picker-flag { background: #999; display: block; border-radius: 4px; height: 8px; margin: 4px; width: 8px; }
-		
-		.picker.picker-radio:hover .picker-flag,
-		.picker.picker-radio.focus .picker-flag { background: #ddd; }
-		.picker.picker-radio.checked .picker-flag { background: #fff; } /* #999 */
-		
-		/* Checkbox Input */
-		.picker.picker-checkbox .picker-handle { border-radius: 3px; }
-		.picker.picker-checkbox .picker-flag::after {
-			content: ''; color: #ccc; display: block; border-radius: 1px;
-			font-family: Helvetica, Arial, sans-serif; font-size: 15px;
-			height: 100%; line-height: 16px; margin: 0; text-align: center; width: 100%;
-		}
-		
-		.picker.picker-checkbox.checked .picker-flag::after { color: #eee; content: '\2714'; } /* #999 */
-		
-		/* 'Disabled' State */
-		.picker.disabled .picker-label { color: #ccc; cursor: default; }
-		.picker.disabled .picker-handle { border-color: #eee; cursor: default; }
-		.picker.picker-radio.disabled .picker-flag { background: #fff; }
-		.picker.picker-radio.disabled.checked .picker-flag { background: #eee; }
-		.picker.picker-checkbox.disabled .picker-flag::after { color: #eee; content: ''; }
-		.picker.picker-checkbox.disabled.checked .picker-flag::after { color: #eee; content: '\2714'; }
-
 		body {
 		  margin: 0;
 		  padding: 0;			
@@ -194,18 +157,14 @@
 			border: 1px solid rgba(209,209,210, 0.75);
 			z-index: 20000;
 		}
-		#control-layer-list #layer-divider {
-			height: 0;
-			border-bottom: 1px solid #362F2D;
-			margin: 3px 0px;
-		}
 		#control-layer-list label {
 			display: block;
-			padding: 3px 0;
+			padding: 4px 0 3px 0;
 			pointer-events: auto;
-		}
-		#control-layer-list label.dot-bel {
 			border-bottom: 1px dotted #362F2D;
+		}
+		#control-layer-list label.sep-bel {
+			border-bottom: 1px solid #362F2D;
 		}
 		#mini-tracker iframe {
 			position: absolute;
@@ -218,6 +177,15 @@
 			-webkit-border-radius: 8px;
 			border-radius: 8px;
 			background-color: rgba(70,70,70, 0.9);
+		}
+		div.attribution {
+			padding: 2px 0 0 0;
+			pointer-events: auto;
+		}
+		div.attribution a {
+			font-size: 12px;
+			color: #FAA718;
+			margin-left: 20px;		
 		}
 		#drawer {
 			position: absolute;
@@ -288,14 +256,15 @@
 		<a id="control-track" href="#" title="Track Flight"></a>
 		<a id="control-layer-toggle" href="#" title="Map Layers"></a>
 		<form id="control-layer-list">
-			<label class="dot-bel"><input id="layer-sat" type="radio" name="layers-base" /> SATELLITE</label>
-			<label><input id="layer-map" type="radio" name="layers-base" /> MAP</label>
-			<div id="layer-divider"></div>
-			<label class="dot-bel"><input id="layer-overlay" type="checkbox" /> <span id="layer-overlay-name"></span></label>
-			<label class="dot-bel"><input id="layer-path" type="checkbox" checked="checked" /> ACTUAL PATH</label>
-			<label class="dot-bel"><input id="layer-plan" type="checkbox" checked="checked" /> <span id="layer-plan-name">FLIGHT PLAN</label>
-			<label class="dot-bel"><input id="layer-mini" type="checkbox" checked="checked" /> MINI TRACKER</label>
-			<label><input id="layer-weather" type="checkbox" /> US WEATHER</label>
+			<label><input id="layer-sat" type="radio" name="layers-base" /> SATELLITE</label>
+			<label class="sep-bel"><input id="layer-map" type="radio" name="layers-base" /> MAP</label>
+			<label><input id="layer-overlay" type="checkbox" /> <span id="layer-overlay-name"></span></label>
+			<label><input id="layer-path" type="checkbox" checked="checked" /> ACTUAL PATH</label>
+			<label><input id="layer-plan" type="checkbox" checked="checked" /> <span id="layer-plan-name">FLIGHT PLAN</label>
+			<label><input id="layer-arc" type="checkbox" /> SHORTEST ARC</label>
+			<label><input id="layer-mini" type="checkbox" checked="checked" /> MINI TRACKER</label>
+			<label class="sep-bel"><input id="layer-weather" type="checkbox" /> US WEATHER</label>
+			<div class="attribution"><a href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Map Attributions</a></div>
 		</form>
 	</div>
 	<div id="mini-tracker">

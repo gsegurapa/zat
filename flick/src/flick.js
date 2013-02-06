@@ -18,9 +18,13 @@
 			airplane,	// L.marker for airplane icon
 			fpos,	// lat/lng position of airplane
 			multi,	// lat/lngs for flight path
-			layers = { planHalo: null, plan: null, pathHalo: null, path: null, mini: null },
+			layers = {
+				pathHalo: null, path: null,	// actual path
+				planHalo: null, plan: null,	// flight plan (if available)
+				arcHalo: null, arc: null,	// shortest arc (geodesic)
+				mini: null },
 			wrap;	// does route cross the anti-meridian?
-	var maxZoom = 11;
+	var maxZoom = 12;
 	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
 	var flightLabel;	// label for the airplane icon
 	var flightData,	// flight data returned by API
@@ -39,8 +43,8 @@
 	var numpos, // debug stuff
 			data_off = 0,	// index of where data is off for testing
 			data_on = 0;	// index of where data is back on
-	var fullscreentimer, hidecontrols, unhidecontrols;	// hide buttons and drawer timer
-
+	var trackcontrol, layercontrol, drawercontrol;	// UI
+	var fullscreentimer, hidecontrols, unhidecontrols, drawerwasopen = false;	// hide buttons and drawer timer
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -118,16 +122,16 @@
 
 	var tiles = { // base maps
 		sat: L.tileLayer(
-			'http://maptiles-{s}.flightstats-ops.com/satellite/{z}/{x}/{y}.png',
-			{ subdomains: 'abcd',
+			'http://maps{s}.flightstats.com/aerial/{z}/{x}/{y}.png',
+			{ subdomains: '1234',
 				zIndex: 2,
-				minZoom: 0, maxZoom: 11
+				minZoom: 0, maxZoom: 12
 		}),
 		map: L.tileLayer(
-			'http://maptiles-{s}.flightstats-ops.com/surfer/{z}/{x}/{y}.png',
-			{ subdomains: 'abcd',
+			'http://maps{s}.flightstats.com/streets/{z}/{x}/{y}.png',
+			{ subdomains: '1234',
 				zIndex: 2,
-				minZoom: 0, maxZoom: 11
+				minZoom: 0, maxZoom: 12
 		})
 	};
 
@@ -161,14 +165,16 @@
 			minZoom: 2, maxZoom: 6
 		}),
 		labels: L.tileLayer(
-			'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
-			{ subdomains: '',
+			// 'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
+			'http://maps{s}.flightstats.com/labels/{z}/{x}/{y}.png',
+			{ subdomains: '1234',
 			zIndex: 5,
 				minZoom: 0, maxZoom: 11
 		}),
 		terrain: L.tileLayer(
-			'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
-			{ subdomains: '',
+			// 'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
+			'http://maps{s}.flightstats.com/terrain/{z}/{x}/{y}.png',
+			{ subdomains: '1234',
 				opacity: 0.7,
 				zIndex: 3,
 				minZoom: 0, maxZoom: 11
@@ -181,26 +187,23 @@
 
 	$(document).ready(function() {
 
-		var attributioncontrol = L.control.attribution({ prefix: false }).
-				addAttribution('<a class="attribution" href="http://maptiles-a.flightstats-ops.com/attribution.html" target="_blank">Attribution</a>');
-
-		var trackcontrol = new TrackControl();
+		trackcontrol = new TrackControl();
 		layers = $.extend(layers, tiles, overlays);
-		var layercontrol = new LayerControl(layers);
+		layercontrol = new LayerControl(layers);
 
 		function flightinfo() {	// info about flight for drawer
 			var airlinename = airlines[flightData.carrierFsCode].name
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 							'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFsCode+') '+airlinename+' #'+flightData.flightNumber+
-					(flightData.delayMinutes > 1 ? '<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')+'</div>'+
+					(flightData.delayMinutes >= 15 ? '<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')+'</div>'+
 					'<table id="flightinfo"><tr><td>Route:</td><td class="t2">'+departureAirport+' to '+arrivalAirport+'</td></tr>'+
 					'<tr><td>Altitude:</td><td class="t2">'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
 					'<tr><td>Speed:</td><td class="t2">'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
 					'<tr><td>Heading:</td><td class="t2">'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
 					'<tr><td>Equipment:</td><td class="t2">'+flightData.equipment+'</td></tr></table>';
 		}
-		var drawercontrol = new DrawerControl(flightinfo);
+		drawercontrol = new DrawerControl(flightinfo);
 
     // create map
 		map = L.map('map_div', {	// create map
@@ -212,7 +215,7 @@
 			layers: defaultlayers,
 			worldCopyJump: false
 		});
-		map.addControl(attributioncontrol).addLayer(layercontrol).addLayer(trackcontrol).addLayer(drawercontrol).
+		map.addLayer(layercontrol).addLayer(trackcontrol).addLayer(drawercontrol).
 			on('layeradd', function(e) { // reset zoom on basemap change
 				var layer = e.layer;
 				var m = layer._map;
@@ -425,7 +428,12 @@
 							drawercontrol.content(arrinfo);
 						});
 					
-					// do flight plan (waypoints) or geodesic
+					// do shortest arc (geodesic)
+					var npoints = Math.max(128 - 16 * map.getZoom(), 4);
+					layers.arcHalo = L.polyline([dpos, apos], { color: '#000', opacity: 0.3, weight: 3}).greatCircle(npoints);
+					layers.arc = L.polyline([dpos, apos], { color: '#3f3', opacity: 0.5, weight: 1}).greatCircle(npoints);
+
+					// do flight plan (waypoints) if available
 					var p = flightData.waypoints;
 					if (p) { // there is a flight plan
 						var positions = new Array(p.length);
@@ -434,12 +442,12 @@
 						}
 						layers.planHalo = L.polyline(positions, { color: '#000', opacity: 0.3, weight: 5 }).addTo(map);
 						layers.plan = L.polyline(positions, { color: '#3f3', opacity: 0.5, weight: 3 }).addTo(map);
-					} else { // if there is NO flight plan, draw great circle
-						layercontrol.setGeodesic();
-						var npoints = Math.max(128 - 16 * map.getZoom(), 4);
-						layers.planHalo = L.polyline([dpos, apos], { color: '#000', opacity: 0.3, weight: 3}).greatCircle(npoints).addTo(map);
-						layers.plan = L.polyline([dpos, apos], { color: '#3f3', opacity: 0.5, weight: 1}).greatCircle(npoints).addTo(map);
+					} else {
+						layers.arcHalo.addTo(map);
+						layers.arc.addTo(map);
+						layercontrol.noPlan();
 					}
+
 
 					// flight marker (airplane)
 					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
@@ -738,12 +746,14 @@
 		},
 
 		expand: function() {
+			drawerwasopen = false;
 			if ($('#drawer-content').html() === '') {
 				$('#drawer-content').html(this._fun());
 			}
 			$('#drawer').animate({bottom: 0}, 200);
 			this._expanded = true;
 			$('#drawer-pull').css('cursor', 's-resize');
+			if (layercontrol.expanded()) { layercontrol.collapse(); }
 			return this;
 		},
 
@@ -789,8 +799,9 @@
 	// LayerControl is used to select basemaps and overlays
 	var LayerControl = L.Class.extend({
 
-		initialize: function(layers) {
+		initialize: function(layers, controller) {
 			this._layers = layers;
+			this._controller = controller;
 		},
 
 		onAdd: function(map) {
@@ -801,12 +812,11 @@
 
 			var toggle = L.DomUtil.get('control-layer-toggle');
 			var list = L.DomUtil.get('control-layer-list');
-			if (debug) { $(list).find("input[type=checkbox], input[type=radio]").picker(); }
 
-			L.DomEvent.on(toggle, 'click', this._expand, this)
+			L.DomEvent.on(toggle, 'click', this.expand, this)
 						.on(toggle, 'click', L.DomEvent.stop);
-			this._map.on('dragstart', this._collapse, this)
-						.on('click', this._collapse, this);
+			this._map.on('dragstart', this.collapse, this)
+						.on('click', this.collapse, this);
 			if (L.Browser.touch) {
 				L.DomEvent.on(list, 'click', L.DomEvent.stopPropagation)
 						.on(toggle, 'click', L.DomEvent.stopPropagation);
@@ -880,7 +890,7 @@
 				}
 			}, this);
 
-			// click on flight plan (or geodesic)
+			// click on flight plan
 			L.DomEvent.on(L.DomUtil.get('layer-plan'), 'click', function(e) {
 				if ($('#layer-plan:checked').length > 0) {
 					this._map.addLayer(this._layers.planHalo).addLayer(this._layers.plan);
@@ -889,6 +899,18 @@
 				} else {
 					this._map.removeLayer(this._layers.planHalo);
 					this._map.removeLayer(this._layers.plan);
+				}
+			}, this);
+
+			// click on shortest arc (geodesic)
+			L.DomEvent.on(L.DomUtil.get('layer-arc'), 'click', function(e) {
+				if ($('#layer-arc:checked').length > 0) {
+					this._map.addLayer(this._layers.arcHalo).addLayer(this._layers.arc);
+					this._layers.arc.bringToBack();
+					this._layers.arcHalo.bringToBack();
+				} else {
+					this._map.removeLayer(this._layers.arcHalo);
+					this._map.removeLayer(this._layers.arc);
 				}
 			}, this);
 
@@ -924,10 +946,14 @@
 			return this._expanded;
 		},
 
-		_expand: function(e) {
+		expand: function(e) {
+			if (drawercontrol.expanded()) {
+				drawerwasopen = true;
+				drawercontrol.collapse();
+			}
 			unhidecontrols();
 			if (this._expanded) {
-				this._collapse();
+				this.collapse();
 				fullscreentimer = setTimeout(hidecontrols, 5000);
 			} else {
 				$('#control-layer-list').show(100,'linear');
@@ -935,13 +961,19 @@
 			}
 		},
 
-		_collapse: function(e) {
+		collapse: function(e) {
+			unhidecontrols();
 			$('#control-layer-list').hide(100,'linear');
 			this._expanded = false;
+			if (drawerwasopen) {
+				drawercontrol.expand();
+			}
 		},
 
-		setGeodesic: function() {
-			$('#layer-plan-name').text('GEODESIC');
+		noPlan: function() {	// no flight plan available
+			$('input#layer-plan').removeProp('checked').attr('disabled', 'disabled');
+			$('#layer-plan-name').css({color: '#aaa'});
+			$('input#layer-arc').prop('checked','checked');
 		},
 
 		isMini: function() {

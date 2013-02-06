@@ -169,7 +169,7 @@
 			'http://maps{s}.flightstats.com/labels/{z}/{x}/{y}.png',
 			{ subdomains: '1234',
 			zIndex: 5,
-				minZoom: 0, maxZoom: 11
+				minZoom: 0, maxZoom: 12
 		}),
 		terrain: L.tileLayer(
 			// 'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
@@ -177,7 +177,7 @@
 			{ subdomains: '1234',
 				opacity: 0.7,
 				zIndex: 3,
-				minZoom: 0, maxZoom: 11
+				minZoom: 0, maxZoom: 12
 		})
 	};
 

@@ -65,12 +65,12 @@
         function(m,key,value) { params[key] = value; });
 
     if (params.id) { flightID = params.id; }
+    if (params.airline) { airline = params.airline; }
+    if (params.flight) { flightnum = params.flight; }
     // if (params.timeFormat) { timeFormat = +params.timeFormat; }
     // if (params.units) { units = params.units; }
     if (params.mapType) { mapType = params.mapType; }
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
-    if (params.airline) { airline = params.airline; }
-    if (params.flight) { flightnum = params.flight; }
     if (params.view) { view = params.view.toUpperCase(); }	// 3D or 3d
     if (params.debug) { debug = params.debug === 'true'; }
     if (params.hide) { hide = params.hide === 'true'; }

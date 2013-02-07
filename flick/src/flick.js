@@ -652,7 +652,7 @@
 		},
 		setShadow: function(alt) {	// shadow for flight icon
 			var $shadow = $(this._icon).find('.airplaneshadow');
-			var offset = Math.round(alt * 0.0005); // shadow offset based on altitude
+			var offset = Math.round(alt * 0.0004); // shadow offset based on altitude
 			var shimg = 'img/shadow'+ (Math.max(0, Math.min(9, Math.floor(alt / 3000))))+'.png'; // shadow image 0-9 (progressive blur)
 			if ($shadow.attr('src') !== shimg) { $shadow.attr('src', shimg); }
 			$shadow.css({opacity: 0.6, left: offset, top: offset});

@@ -196,8 +196,11 @@
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 							'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFsCode+') '+airlinename+' #'+flightData.flightNumber+
-					(flightData.delayMinutes >= 15 ? '<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')+'</div>'+
-					'<table id="flightinfo"><tr><td>Route:</td><td class="t2">'+departureAirport+' to '+arrivalAirport+'</td></tr>'+
+					(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
+						(flightData.delayMinutes >= 15 ?
+							'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
+							'<br />On Time'))+
+					'</div><table id="flightinfo"><tr><td>Route:</td><td class="t2">'+departureAirport+' to '+arrivalAirport+'</td></tr>'+
 					'<tr><td>Altitude:</td><td class="t2">'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
 					'<tr><td>Speed:</td><td class="t2">'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
 					'<tr><td>Heading:</td><td class="t2">'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
@@ -294,7 +297,7 @@
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
 				if (!data || data.error) {
-					alert('AJAX error: '+data.error.errorMessage);
+					alert('flight data error: '+data.error.errorMessage);
 					return;
 				}
 
@@ -318,10 +321,11 @@
 				if (timestamp - newdate > 120000) {	// two minutes
 					if (!nodata) {
 						showMessage('This flight is temporarily beyond the range of our tracking network or over a large body of water');
-						airplane.setActive(false);	// set airplane color to gray
+						// airplane.setActive(false);	// set airplane color to gray
 						setFlightPath(true);	// draw entire flight history
 					}
 					nodata = true;
+					drawercontrol.update();
 				}
 
 				if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon &&
@@ -335,7 +339,7 @@
 				if (nodata) {
 					nodata = false;
 					showMessage('Reestablishing position data<br />'+(new Date(timestamp)).toUTCString());
-					airplane.setActive(true);	// set airplane color back to purple
+					// airplane.setActive(true);	// set airplane color back to purple
 					if (wrap !== undefined) {	// jump to new position
 						phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
 					}
@@ -428,8 +432,8 @@
 					
 					// do shortest arc (geodesic)
 					var npoints = Math.max(128 - 16 * map.getZoom(), 4);
-					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', opacity: 0.4, weight: 7}).greatCircle(npoints);
-					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', opacity: 0.6, weight: 4}).greatCircle(npoints);
+					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', weight: 7, opacity: 0.4, clickable: false }).greatCircle(npoints);
+					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', weight: 4, opacity: 0.6, clickable: false }).greatCircle(npoints);
 					// layers.arcHalo = L.polyline([dpos, apos], { color: '#828', opacity: 0.3, weight: 3}).greatCircle(npoints);
 					// layers.arc = L.polyline([dpos, apos], { color: '#3f3', opacity: 0.5, weight: 1}).greatCircle(npoints);
 
@@ -440,8 +444,8 @@
 						for (var i = 0; i < p.length; i++) {
 							positions[i] = createLatLng(+p[i].lat, +p[i].lon, wrap);
 						}
-						layers.planHalo = L.polyline(positions, { color: '#D1D1D2', opacity: 0.4, weight: 12 }).addTo(map);
-						layers.plan = L.polyline(positions, { color: '#362F2D', opacity: 0.6, weight: 8 }).addTo(map);
+						layers.planHalo = L.polyline(positions, { color: '#D1D1D2', weight: 12, opacity: 0.4, clickable: false }).addTo(map);
+						layers.plan = L.polyline(positions, { color: '#362F2D', weight: 8 , opacity: 0.6, clickable: false }).addTo(map);
 						// layers.planHalo = L.polyline(positions, { color: '#000', opacity: 0.3, weight: 5 }).addTo(map);
 						// layers.plan = L.polyline(positions, { color: '#3f3', opacity: 0.5, weight: 3 }).addTo(map);
 					} else {
@@ -657,11 +661,11 @@
 			if ($shadow.attr('src') !== shimg) { $shadow.attr('src', shimg); }
 			$shadow.css({opacity: 0.6, left: offset, top: offset});
 			return this;
-		},
-		setActive: function(v) {	// change color when data feed lost
-			$(this._icon).find('.airplaneicon').attr('src', v ? 'img/airplane-purple.png' : 'img/airplane-gray.png');
-			return this;
 		}
+		// setActive: function(v) {	// change color when data feed lost
+		// 	$(this._icon).find('.airplaneicon').attr('src', v ? 'img/airplane-purple.png' : 'img/airplane-gray.png');
+		// 	return this;
+		// }
 	});
 	var flightMarker = function(latlng) { // factory
 		return new FlightMarker(latlng);
@@ -1091,8 +1095,8 @@
 			layers.pathHalo.setLatLngs(multi);
 			layers.path.setLatLngs(multi);
 		} else {	// create layer
-			layers.pathHalo = L.multiPolyline(multi, { color: '#828483', opacity: 0.5, weight: 6 }).addTo(map).bringToFront();
-			layers.path = L.multiPolyline(multi, { color: '#55f241', opacity: 0.8, weight: 4 }).addTo(map).bringToFront();
+			layers.pathHalo = L.multiPolyline(multi, { color: '#828483', weight: 6, opacity: 0.5, clickable: false }).addTo(map).bringToFront();
+			layers.path = L.multiPolyline(multi, { color: '#55f241', weight: 4, opacity: 0.8, clickable: false }).addTo(map).bringToFront();
 			// layers.pathHalo = L.multiPolyline(multi, { color: '#000', opacity: 0.5, weight: 4 }).addTo(map).bringToFront();
 			// layers.path = L.multiPolyline(multi, { color: '#a2a', opacity: 0.8, weight: 2 }).addTo(map).bringToFront();
 		}

@@ -428,8 +428,8 @@
 					
 					// do shortest arc (geodesic)
 					var npoints = Math.max(128 - 16 * map.getZoom(), 4);
-					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', opacity: 0.4, weight: 8}).greatCircle(npoints);
-					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', opacity: 0.6, weight: 6}).greatCircle(npoints);
+					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', opacity: 0.4, weight: 7}).greatCircle(npoints);
+					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', opacity: 0.6, weight: 4}).greatCircle(npoints);
 					// layers.arcHalo = L.polyline([dpos, apos], { color: '#828', opacity: 0.3, weight: 3}).greatCircle(npoints);
 					// layers.arc = L.polyline([dpos, apos], { color: '#3f3', opacity: 0.5, weight: 1}).greatCircle(npoints);
 

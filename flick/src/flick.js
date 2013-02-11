@@ -187,6 +187,11 @@
 
 	$(document).ready(function() {
 
+		// load mini-tracker
+		$('<iframe />', { src: 'http://client-test.cloud-east.dev:3500/tracker/'+flightID }).appendTo('#mini-tracker');
+		// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
+		// <!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1&totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622
+
 		trackcontrol = new TrackControl();
 		layers = $.extend(layers, tiles, overlays);
 		layercontrol = new LayerControl(layers);

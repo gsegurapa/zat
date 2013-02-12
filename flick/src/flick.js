@@ -11,9 +11,9 @@
 
 	var map;
 	var airports, airlines;	// appendices from API
-	var departureAirport,	// code of departure airport
+	var dport,	// departure airport data
 			dpos,	// lat/lng position of departure airport
-			arrivalAirport,	// code of arrival airport
+			aport,	// arrival airport data
 			apos,	// lat/lng position of arrival airport
 			airplane,	// L.marker for airplane icon
 			fpos,	// lat/lng position of airplane
@@ -197,19 +197,22 @@
 		layercontrol = new LayerControl(layers);
 
 		function flightinfo() {	// info about flight for drawer
-			var airlinename = airlines[flightData.carrierFsCode].name
+			var airlinename = flightData.request.carrierName;
+			console.log(flightData.flightEquipmentName);
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 							'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
-					'<div style="text-align:center;width:100%">('+flightData.carrierFsCode+') '+airlinename+' #'+flightData.flightNumber+
+					'<div style="text-align:center;width:100%">('+flightData.request.carrierFs+') '+airlinename+' #'+flightData.request.carrierFlightId+
 					(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
-						(flightData.delayMinutes >= 15 ?
-							'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
+						(flightData.delay >= 15 ?
+							'<br /><span style="color:red">Delayed by '+flightData.delay+' minutes</span>' :
 							'<br />On Time'))+
-					'</div><table id="flightinfo"><tr><td>Route:</td><td class="t2">'+departureAirport+' to '+arrivalAirport+'</td></tr>'+
+					'</div><table id="flightinfo"><tr><td>Route:</td><td class="t2">'+dport.airportFsCode+' to '+aport.airportFsCode+'</td></tr>'+
 					'<tr><td>Altitude:</td><td class="t2">'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
 					'<tr><td>Speed:</td><td class="t2">'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
 					'<tr><td>Heading:</td><td class="t2">'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
-					'<tr><td>Equipment:</td><td class="t2">'+flightData.equipment+'</td></tr></table>';
+					'<tr><td>Equipment:</td><td class="t2">'+
+							(flightData.flightEquipmentName !== '??'?flightData.flightEquipmentName:flightData.flightEquipmentIata)+
+					'</td></tr></table>';
 		}
 		drawercontrol = new DrawerControl(flightinfo);
 
@@ -285,19 +288,18 @@
 		// get position data from API
 		function mainloop() {
 
+			// $.ajax({  // Call Flight Track by flight ID API
+			// 		url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
+			// 		data: { appId: appId, appKey: appKey, includeFlightPlan: layers.plan===null, extendedOptions: 'includeNewFields' },
+			// 		dataType: 'jsonp',
+			// 		success: getFlight
+			// 	});
 			$.ajax({  // Call Flight Track by flight ID API
-					url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
-					data: { appId: appId, appKey: appKey, includeFlightPlan: layers.plan===null, extendedOptions: 'includeNewFields' },
-					dataType: 'jsonp',
+					url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
+					data: { airline: airline, flight: flightnum, flightPlan: layers.plan===null },
+					dataType: 'json',
 					success: getFlight
 				});
-
-			//	$.ajax({	// Call Flight Status by flight ID API
-			//		url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' + flightID,
-			//		data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
-			//		dataType: 'jsonp',
-			//		success: getStatus
-			//	});
 
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
@@ -306,8 +308,8 @@
 					return;
 				}
 
-				flightData = data.flightTrack;
-				var p = flightData.positions;
+				flightData = data;
+				var p = data.positions;
 				numpos = p.length;
 
 				if (data_off !== 0) {	// simulate data loss for testing
@@ -319,11 +321,11 @@
 				}
 
 				var newpos = p[0];
-				var newhead = +(flightData.heading || flightData.bearing);
+				var newhead = +(data.heading || data.bearing);
 				var newdate = Date.parse(newpos.date);
 				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 				timestamp += updateRate;	// 10 seconds
-				if (timestamp - newdate > 120000) {	// two minutes
+				if (timestamp - newdate > 120000) {	// no data for two minutes
 					if (!nodata) {
 						showMessage('This flight is temporarily beyond the range of our tracking network or over a large body of water');
 						// airplane.setActive(false);	// set airplane color to gray
@@ -351,26 +353,22 @@
 				}
 
 				if (airports === undefined) { // first time called
-					airports = getAppendix(data.appendix.airports);
-					airlines = getAppendix(data.appendix.airlines);
-					departureAirport = flightData.departureAirportFsCode;
-					var depa = airports[departureAirport];
-					arrivalAirport = flightData.arrivalAirportFsCode;
-					var arra = airports[arrivalAirport];
+					dport = data.airports.departure;	// departure airport data
+					aport = data.airports.arrival;	// arrival airport data
 
 					// This test does not take into account flights that fly the "wrong" way around
 					// the world. In particular Singapore to New York (because of the wind).
 					// Could do this by looking at flight plan, except flight plan is sometimes wrong.
 					// See https://www.pivotaltracker.com/projects/709005#!/stories/40465187
 					// See setfullview for hack to fix long Singapore flights
-					wrap = Math.abs(depa.longitude - arra.longitude) > 180; // does route cross anti-meridian?
+					wrap = Math.abs(dport.airportLongitude - aport.airportLongitude) > 180; // does route cross anti-meridian?
 
-					dpos = createLatLng(+depa.latitude, +depa.longitude, wrap);
-					apos = createLatLng(+arra.latitude, +arra.longitude, wrap);
+					dpos = createLatLng(+dport.airportLatitude, +dport.airportLongitude, wrap);
+					apos = createLatLng(+aport.airportLatitude, +aport.airportLongitude, wrap);
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					// currot = +(flightData.heading || flightData.bearing);
 
-					var ac = flightData.carrierFsCode.toLowerCase();
+					var ac = data.request.carrierFs.toLowerCase();
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
 					// prefetch image
@@ -400,9 +398,11 @@
 					}
 
 					function depinfo() {
-						return '<div class="labelhead">Departing '+departureAirport+'</div>'+depa.name+
-								'<br />'+depa.city+(depa.stateCode ? ', '+depa.stateCode : '')+', '+depa.countryCode;
-							// '<br />Local time: '+(new Date(depa.localTime).toLocaleTimeString();
+						return '<div class="labelhead">Departing '+dport.airportFsCode+'</div>'+dport.airportName+
+							'<br />'+dport.airportCity+(dport.airportStateCode ? ', '+dport.airportStateCode : '')+', '+dport.airportCountryCode+
+							'<br />Weather: '+dport.airportConditions+
+							'<br />Temp: '+(32 + (1.8 * +dport.airportTempCelsius)).toFixed()+'&deg;F ('+(+dport.airportTempCelsius).toFixed(1)+'&deg;C)'+
+							'<br />Local time: '+(new Date(dport.airportLocalTime)).toLocaleTimeString();
 					}
 
 					// departing airport marker
@@ -418,9 +418,11 @@
 						});								
 
 					function arrinfo() {
-						return '<div class="labelhead">Arriving '+arrivalAirport+'</div>'+arra.name+
-								'<br />'+arra.city+(arra.stateCode ? ', '+arra.stateCode : '')+', '+arra.countryCode;
-								// '<br />Local time: '+(new Date(arra.localTime).toLocaleTimeString();
+						return '<div class="labelhead">Arriving '+aport.airportFsCode+'</div>'+aport.airportName+
+							'<br />'+aport.airportCity+(aport.airportStateCode ? ', '+aport.airportStateCode : '')+', '+aport.airportCountryCode+
+							'<br />Weather: '+aport.airportConditions+
+							'<br />Temp: '+(32 + (1.8 * +aport.airportTempCelsius)).toFixed()+'&deg;F ('+(+aport.airportTempCelsius).toFixed(1)+'&deg;C)'+
+							'<br />Local time: '+(new Date(aport.airportLocalTime)).toLocaleTimeString();
 					}
 
 					// arriving airport marker
@@ -443,7 +445,7 @@
 					// layers.arc = L.polyline([dpos, apos], { color: '#3f3', opacity: 0.5, weight: 1}).greatCircle(npoints);
 
 					// do flight plan (waypoints) if available
-					var p = flightData.waypoints;
+					var p = flightData.flightPlan;
 					if (p) { // there is a flight plan
 						var positions = new Array(p.length);
 						for (var i = 0; i < p.length; i++) {
@@ -461,7 +463,7 @@
 
 
 					// flight marker (airplane)
-					var alt = +(pos.altitudeFt || airports[departureAirport].elevationFeet || airports[arrivalAirport].elevationFeet || 0);
+					var alt = +(pos.altitudeFt || dport.airportElevationFeet || aport.airportElevationFeet || 0);
 					var heading = +(flightData.heading || flightData.bearing);
 					if (flightData.positions.length > 2) {
 						p = flightData.positions[2];
@@ -591,25 +593,16 @@
 
 			} // end getFlight
 
-			//	function getStatus(data /*, status, xhr */) { // status callback
-			//		if (!data || data.error) {
-			//		alert('AJAX error: '+data.error.errorMessage);
-			//		return;
-			//	}
-			//	if (console && console.log) { console.log('Flight status: ', data); }
-
-			// }	// end getStatus
-
-			function getAppendix(data) { // read in data from appendix and convert to dictionary
-				var ret = {};
-				if (data) {
-					for (var i = 0; i<data.length; i++) {
-						var v = data[i];
-						ret[v.fs] = v;
-					}
-				}
-				return ret;
-			}
+			// function getAppendix(data) { // read in data from appendix and convert to dictionary
+			// 	var ret = {};
+			// 	if (data) {
+			// 		for (var i = 0; i<data.length; i++) {
+			// 			var v = data[i];
+			// 			ret[v.fs] = v;
+			// 		}
+			// 	}
+			// 	return ret;
+			// }
 
 		} // end mainloop
 
@@ -1125,23 +1118,3 @@
 
 
 }(jQuery));
-
-			//	window.handleResponse = function(data) { // results from Chris' API
-			//		if (console && console.log) console.log('mobile API: ',data);
-			//		p = data.PositionalUpdate;
-			//		if (console && console.log) console.log('mobile API length: '+p.length,
-			//				'actual start: ('+(+p[0].latitude).toFixed(4)+','+(+p[0].longitude).toFixed(4)+')');
-			//		positions = new Array(p.length);
-			//		for (i = 0; i < p.length; i++) {
-			//			lon = p[i].longitude;
-			//			positions[i] = L.latLng(p[i].latitude, lon>90 ? lon-360:lon, true);
-			//		}
-			//		var path = L.polyline(positions, { color: '#f22', opacity: 0.3, weight: 6 }).addTo(map);
-			//		layercontrol.addOverlay(path, 'mobile API path');
-			//	}	// end handleResponse
-			// Call the mobile API
-			// var url = 'http://www.flightstats.com/go/InternalAPI/singleFlightTracker.do?id='+flightID+'&airlineCode='+airline+'&flightNumber='+
-			//		flightnum+'&version=1.0&key=49e3481552e7c4c9%253A-5b147615%253A12ee3ed13b5%253A-5f90&responseType=jsonp';
-			//	var script = document.createElement('script');
-			//	script.setAttribute('src', url);
-			//	document.getElementsByTagName('head')[0].appendChild(script); // load the script

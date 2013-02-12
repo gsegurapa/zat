@@ -301,7 +301,7 @@
 			$.ajax({  // Call Flight Track by flight ID API
 					url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
 					data: { airline: airline, flight: flightnum, flightPlan: layers.plan===null, stamp: (new Date).valueOf() },
-					dataType: 'json',
+					dataType: 'jsonp',
 					success: getFlight
 				});
 

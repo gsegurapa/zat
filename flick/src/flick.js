@@ -187,31 +187,28 @@
 
 	$(document).ready(function() {
 
-		// load mini-tracker
-		$('<iframe />', { src: 'http://client-test.cloud-east.dev:3500/tracker/'+flightID+'/?borderless=1' }).appendTo('#mini-tracker');
-		// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
-		// <!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1&totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622
-
 		trackcontrol = new TrackControl();
 		layers = $.extend(layers, tiles, overlays);
 		layercontrol = new LayerControl(layers);
 
 		function flightinfo() {	// info about flight for drawer
 			var airlinename = flightData.request.carrierName;
-			console.log(flightData.flightEquipmentName);
+			if (debug) console.log('Equipment: ', flightData.flightEquipmentName);
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 							'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
-					'<div style="text-align:center;width:100%">('+flightData.request.carrierFs+') '+airlinename+' #'+flightData.request.carrierFlightId+
-					(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
-						(flightData.delay >= 15 ?
-							'<br /><span style="color:red">Delayed by '+flightData.delay+' minutes</span>' :
-							'<br />On Time'))+
+					'<div style="text-align:center;width:100%">('+flightData.request.carrierFs+') '+airlinename+' '+flightData.request.carrierFlightId+
+					(flightData.status !== 'A' ? '<br /><span style="color:yellow">'+flightStatusValues[flightData.status]+'</span>' :
+						(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
+							(flightData.delay >= 15 ?
+								'<br /><span style="color:red">Delayed by '+flightData.delay+' minutes</span>' :
+								'<br />On Time')))+
 					'</div><table id="flightinfo"><tr><td>Route:</td><td class="t2">'+dport.airportFsCode+' to '+aport.airportFsCode+'</td></tr>'+
 					'<tr><td>Altitude:</td><td class="t2">'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
 					'<tr><td>Speed:</td><td class="t2">'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
 					'<tr><td>Heading:</td><td class="t2">'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
 					'<tr><td>Equipment:</td><td class="t2">'+
 							(flightData.flightEquipmentName !== '??'?flightData.flightEquipmentName:flightData.flightEquipmentIata)+
+					// '</td></tr><tr><td>Status:</td><td class="t2">'+flightStatusValues[flightData.status]+
 					'</td></tr></table>';
 		}
 		drawercontrol = new DrawerControl(flightinfo);
@@ -245,6 +242,13 @@
 			on('zoomend', function(/* e */) {
 				zooming = false;
 			});
+
+		// load mini-tracker
+		$('<iframe />', { src: 'http://client-test.cloud-east.dev:3500/tracker/'+flightID+'/?borderless=1' }).appendTo('#mini-tracker');
+		// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
+		// <!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1&totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622
+
+
 
 		hidecontrols = function() {
 			if (hide && !drawercontrol.expanded() && !layercontrol.expanded()) {
@@ -308,6 +312,8 @@
 					return;
 				}
 
+				if (debug && data.status !== 'A') { console.log('status: ', data.status, flightStatusValues[data.status]); }
+
 				flightData = data;
 				var p = data.positions;
 				numpos = p.length;
@@ -339,7 +345,7 @@
 						newpos.date === pos.date && pos.altitudeFt === newpos.altitudeFt) {
 					return; // data has not changed
 				}
-				if (debug) { console.log('Flex API data: ', data); }
+				if (debug) { console.log('Edge API data: ', data); }
 
 				pos = newpos;
 				timestamp = newdate;
@@ -402,7 +408,7 @@
 							'<br />'+dport.airportCity+(dport.airportStateCode ? ', '+dport.airportStateCode : '')+', '+dport.airportCountryCode+
 							'<br />Weather: '+dport.airportConditions+
 							'<br />Temp: '+(32 + (1.8 * +dport.airportTempCelsius)).toFixed()+'&deg;F ('+(+dport.airportTempCelsius).toFixed(1)+'&deg;C)'+
-							'<br />Local time: '+(new Date(dport.airportLocalTime)).toLocaleTimeString();
+							'<br />Local time: '+localTime(dport.airportLocalTime);
 					}
 
 					// departing airport marker
@@ -422,7 +428,7 @@
 							'<br />'+aport.airportCity+(aport.airportStateCode ? ', '+aport.airportStateCode : '')+', '+aport.airportCountryCode+
 							'<br />Weather: '+aport.airportConditions+
 							'<br />Temp: '+(32 + (1.8 * +aport.airportTempCelsius)).toFixed()+'&deg;F ('+(+aport.airportTempCelsius).toFixed(1)+'&deg;C)'+
-							'<br />Local time: '+(new Date(aport.airportLocalTime)).toLocaleTimeString();
+							'<br />Local time: '+localTime(aport.airportLocalTime);
 					}
 
 					// arriving airport marker
@@ -1116,5 +1122,23 @@
 		return t > 180 ? t - 360 : (t < -180 ? t + 360 : t );
 	}
 
+	var months = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
+
+	function localTime(ts) {
+		// var tv = new Date(ts);
+		return ts.slice(11,16)+', '+ts.slice(8,10)+' '+months[ts.slice(5,7)-1]+' '+ts.slice(0,4);
+	}
+
+	var flightStatusValues = {
+		A: 'Active',
+		C: 'Cancelled',
+		D: 'Diverted',
+		DN: 'No Data Source',
+		L: 'Landed',
+		NO: 'Not Operational',
+		R: 'Redirected',
+		S: 'Scheduled',
+		U: 'Unknown Status'
+	};
 
 }(jQuery));

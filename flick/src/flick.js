@@ -300,7 +300,7 @@
 			// 	});
 			$.ajax({  // Call Flight Track by flight ID API
 					url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
-					data: { airline: airline, flight: flightnum, flightPlan: layers.plan===null },
+					data: { airline: airline, flight: flightnum, flightPlan: layers.plan===null, stamp: (new Date).valueOf() },
 					dataType: 'json',
 					success: getFlight
 				});
@@ -336,9 +336,9 @@
 						showMessage('This flight is temporarily beyond the range of our tracking network or over a large body of water');
 						// airplane.setActive(false);	// set airplane color to gray
 						setFlightPath(true);	// draw entire flight history
+						drawercontrol.update();
 					}
 					nodata = true;
-					drawercontrol.update();
 				}
 
 				if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon &&

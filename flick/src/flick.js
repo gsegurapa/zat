@@ -192,23 +192,23 @@
 		layercontrol = new LayerControl(layers);
 
 		function flightinfo() {	// info about flight for drawer
-			var airlinename = flightData.request.carrierName;
+			var airlinename = flightData.carrierName;
 			if (debug) console.log('Equipment: ', flightData.flightEquipmentName);
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 							'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
-					'<div style="text-align:center;width:100%">('+flightData.request.carrierFs+') '+airlinename+' '+flightData.request.carrierFlightId+
-					(flightData.status !== 'A' ? '<br /><span style="color:yellow">'+flightStatusValues[flightData.status]+'</span>' :
+					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
+					(flightData.flightStatus !== 'A' ? '<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
 						(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
-							(flightData.delay >= 15 ?
-								'<br /><span style="color:red">Delayed by '+flightData.delay+' minutes</span>' :
+							(flightData.delayMinutes >= 15 ?
+								'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
 								'<br />On Time')))+
-					'</div><table id="flightinfo"><tr><td>Route:</td><td class="t2">'+dport.airportFsCode+' to '+aport.airportFsCode+'</td></tr>'+
+					'</div><table id="flightinfo"><tr><td>Route:</td><td class="t2">'+dport.fsCode+' to '+aport.fsCode+'</td></tr>'+
 					'<tr><td>Altitude:</td><td class="t2">'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
 					'<tr><td>Speed:</td><td class="t2">'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
 					'<tr><td>Heading:</td><td class="t2">'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
 					'<tr><td>Equipment:</td><td class="t2">'+
-							(flightData.flightEquipmentName !== '??'?flightData.flightEquipmentName:flightData.flightEquipmentIata)+
-					// '</td></tr><tr><td>Status:</td><td class="t2">'+flightStatusValues[flightData.status]+
+							(flightData.flightEquipmentName !== '??'? formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata)+
+					// '</td></tr><tr><td>Status:</td><td class="t2">'+flightStatusValues[flightData.flightStatus]+
 					'</td></tr></table>';
 		}
 		drawercontrol = new DrawerControl(flightinfo);
@@ -312,7 +312,7 @@
 					return;
 				}
 
-				if (debug && data.status !== 'A') { console.log('status: ', data.status, flightStatusValues[data.status]); }
+				if (debug && data.flightStatus !== 'A') { console.log('status: ', data.flightStatus, flightStatusValues[data.flightStatus]); }
 
 				flightData = data;
 				var p = data.positions;
@@ -367,14 +367,14 @@
 					// Could do this by looking at flight plan, except flight plan is sometimes wrong.
 					// See https://www.pivotaltracker.com/projects/709005#!/stories/40465187
 					// See setfullview for hack to fix long Singapore flights
-					wrap = Math.abs(dport.airportLongitude - aport.airportLongitude) > 180; // does route cross anti-meridian?
+					wrap = Math.abs(dport.longitude - aport.longitude) > 180; // does route cross anti-meridian?
 
-					dpos = createLatLng(+dport.airportLatitude, +dport.airportLongitude, wrap);
-					apos = createLatLng(+aport.airportLatitude, +aport.airportLongitude, wrap);
+					dpos = createLatLng(+dport.latitude, +dport.longitude, wrap);
+					apos = createLatLng(+aport.latitude, +aport.longitude, wrap);
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					// currot = +(flightData.heading || flightData.bearing);
 
-					var ac = data.request.carrierFs.toLowerCase();
+					var ac = data.carrierFs.toLowerCase();
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
 					// prefetch image
@@ -404,11 +404,11 @@
 					}
 
 					function depinfo() {
-						return '<div class="labelhead">Departing '+dport.airportFsCode+'</div>'+dport.airportName+
-							'<br />'+dport.airportCity+(dport.airportStateCode ? ', '+dport.airportStateCode : '')+', '+dport.airportCountryCode+
-							'<br />Weather: '+dport.airportConditions+
-							'<br />Temp: '+(32 + (1.8 * +dport.airportTempCelsius)).toFixed()+'&deg;F ('+(+dport.airportTempCelsius).toFixed(1)+'&deg;C)'+
-							'<br />Local time: '+localTime(dport.airportLocalTime);
+						return '<div class="labelhead">Departing '+dport.fsCode+'</div>'+formatAirport(dport.name)+
+							'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+dport.countryCode+
+							'<br />Weather: '+formatWeather(dport.conditions)+
+							'<br />Temp: '+(32 + (1.8 * dport.tempCelsius)).toFixed()+'&deg;F ('+dport.tempCelsius.toFixed(1)+'&deg;C)'+
+							'<br />Local time: '+formatTime(dport.localTime);
 					}
 
 					// departing airport marker
@@ -424,11 +424,11 @@
 						});								
 
 					function arrinfo() {
-						return '<div class="labelhead">Arriving '+aport.airportFsCode+'</div>'+aport.airportName+
-							'<br />'+aport.airportCity+(aport.airportStateCode ? ', '+aport.airportStateCode : '')+', '+aport.airportCountryCode+
-							'<br />Weather: '+aport.airportConditions+
-							'<br />Temp: '+(32 + (1.8 * +aport.airportTempCelsius)).toFixed()+'&deg;F ('+(+aport.airportTempCelsius).toFixed(1)+'&deg;C)'+
-							'<br />Local time: '+localTime(aport.airportLocalTime);
+						return '<div class="labelhead">Arriving '+aport.fsCode+'</div>'+formatAirport(aport.name)+
+							'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+aport.countryCode+
+							'<br />Weather: '+formatWeather(aport.conditions)+
+							'<br />Temp: '+(32 + (1.8 * aport.tempCelsius)).toFixed()+'&deg;F ('+aport.tempCelsius.toFixed(1)+'&deg;C)'+
+							'<br />Local time: '+formatTime(aport.localTime);
 					}
 
 					// arriving airport marker
@@ -469,7 +469,7 @@
 
 
 					// flight marker (airplane)
-					var alt = +(pos.altitudeFt || dport.airportElevationFeet || aport.airportElevationFeet || 0);
+					var alt = +(pos.altitudeFt || dport.elevationFeet || aport.elevationFeet || 0);
 					var heading = +(flightData.heading || flightData.bearing);
 					if (flightData.positions.length > 2) {
 						p = flightData.positions[2];
@@ -1124,9 +1124,27 @@
 
 	var months = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
 
-	function localTime(ts) {
+	function formatTime(ts) {
 		// var tv = new Date(ts);
-		return ts.slice(11,16)+', '+ts.slice(8,10)+' '+months[ts.slice(5,7)-1]+' '+ts.slice(0,4);
+		var hour = +ts.slice(11,13);
+		var tw = hour >= 12 ? 'p' : 'a';
+		if (hour > 12) { hour -= 12; }
+		if (hour === 0) {
+			hour = 12;
+		}
+		return hour+':'+ts.slice(14,16)+tw+' ('+ts.slice(11,16)+'h) '+ts.slice(8,10)+' '+months[ts.slice(5,7)-1]+' '+ts.slice(0,4);
+	}
+
+	function formatAirport(as) {
+		return as.length < 24 ? as : as.replace(/\s*Airport\s*$/, '');
+	}
+
+	function formatWeather(ws) {
+		return ws === undefined ? 'unknown' : ws;
+	}
+
+	function formatEquip(es) {
+		return es.replace(/\s*Passenger/, '');
 	}
 
 	var flightStatusValues = {

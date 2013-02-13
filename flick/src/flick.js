@@ -62,8 +62,8 @@
 			showWeather = false,
 			view = '2D',
 			debug = false,	// interactive debug
-			zoom = 'auto',	// show zoom control
-			hide = 'auto';	// auto hide controls
+			zoomControl = 'auto',	// show zoom control
+			autoHide = 'auto';	// auto hide controls
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -85,16 +85,16 @@
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
     if (params.view) { view = params.view.toUpperCase(); }	// 3D or 3d
     if (params.debug) { debug = params.debug === 'true'; }
-    if (params.hide) { hide = params.hide === 'true'; }
-    if (params.zoom) { zoom = params.zoom === 'true'; }
+    if (params.autoHide) { autoHide = params.autoHide === 'true'; }
+    if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
 	}
 
 	getParams(window.location.href); // read parameters from URL
-	if (hide === 'auto') { hide = L.Browser.touch; }
-	if (zoom === 'auto') { zoom = !L.Browser.touch; }
+	if (autoHide === 'auto') { autoHide = L.Browser.touch; }
+	if (zoomControl === 'auto') { zoomControl = !L.Browser.touch; }
 
 	if (flightID === undefined) { // setup tool -- remove for production
-		window.location = 'flight.html?debug='+debug+'&hide='+hide+'&zoom='+zoom;
+		window.location = 'flight.html?debug='+debug+'&autoHide='+autoHide+'&zoomControl='+zoomControl;
 	} 
 
 	if (debug) {	// interactive debug mode
@@ -129,7 +129,7 @@
 		}
 	}
 
-	var tiles = { // base maps
+	var basemaps = { // map tiles
 		sat: L.tileLayer(
 			'http://maps{s}.flightstats.com/aerial/{z}/{x}/{y}.png',
 			{ subdomains: '1234',
@@ -190,14 +190,18 @@
 		})
 	};
 
-	var defaultlayers = [tiles[mapType]];	// default map layers
-	if (showWeather) { defaultlayers.push(overlays.weather); }
 	// var scalecontrol = L.control.scale();
 
 	$(document).ready(function() {
 
+		var defaultlayers = [basemaps[mapType]];	// default map layers
+		if (showWeather) {
+			defaultlayers.push(overlays.weather);
+			$('#layer-weather').prop('checked', 'checked');
+		}
+
 		trackcontrol = new TrackControl();
-		layers = $.extend(layers, tiles, overlays);
+		layers = $.extend(layers, basemaps, overlays);
 		layercontrol = new LayerControl(layers);
 
 		function flightinfo() {	// info about flight for drawer
@@ -237,7 +241,7 @@
 				var layer = e.layer;
 				var m = layer._map;
 				if (!layer.options || !layer.options.maxZoom) { return; }
-				$.each(tiles, function(k, v) {
+				$.each(basemaps, function(k, v) {
 					if (v === layer) {
 						maxZoom = layer.options.maxZoom;
 						if (m.getZoom() > maxZoom) { m.setZoom(maxZoom); }
@@ -260,7 +264,7 @@
 
 
 		hidecontrols = function() {
-			if (hide && !drawercontrol.expanded() && !layercontrol.expanded()) {
+			if (autoHide && !drawercontrol.expanded() && !layercontrol.expanded()) {
 				$('#control').fadeOut(1000);
 				$('.leaflet-control-container').fadeOut(1000);
 				drawercontrol.hide();
@@ -268,7 +272,7 @@
 		};
 
 		unhidecontrols = function() {	// unhide
-			if (hide) {
+			if (autoHide) {
 				clearTimeout(fullscreentimer);
 				$('#control').finish().fadeIn(100);
 				$('.leaflet-control-container').finish().fadeIn(100);
@@ -277,12 +281,12 @@
 			}
 		};
 
-		if (hide) {
+		if (autoHide) {
 			fullscreentimer = setTimeout(hidecontrols, 10000);
 			map.on('click', unhidecontrols);
 		}
 
-		if (zoom) {
+		if (zoomControl) {
 			map.addControl(L.control.zoom());
 			$('.leaflet-control-zoom.leaflet-bar').css('margin','60px 0 0 18px');
 		}
@@ -948,8 +952,10 @@
 			L.DomEvent.on(L.DomUtil.get('layer-weather'), 'click', function(e) {
 				if ($('#layer-weather:checked').length > 0) {
 					this._map.addLayer(this._layers.weather);
+					this._notify('showWeather','true');
 				} else {
 					this._map.removeLayer(this._layers.weather);
+					this._notify('showWeather','false');
 				}
 			}, this);
 

@@ -34,8 +34,8 @@ Departing airport:
 	$('#aircode').on('keydown', lookup);
 
 	var debug,	// interactive debug
-			zoom,	// show zoom control
-			hide;	// auto hide controls
+			zoomControl,	// show zoom control
+			autoHide;	// auto hide controls
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -43,12 +43,12 @@ Departing airport:
         function(m,key,value) { params[key] = value; });
 
     if (params.debug) { debug = params.debug === 'true'; }
-    if (params.hide) { hide = params.hide === 'true'; }
-    if (params.zoom) { zoom = params.zoom === 'true'; }
+    if (params.autoHide) { autoHide = params.autoHide === 'true'; }
+    if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
 	}
 
 	getParams(window.location.href); // read parameters from URL
-	var extras = (debug ? '&debug='+debug : '') + (hide ? '&hide='+hide : '') + (zoom ? '&zoom='+zoom : '');
+	var extras = (debug ? '&debug='+debug : '') + (autoHide ? '&autoHide='+autoHide : '') + (zoomControl ? '&zoomControl='+zoomControl : '');
 
 	function getAppendix(data) { // read in data from appendix and convert to dictionary
     ret = {};

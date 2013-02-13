@@ -199,11 +199,11 @@
 							(flightData.delayMinutes >= 15 ?
 								'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
 								'<br />On Time')))+
-					'</div><table id="flightinfo"><tr><td>Route:</td><td class="t2">'+dport.fsCode+' to '+aport.fsCode+'</td></tr>'+
-					'<tr><td>Altitude:</td><td class="t2">'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
-					'<tr><td>Speed:</td><td class="t2">'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
-					'<tr><td>Heading:</td><td class="t2">'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
-					'<tr><td>Equipment:</td><td class="t2">'+
+					'</div><table id="flightinfo"><tr><td class="tn">Route:</td><td>'+dport.fsCode+' to '+aport.fsCode+'</td></tr>'+
+					'<tr><td class="tn">Altitude:</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
+					'<tr><td class="tn">Speed:</td><td>'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
+					'<tr><td class="tn">Heading:</td><td>'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
+					'<tr><td class="tn">Equipment:</td><td>'+
 							(flightData.flightEquipmentName !== '??'? formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata)+
 					// '</td></tr><tr><td>Status:</td><td class="t2">'+flightStatusValues[flightData.flightStatus]+
 					'</td></tr></table>';
@@ -402,17 +402,17 @@
 						return '<div class="labelhead">Departing '+dport.fsCode+'</div>'+formatAirport(dport.name)+
 							'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+dport.countryCode+
 							'<br />Weather: '+formatWeather(dport.conditions)+
-							'<br />Temp: '+(32 + (1.8 * dport.tempCelsius)).toFixed()+'&deg;F ('+dport.tempCelsius.toFixed(1)+'&deg;C)'+
+							'<br />Temperature: '+(32 + (1.8 * dport.tempCelsius)).toFixed()+'&deg;F ('+dport.tempCelsius.toFixed(1)+'&deg;C)'+
 							'<br />Local time: '+formatTime(dport.localTime);
 					}
 
 					// departing airport marker
 					L.marker(dpos, {
 							icon: L.icon({	// departing airport icon
-									iconUrl: 'img/tower-blue.png',
-									iconSize: [78, 145],
-									iconAnchor: [17, 97],
-									popupAnchor: [2, -93]
+									iconUrl: 'img/tower-large.png',
+									iconSize: [78, 151],
+									iconAnchor: [16, 94]
+									// popupAnchor: [2, -93]
 							})
 						}).addTo(map).on('click', function(e) {
 							drawercontrol.content(depinfo);
@@ -422,17 +422,17 @@
 						return '<div class="labelhead">Arriving '+aport.fsCode+'</div>'+formatAirport(aport.name)+
 							'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+aport.countryCode+
 							'<br />Weather: '+formatWeather(aport.conditions)+
-							'<br />Temp: '+(32 + (1.8 * aport.tempCelsius)).toFixed()+'&deg;F ('+aport.tempCelsius.toFixed(1)+'&deg;C)'+
+							'<br />Temperature: '+(32 + (1.8 * aport.tempCelsius)).toFixed()+'&deg;F ('+aport.tempCelsius.toFixed(1)+'&deg;C)'+
 							'<br />Local time: '+formatTime(aport.localTime);
 					}
 
 					// arriving airport marker
 					L.marker(apos, {
 							icon: L.icon({	// arriving airport icon
-									iconUrl: 'img/tower-orange.png',
-									iconSize: [78, 145],
-									iconAnchor: [17, 97],
-									popupAnchor: [2, -93]
+									iconUrl: 'img/tower-large.png',
+									iconSize: [78, 151],
+									iconAnchor: [16, 94]
+									// popupAnchor: [2, -93]
 							})
 						}).addTo(map).on('click', function(e) {
 							drawercontrol.content(arrinfo);
@@ -814,7 +814,7 @@
 			this._overlays = { labels: false, terrain: false };
 			this._mini = true;	// mini-tracker
 
-			var toggle = L.DomUtil.get('control-layer-toggle');
+			var toggle = this._toggle = L.DomUtil.get('control-layer-toggle');
 			var list = L.DomUtil.get('control-layer-list');
 
 			L.DomEvent.on(toggle, 'click', this.expand, this)
@@ -961,6 +961,7 @@
 				fullscreentimer = setTimeout(hidecontrols, 5000);
 			} else {
 				$('#control-layer-list').show(100,'linear');
+				this._toggle.style.backgroundImage = 'url(img/layers-white.png)';
 				this._expanded = true;
 			}
 		},
@@ -968,6 +969,7 @@
 		collapse: function(e) {
 			unhidecontrols();
 			$('#control-layer-list').hide(100,'linear');
+			this._toggle.style.backgroundImage = 'url(img/layers.png)';
 			this._expanded = false;
 			if (drawerwasopen) {
 				drawercontrol.expand();
@@ -1010,7 +1012,8 @@
 		reset: function() {
 			if (this._tracking === 2) {
 				this._tracking = 1;
-				this._link.style.backgroundColor = '';							
+				// this._link.style.backgroundColor = '';
+				this._link.style.backgroundImage = 'url(img/tracking-icon.png)';
 			}			
 		},
 
@@ -1022,11 +1025,13 @@
 			unhidecontrols();
 			if (this._tracking === 2) {
 				this._tracking = 0;
-				this._link.style.backgroundColor = '';
+				// this._link.style.backgroundColor = '';
+				this._link.style.backgroundImage = 'url(img/tracking-icon.png)';
 				setfullview(this._map);
 			} else {
 				this._tracking = 2;
-				this._link.style.backgroundColor = '#95b';
+				// this._link.style.backgroundColor = '#95b';
+				this._link.style.backgroundImage = 'url(img/tracking-icon-white.png)';
 				settrackingview(this._map);
 				setFlightPath();
 			}

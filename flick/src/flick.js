@@ -53,6 +53,12 @@
 			// timeFormat=12, // 12 or 24
 			// units='metric', // metric or US
 			mapType = 'sat', // name of map
+			showLabels = false,
+			showTerrain = false,
+			showPath = true,
+			showPlan = true,
+			showArc = false,
+			showMini = true,
 			showWeather = false,
 			view = '2D',
 			debug = false,	// interactive debug
@@ -70,6 +76,12 @@
     // if (params.timeFormat) { timeFormat = +params.timeFormat; }
     // if (params.units) { units = params.units; }
     if (params.mapType) { mapType = params.mapType; }
+    if (params.showLabels) { showLabels = params.showLabels === 'true'; }
+    if (params.showTerrain) { showTerrain = params.showTerrain === 'true'; }
+    if (params.showPath) { showPath = params.showPath === 'true'; }
+    if (params.showPlan) { showPlan = params.showPlan === 'true'; }
+    if (params.showArc) { showArc = params.showArc === 'true'; }
+    if (params.showMini) { showMini = params.showMini === 'true'; }
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
     if (params.view) { view = params.view.toUpperCase(); }	// 3D or 3d
     if (params.debug) { debug = params.debug === 'true'; }
@@ -850,6 +862,7 @@
 						$('#layer-overlay').prop('checked', 'checked');
 						this._map.addLayer(this._layers.labels);
 					}
+					this._notify('mapType','sat');
 				}
 			}, this);
 
@@ -865,7 +878,7 @@
 						$('#layer-overlay').prop('checked', 'checked');
 						this._map.addLayer(this._layers.terrain);
 					}
-					
+					this._notify('mapType','map');
 				}
 			}, this);
 
@@ -984,6 +997,10 @@
 
 		isMini: function() {
 			return this._mini;
+		},
+
+		_notify: function(k, v) {
+			if (debug) { console.log('notify', k, v); }
 		}
 
 	});

@@ -30,7 +30,7 @@
 	var flightData,	// flight data returned by API
 			pos,	// position data returned by API
 			timestamp,	// time of API call
-			nodata;	// haven't received data from API recently
+			nodata = false;	// haven't received data from API recently
 	var curpos,	// current lat/lng of animation
 			currot, // current heading of animation
 			curspeed, // current speed of airplane in mph
@@ -117,9 +117,6 @@
 		}
 	}
 
-	var appId = '9543a3e8',
-			appKey = '91d511451d9dbf38ede3efafefac5f09';
-
 	var tiles = { // base maps
 		sat: L.tileLayer(
 			'http://maps{s}.flightstats.com/aerial/{z}/{x}/{y}.png',
@@ -193,7 +190,7 @@
 
 		function flightinfo() {	// info about flight for drawer
 			var airlinename = flightData.carrierName;
-			if (debug) console.log('Equipment: ', flightData.flightEquipmentName);
+			// if (debug) console.log('Equipment: ', flightData.flightEquipmentName);
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 							'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
@@ -300,7 +297,7 @@
 			// 	});
 			$.ajax({  // Call Flight Track by flight ID API
 					url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
-					data: { airline: airline, flight: flightnum, flightPlan: layers.plan===null, stamp: (new Date).valueOf() },
+					data: { airline: airline, flight: flightnum, flightPlan: layers.plan===null /* , stamp: (new Date).valueOf() */ },
 					dataType: 'jsonp',
 					success: getFlight
 				});
@@ -331,14 +328,12 @@
 				var newdate = Date.parse(newpos.date);
 				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 				timestamp += updateRate;	// 10 seconds
-				if (timestamp - newdate > 120000) {	// no data for two minutes
-					if (!nodata) {
-						showMessage('This flight is temporarily beyond the range of our tracking network or over a large body of water');
-						// airplane.setActive(false);	// set airplane color to gray
-						setFlightPath(true);	// draw entire flight history
-						drawercontrol.update();
-					}
+				if (flightData.flightStatus === 'A' && timestamp - newdate > 120000 && !nodata) {	// no data for two minutes
+					showMessage('This flight is temporarily beyond the range of our tracking network or over a large body of water');
+					// airplane.setActive(false);	// set airplane color to gray
+					setFlightPath(true);	// draw entire flight history
 					nodata = true;
+					drawercontrol.update();
 				}
 
 				if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon &&
@@ -358,7 +353,7 @@
 					}
 				}
 
-				if (airports === undefined) { // first time called
+				if (dport === undefined) { // first time called
 					dport = data.airports.departure;	// departure airport data
 					aport = data.airports.arrival;	// arrival airport data
 
@@ -1144,7 +1139,7 @@
 	}
 
 	function formatEquip(es) {
-		return es.replace(/\s*Passenger/, '');
+		return es.replace(/\s*(Passenger|Industrie|\([^\)]*\))/g, '');
 	}
 
 	var flightStatusValues = {

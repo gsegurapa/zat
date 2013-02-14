@@ -256,13 +256,6 @@
 				zooming = false;
 			});
 
-		// load mini-tracker
-		$('<iframe />', { src: 'http://client-test.cloud-east.dev:3500/tracker/'+flightID+'/?borderless=1' }).appendTo('#mini-tracker');
-		// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
-		// <!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1&totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622
-
-
-
 		hidecontrols = function() {
 			if (autoHide && !drawercontrol.expanded() && !layercontrol.expanded()) {
 				$('#control').fadeOut(1000);
@@ -369,7 +362,23 @@
 					}
 				}
 
+				// fields for mini-tracker
+				var minifields = $.extend({ flightStatusCode: data.flightStatus, speedMph: pos.speedMph, altitudeFt: pos.altitudeFt},
+							data.operationalTimes, data.miniTracker);
+
 				if (dport === undefined) { // first time called
+
+					// load mini-tracker
+					var miniurl = [ 'http://client-test.cloud-east.dev:3500/tracker/', flightID,
+							'/?guid=34b64945a69b9cac:5ae30721:13ca699d305:75ee&skin=0' ];
+					$.each(minifields, function(k, v) {
+						miniurl.push('&'+k+'='+v);
+					});
+					$('<iframe />', { src: miniurl.join('') }).appendTo('#mini-tracker');
+					// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
+					// <!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1
+					//      &totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622
+
 					dport = data.airports.departure;	// departure airport data
 					aport = data.airports.arrival;	// arrival airport data
 
@@ -404,6 +413,8 @@
 					aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
 					setFlightPath();
 					drawercontrol.update();
+					var mtf = $('#mini-tracker iframe')[0];	// mini-tracker frame
+					(mtf.contentWindow ? mtf.contentWindow : mtf.documentWindow).postMessage(minifields, '*');
 				}
 
 				// ------------------------------------------------
@@ -425,7 +436,7 @@
 					// departing airport marker
 					L.marker(dpos, {
 							icon: L.icon({	// departing airport icon
-									iconUrl: 'img/tower-large.png',
+									iconUrl: 'img/tower-large@2x.png',
 									iconSize: [78, 151],
 									iconAnchor: [16, 94]
 									// popupAnchor: [2, -93]
@@ -445,7 +456,7 @@
 					// arriving airport marker
 					L.marker(apos, {
 							icon: L.icon({	// arriving airport icon
-									iconUrl: 'img/tower-large.png',
+									iconUrl: 'img/tower-large@2x.png',
 									iconSize: [78, 151],
 									iconAnchor: [16, 94]
 									// popupAnchor: [2, -93]
@@ -645,7 +656,7 @@
 	var FlightMarker = L.Marker.extend({
 		defaultFlightMarkerOptions: {
 			icon: L.divIcon({ // airplane icon (rotatable)
-					html: '<img class="airplaneshadow" src="img/shadow4.png" /><img class="airplaneicon" src="img/plane.png" />',
+					html: '<img class="airplaneshadow" src="img/shadow4.png" /><img class="airplaneicon" src="img/plane@2x.png" />',
 					iconSize: [48, 48],	// airplane-purple.png [62, 62],
 					iconAnchor: [24, 24],	// [31, 31],
 					className: ''

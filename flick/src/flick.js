@@ -220,7 +220,7 @@
 					'<tr><td class="tn">Speed:</td><td>'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
 					'<tr><td class="tn">Heading:</td><td>'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
 					'<tr><td class="tn">Equipment:</td><td>'+
-							(flightData.flightEquipmentName !== '??'? formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata)+
+							(flightData.flightEquipmentName && flightData.flightEquipmentName !== '??' ? formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata)+
 					// '</td></tr><tr><td>Status:</td><td class="t2">'+flightStatusValues[flightData.flightStatus]+
 					'</td></tr></table>';
 		}
@@ -305,6 +305,7 @@
 			// 		success: getFlight
 			// 	});
 			$.ajax({  // Call Flight Track by flight ID API
+					// url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
 					url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
 					data: { airline: airline, flight: flightnum, flightPlan: layers.plan===null /* , stamp: (new Date).valueOf() */ },
 					dataType: 'jsonp',
@@ -394,9 +395,11 @@
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					// currot = +(flightData.heading || flightData.bearing);
 
-					var ac = data.carrierFs.toLowerCase();
+					// var ac = data.carrierFs.toLowerCase().replace('*', '@');
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
-					logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
+					logourl = 'http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/png/150x50/'+
+							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
+					// logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
 					// prefetch image
 					logoimg = $('<img/>'); // prefetch logo
 					logoimg.load(function(/* e */) {	// if image exists, use it

@@ -211,10 +211,10 @@
 
 		function flightinfo() {	// info about flight for drawer
 			var airlinename = flightData.carrierName;
-			return '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
-							flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
-					// (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
-					// 		'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
+			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
+					'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
+					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
+					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
 					(flightData.flightStatus !== 'A' ? '<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
 						(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :

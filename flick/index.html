@@ -175,6 +175,9 @@
 			border-radius: 8px;
 			background-color: rgba(70,70,70, 0.9);
 		}
+		.mini-tracker {
+			position: relative;
+		}
 		div.attribution {
 			padding: 2px 0 0 0;
 			pointer-events: auto;
@@ -226,7 +229,7 @@
 			font-weight: bold;
 			margin: 10px 0;
 		}
-		img.labelimg {
+		object.labelimg {
 			width: 150px;
 			height: 50px;
 			background-color: #EBEBEB;
@@ -234,6 +237,7 @@
 			border-right: 5px solid #EBEBEB;
 			margin-left: 40px;
 		}
+		svg
 		div.fakelogo {
 			text-align: center;
 			font-size: 1.5em;
@@ -261,10 +265,10 @@
 			<label><input id="layer-sat" type="radio" name="layers-base" /> SATELLITE</label>
 			<label class="sep-bel"><input id="layer-map" type="radio" name="layers-base" /> MAP</label>
 			<label><input id="layer-overlay" type="checkbox" /> <span id="layer-overlay-name"></span></label>
-			<label><input id="layer-path" type="checkbox" checked="checked" /> ACTUAL PATH</label>
-			<label><input id="layer-plan" type="checkbox" checked="checked" /> <span id="layer-plan-name">FLIGHT PLAN</label>
+			<label><input id="layer-path" type="checkbox" /> ACTUAL PATH</label>
+			<label><input id="layer-plan" type="checkbox" /> <span id="layer-plan-name">FLIGHT PLAN</label>
 			<label><input id="layer-arc" type="checkbox" /> GREAT ARC</label>
-			<label><input id="layer-mini" type="checkbox" checked="checked" /> MINI TRACKER</label>
+			<label><input id="layer-mini" type="checkbox" /> MINI TRACKER</label>
 			<label class="sep-bel"><input id="layer-weather" type="checkbox" /> US WEATHER</label>
 			<div class="attribution"><a href="attribution.html" target="_blank">MAP ATTRIBUTIONS</a></div>
 		</form>

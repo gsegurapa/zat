@@ -75,7 +75,7 @@
     if (params.flight) { flightnum = params.flight; }
     // if (params.timeFormat) { timeFormat = +params.timeFormat; }
     // if (params.units) { units = params.units; }
-    if (params.mapType) { mapType = params.mapType; }
+    if (params.mapType) { mapType = params.mapType === 'map' ? 'map' : 'sat'; }
     if (params.showLabels) { showLabels = params.showLabels === 'true'; }
     if (params.showTerrain) { showTerrain = params.showTerrain === 'true'; }
     if (params.showPath) { showPath = params.showPath === 'true'; }
@@ -195,9 +195,14 @@
 	$(document).ready(function() {
 
 		var defaultlayers = [basemaps[mapType]];	// default map layers
+		if (showLabels && mapType === 'sat') {
+			defaultlayers.push(overlays.labels);
+		}
+		if (showTerrain && mapType === 'map') {
+			defaultlayers.push(overlays.terrain);
+		}
 		if (showWeather) {
 			defaultlayers.push(overlays.weather);
-			$('#layer-weather').prop('checked', 'checked');
 		}
 
 		trackcontrol = new TrackControl();
@@ -206,9 +211,10 @@
 
 		function flightinfo() {	// info about flight for drawer
 			var airlinename = flightData.carrierName;
-			// if (debug) console.log('Equipment: ', flightData.flightEquipmentName);
-			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
-							'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
+			return '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
+							flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
+					// (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
+					// 		'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
 					(flightData.flightStatus !== 'A' ? '<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
 						(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
@@ -375,6 +381,7 @@
 					$.each(minifields, function(k, v) {
 						miniurl.push('&'+k+'='+v);
 					});
+					if (!showMini) { $('#mini-tracker').hide(); }
 					$('<iframe />', { src: miniurl.join('') }).appendTo('#mini-tracker');
 					// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
 					// <!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1
@@ -472,9 +479,6 @@
 					var npoints = Math.max(128 - 16 * map.getZoom(), 4);
 					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', weight: 7, opacity: 0.4, clickable: false }).greatCircle(npoints);
 					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', weight: 4, opacity: 0.6, clickable: false }).greatCircle(npoints);
-					// layers.arcHalo = L.polyline([dpos, apos], { color: '#828', opacity: 0.3, weight: 3}).greatCircle(npoints);
-					// layers.arc = L.polyline([dpos, apos], { color: '#3f3', opacity: 0.5, weight: 1}).greatCircle(npoints);
-
 					// do flight plan (waypoints) if available
 					var p = flightData.flightPlan;
 					if (p) { // there is a flight plan
@@ -482,14 +486,17 @@
 						for (var i = 0; i < p.length; i++) {
 							positions[i] = createLatLng(+p[i].lat, +p[i].lon, wrap);
 						}
-						layers.planHalo = L.polyline(positions, { color: '#D1D1D2', weight: 12, opacity: 0.4, clickable: false }).addTo(map);
-						layers.plan = L.polyline(positions, { color: '#362F2D', weight: 8 , opacity: 0.6, clickable: false }).addTo(map);
-						// layers.planHalo = L.polyline(positions, { color: '#000', opacity: 0.3, weight: 5 }).addTo(map);
-						// layers.plan = L.polyline(positions, { color: '#3f3', opacity: 0.5, weight: 3 }).addTo(map);
-					} else {
+						layers.planHalo = L.polyline(positions, { color: '#D1D1D2', weight: 12, opacity: 0.4, clickable: false });
+						layers.plan = L.polyline(positions, { color: '#362F2D', weight: 8 , opacity: 0.6, clickable: false });
+					} 
+					if (showPlan && layers.plan) {		// show plan
+						layers.planHalo.addTo(map);
+						layers.plan.addTo(map);
+					}
+					if (showArc || (showPlan && layers.plan === null)) {	// show arc
 						layers.arcHalo.addTo(map);
 						layers.arc.addTo(map);
-						layercontrol.noPlan();
+						if (!showArc) { layercontrol.noPlan(); }
 					}
 
 
@@ -841,8 +848,7 @@
 		onAdd: function(map) {
 			this._map = map;
 			this._expanded = false;
-			this._overlays = { labels: false, terrain: false };
-			this._mini = true;	// mini-tracker
+			// this._mini = true;	// mini-tracker
 
 			var toggle = this._toggle = L.DomUtil.get('control-layer-toggle');
 			var list = L.DomUtil.get('control-layer-list');
@@ -858,44 +864,53 @@
 				L.DomEvent.on(list, 'mousewheel', L.DomEvent.stopPropagation);
 			}
 
-			if (this._map.hasLayer(this._layers.sat)) {
+			if (mapType === 'sat') {
 				$('#layer-sat').attr('checked', 'checked');
 				$('#layer-overlay-name').text('LABELS');
-				if (this._map.hasLayer(this._layers.labels)) { this._labels = true; }
+				if (showLabels) { $('#layer-overlay').prop('checked', 'checked'); }
 			} else {
 				$('#layer-map').attr('checked', 'checked');
 				$('#layer-overlay-name').text('TERRAIN');				
-				if (this._map.hasLayer(this._layers.terrain)) { this._terrain = true; }
+				if (showTerrain) { $('#layer-overlay').prop('checked', 'checked'); }
 			}
+
+			if (showPath) { $('#layer-path').prop('checked', 'checked'); }
+			if (showPlan) { $('#layer-plan').prop('checked', 'checked'); }
+			if (showArc) { $('#layer-arc').prop('checked', 'checked'); }
+			if (showMini) { $('#layer-mini').prop('checked', 'checked'); }
+			if (showWeather) { $('#layer-weather').prop('checked', 'checked'); }
 
 			// click on satellite basemap
 			L.DomEvent.on(L.DomUtil.get('layer-sat'), 'click', function(e) {
-				if (this._map.hasLayer(this._layers.map)) {
+				// if (this._map.hasLayer(this._layers.map)) {
+				if (mapType === 'map') {
 					this._map.removeLayer(this._layers.map);
 					$('#layer-overlay').removeProp('checked');
-					if (this._overlays.terrain) { this._map.removeLayer(this._layers.terrain) }
+					if (showTerrain) { this._map.removeLayer(this._layers.terrain) }
 					this._map.addLayer(this._layers.sat, true);
 					$('#layer-overlay-name').text('LABELS');
-					if (this._overlays.labels) {
+					if (showLabels) {
 						$('#layer-overlay').prop('checked', 'checked');
 						this._map.addLayer(this._layers.labels);
 					}
+					mapType = 'sat';
 					this._notify('mapType','sat');
 				}
 			}, this);
 
 			// click on map basemap (street)
 			L.DomEvent.on(L.DomUtil.get('layer-map'), 'click', function(e) {
-				if (this._map.hasLayer(this._layers.sat)) {
+				if (mapType === 'sat') {
 					this._map.removeLayer(this._layers.sat);
 					$('#layer-overlay').removeProp('checked');
-					if (this._overlays.labels) { this._map.removeLayer(this._layers.labels); }
+					if (showLabels) { this._map.removeLayer(this._layers.labels); }
 					this._map.addLayer(this._layers.map, true);
 					$('#layer-overlay-name').text('TERRAIN');
-					if (this._overlays.terrain) {
+					if (showTerrain) {
 						$('#layer-overlay').prop('checked', 'checked');
 						this._map.addLayer(this._layers.terrain);
 					}
+					mapType = 'map';
 					this._notify('mapType','map');
 				}
 			}, this);
@@ -903,13 +918,26 @@
 			// click on overlay (labels or terrain)
 			L.DomEvent.on(L.DomUtil.get('layer-overlay'), 'click', function(e) {
 				var overlay = $('#layer-overlay:checked');
-				var layer = $('#layer-overlay-name').text() === 'LABELS' ? 'labels' : 'terrain';
-				if (overlay.length > 0) {
-					this._map.addLayer(this._layers[layer]);
-					this._overlays[layer] = true;
+				if ($('#layer-overlay-name').text() === 'LABELS') {
+					if (overlay.length > 0) {
+						this._map.addLayer(this._layers.labels);
+						showLabels = true;
+						this._notify('showLabels','true');
+					} else {
+						this._map.removeLayer(this._layers.labels);
+						showLabels = false;
+						this._notify('showLabels','false');
+					}
 				} else {
-					this._map.removeLayer(this._layers[layer]);
-					this._overlays[layer] = false;
+					if (overlay.length > 0) {
+						this._map.addLayer(this._layers.terrain);
+						showTerrain = true;
+						this._notify('showTerrain','true');
+					} else {
+						this._map.removeLayer(this._layers.terrain);
+						showTerrain = false;
+						this._notify('showTerrain','false');
+					}					
 				}
 			}, this);
 
@@ -919,9 +947,13 @@
 					this._map.addLayer(this._layers.pathHalo).addLayer(this._layers.path);
 					this._layers.pathHalo.bringToFront();
 					this._layers.path.bringToFront();
+					showPath = true;
+					this._notify('showPath','true');
 				} else {
 					this._map.removeLayer(this._layers.pathHalo);
 					this._map.removeLayer(this._layers.path);
+					showPath = false;
+					this._notify('showPath','false');
 				}
 			}, this);
 
@@ -931,9 +963,13 @@
 					this._map.addLayer(this._layers.planHalo).addLayer(this._layers.plan);
 					this._layers.plan.bringToBack();
 					this._layers.planHalo.bringToBack();
+					showPlan = true;
+					this._notify('showPlan','true');
 				} else {
 					this._map.removeLayer(this._layers.planHalo);
 					this._map.removeLayer(this._layers.plan);
+					showPlan = false;
+					this._notify('showPlan','false');
 				}
 			}, this);
 
@@ -943,22 +979,26 @@
 					this._map.addLayer(this._layers.arcHalo).addLayer(this._layers.arc);
 					this._layers.arc.bringToBack();
 					this._layers.arcHalo.bringToBack();
+					showArc = true;
+					this._notify('showArc','true');
 				} else {
 					this._map.removeLayer(this._layers.arcHalo);
 					this._map.removeLayer(this._layers.arc);
+					showArc = false;
+					this._notify('showArc','false');
 				}
 			}, this);
 
 			// click on mini-tracker
 			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function(e) {
 				if ($('#layer-mini:checked').length > 0) {
-					// $('<iframe>', { src: 'http://client-test.cloud-east.dev:3500/tracker'}).appendTo('#mini-tracker');
-					this._mini = true;
 					$('#mini-tracker').show();
+					showMini = true;
+					this._notify('showMini','true');
 				} else {
-					// $('#mini-tracker').empty();
-					this._mini = false;
 					$('#mini-tracker').hide();
+					showMini = false;
+					this._notify('showMini','false');
 				}
 			}, this);
 
@@ -966,9 +1006,11 @@
 			L.DomEvent.on(L.DomUtil.get('layer-weather'), 'click', function(e) {
 				if ($('#layer-weather:checked').length > 0) {
 					this._map.addLayer(this._layers.weather);
+					showWeather = true;
 					this._notify('showWeather','true');
 				} else {
 					this._map.removeLayer(this._layers.weather);
+					showWeather = false;
 					this._notify('showWeather','false');
 				}
 			}, this);
@@ -1136,10 +1178,12 @@
 			layers.pathHalo.setLatLngs(multi);
 			layers.path.setLatLngs(multi);
 		} else {	// create layer
-			layers.pathHalo = L.multiPolyline(multi, { color: '#828483', weight: 6, opacity: 0.5, clickable: false }).addTo(map).bringToFront();
-			layers.path = L.multiPolyline(multi, { color: '#55f241', weight: 4, opacity: 0.8, clickable: false }).addTo(map).bringToFront();
-			// layers.pathHalo = L.multiPolyline(multi, { color: '#000', opacity: 0.5, weight: 4 }).addTo(map).bringToFront();
-			// layers.path = L.multiPolyline(multi, { color: '#a2a', opacity: 0.8, weight: 2 }).addTo(map).bringToFront();
+			layers.pathHalo = L.multiPolyline(multi, { color: '#828483', weight: 6, opacity: 0.5, clickable: false });
+			layers.path = L.multiPolyline(multi, { color: '#55f241', weight: 4, opacity: 0.8, clickable: false });
+		}
+		if (showPath) {
+			layers.pathHalo.addTo(map).bringToFront();
+			layers.path.addTo(map).bringToFront();
 		}
 	} // end setFlightPath
 
@@ -1173,7 +1217,7 @@
 	}
 
 	function formatAirport(as) {
-		return as.length < 24 ? as : as.replace(/\s*Airport\s*$/, '');
+		return as.length < 30 ? as : as.replace(/\s*Airport\s*$/, '');
 	}
 
 	function formatWeather(ws) {

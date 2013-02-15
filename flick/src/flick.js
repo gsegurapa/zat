@@ -1,5 +1,5 @@
 // FlightStats flight tracker
-/*global L:false, jQuery:false, Morris:false */
+/*global L:false, jQuery:false */
 
 (function($){
 	"use strict";
@@ -10,7 +10,6 @@
 	var rotRate = aniRate / 500;	// 2 degrees per second max
 
 	var map;
-	var airports, airlines;	// appendices from API
 	var dport,	// departure airport data
 			dpos,	// lat/lng position of departure airport
 			aport,	// arrival airport data
@@ -26,7 +25,6 @@
 			wrap;	// does route cross the anti-meridian?
 	var maxZoom = 12;
 	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
-	var flightLabel;	// label for the airplane icon
 	var flightData,	// flight data returned by API
 			pos,	// position data returned by API
 			timestamp,	// time of API call
@@ -99,33 +97,31 @@
 
 	if (debug) {	// interactive debug mode
 		$(document).keydown(function(e) {
-			switch(e.which) {
-				case 83: // "s" stop data
-					if (data_off === 0 || data_on !== 0) {	// first time
-						data_off = numpos;
-						data_on = 0;
-					} else {
-						data_on = numpos;
-						if (data_on === data_off) {
-							data_on = data_off = 0;
-						}
+			if (e.which === 83) {	// "s" stop data
+				if (data_off === 0 || data_on !== 0) {	// first time
+					data_off = numpos;
+					data_on = 0;
+				} else {
+					data_on = numpos;
+					if (data_on === data_off) {
+						data_on = data_off = 0;
 					}
-					console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames);
-				break;
+				}
+				console.log('debug data_off: '+data_off+' data_on: '+data_on+' numpos: '+numpos+' frames: '+frames);
 			}
 			e.stopPropagation();
 		});
 
 		if (!window.console) {	// make sure console functions don't cause an error
-	    (function() {
-	      var stub = function(){};
-	      var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
-	      "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-	      window.console = {};
-	      for (var i = 0; i < names.length; ++i) {
-	        window.console[names[i]] = stub;
-	      }
-	    }());
+			(function() {
+				var stub = function(){};
+				var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+						"group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+				window.console = {};
+				for (var i = 0; i < names.length; ++i) {
+					window.console[names[i]] = stub;
+				}
+			}());
 		}
 	}
 
@@ -305,11 +301,11 @@
 		function mainloop() {
 
 			// $.ajax({  // Call Flight Track by flight ID API
-			// 		url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
-			// 		data: { appId: appId, appKey: appKey, includeFlightPlan: layers.plan===null, extendedOptions: 'includeNewFields' },
-			// 		dataType: 'jsonp',
-			// 		success: getFlight
-			// 	});
+			//		url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
+			//		data: { appId: appId, appKey: appKey, includeFlightPlan: layers.plan===null, extendedOptions: 'includeNewFields' },
+			//		dataType: 'jsonp',
+			//		success: getFlight
+			//	});
 			$.ajax({  // Call Flight Track by flight ID API
 					// url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
 					url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
@@ -451,7 +447,7 @@
 									iconAnchor: [16, 94]
 									// popupAnchor: [2, -93]
 							})
-						}).addTo(map).on('click', function(e) {
+						}).addTo(map).on('click', function() {
 							drawercontrol.content(depinfo);
 						});								
 
@@ -471,7 +467,7 @@
 									iconAnchor: [16, 94]
 									// popupAnchor: [2, -93]
 							})
-						}).addTo(map).on('click', function(e) {
+						}).addTo(map).on('click', function() {
 							drawercontrol.content(arrinfo);
 						});
 					
@@ -533,7 +529,7 @@
 						if (trackcontrol.isTracking()) { map.panTo(p); }
 					} else {
 						airplane = flightMarker(p).addTo(map).rotate(h).setShadow(a).stamp(t);
-						airplane.on('click', function(e) {
+						airplane.on('click', function() {
 							drawercontrol.content(flightinfo);
 						});
 					}
@@ -631,17 +627,6 @@
 
 			} // end getFlight
 
-			// function getAppendix(data) { // read in data from appendix and convert to dictionary
-			// 	var ret = {};
-			// 	if (data) {
-			// 		for (var i = 0; i<data.length; i++) {
-			// 			var v = data[i];
-			// 			ret[v.fs] = v;
-			// 		}
-			// 	}
-			// 	return ret;
-			// }
-
 		} // end mainloop
 
 		mainloop();
@@ -659,7 +644,7 @@
 
 	function showMessage(message) {
 		$('#message').html(message);
-		$('#messagepopup').show().on('click', function(e) { $(this).hide(); });
+		$('#messagepopup').show().on('click', function() { $(this).hide(); });
 	}
 
 	// airplane flight marker
@@ -699,8 +684,8 @@
 			return this;
 		}
 		// setActive: function(v) {	// change color when data feed lost
-		// 	$(this._icon).find('.airplaneicon').attr('src', v ? 'img/airplane-purple.png' : 'img/airplane-gray.png');
-		// 	return this;
+		//	$(this._icon).find('.airplaneicon').attr('src', v ? 'img/airplane-purple.png' : 'img/airplane-gray.png');
+		//	return this;
 		// }
 	});
 	var flightMarker = function(latlng) { // factory
@@ -772,7 +757,7 @@
 						.on(drawer, 'click', L.DomEvent.stop);
 		},
 
-		onRemove: function(map) {
+		onRemove: function(/* map */) {
 
 		},
 
@@ -881,12 +866,12 @@
 			if (showWeather) { $('#layer-weather').prop('checked', 'checked'); }
 
 			// click on satellite basemap
-			L.DomEvent.on(L.DomUtil.get('layer-sat'), 'click', function(e) {
+			L.DomEvent.on(L.DomUtil.get('layer-sat'), 'click', function() {
 				// if (this._map.hasLayer(this._layers.map)) {
 				if (mapType === 'map') {
 					this._map.removeLayer(this._layers.map);
 					$('#layer-overlay').removeProp('checked');
-					if (showTerrain) { this._map.removeLayer(this._layers.terrain) }
+					if (showTerrain) { this._map.removeLayer(this._layers.terrain); }
 					this._map.addLayer(this._layers.sat, true);
 					$('#layer-overlay-name').text('LABELS');
 					if (showLabels) {
@@ -899,7 +884,7 @@
 			}, this);
 
 			// click on map basemap (street)
-			L.DomEvent.on(L.DomUtil.get('layer-map'), 'click', function(e) {
+			L.DomEvent.on(L.DomUtil.get('layer-map'), 'click', function() {
 				if (mapType === 'sat') {
 					this._map.removeLayer(this._layers.sat);
 					$('#layer-overlay').removeProp('checked');
@@ -916,7 +901,7 @@
 			}, this);
 
 			// click on overlay (labels or terrain)
-			L.DomEvent.on(L.DomUtil.get('layer-overlay'), 'click', function(e) {
+			L.DomEvent.on(L.DomUtil.get('layer-overlay'), 'click', function() {
 				var overlay = $('#layer-overlay:checked');
 				if ($('#layer-overlay-name').text() === 'LABELS') {
 					if (overlay.length > 0) {
@@ -942,7 +927,7 @@
 			}, this);
 
 			// click on actual path
-			L.DomEvent.on(L.DomUtil.get('layer-path'), 'click', function(e) {
+			L.DomEvent.on(L.DomUtil.get('layer-path'), 'click', function() {
 				if ($('#layer-path:checked').length > 0) {
 					this._map.addLayer(this._layers.pathHalo).addLayer(this._layers.path);
 					this._layers.pathHalo.bringToFront();
@@ -958,7 +943,7 @@
 			}, this);
 
 			// click on flight plan
-			L.DomEvent.on(L.DomUtil.get('layer-plan'), 'click', function(e) {
+			L.DomEvent.on(L.DomUtil.get('layer-plan'), 'click', function() {
 				if ($('#layer-plan:checked').length > 0) {
 					this._map.addLayer(this._layers.planHalo).addLayer(this._layers.plan);
 					this._layers.plan.bringToBack();
@@ -974,7 +959,7 @@
 			}, this);
 
 			// click on shortest arc (geodesic)
-			L.DomEvent.on(L.DomUtil.get('layer-arc'), 'click', function(e) {
+			L.DomEvent.on(L.DomUtil.get('layer-arc'), 'click', function() {
 				if ($('#layer-arc:checked').length > 0) {
 					this._map.addLayer(this._layers.arcHalo).addLayer(this._layers.arc);
 					this._layers.arc.bringToBack();
@@ -990,7 +975,7 @@
 			}, this);
 
 			// click on mini-tracker
-			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function(e) {
+			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function() {
 				if ($('#layer-mini:checked').length > 0) {
 					$('#mini-tracker').show();
 					showMini = true;
@@ -1003,7 +988,7 @@
 			}, this);
 
 			// click on weather
-			L.DomEvent.on(L.DomUtil.get('layer-weather'), 'click', function(e) {
+			L.DomEvent.on(L.DomUtil.get('layer-weather'), 'click', function() {
 				if ($('#layer-weather:checked').length > 0) {
 					this._map.addLayer(this._layers.weather);
 					showWeather = true;
@@ -1017,7 +1002,7 @@
 
 		},
 
-		onRemove: function(map) {
+		onRemove: function(/* map */) {
 
 		},
 
@@ -1025,7 +1010,7 @@
 			return this._expanded;
 		},
 
-		expand: function(e) {
+		expand: function() {
 			if (drawercontrol.expanded()) {
 				drawerwasopen = true;
 				drawercontrol.collapse();
@@ -1041,7 +1026,7 @@
 			}
 		},
 
-		collapse: function(e) {
+		collapse: function() {
 			unhidecontrols();
 			$('#control-layer-list').hide(100,'linear');
 			this._toggle.style.backgroundImage = 'url(img/layers.png)';

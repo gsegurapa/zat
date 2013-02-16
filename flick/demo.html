@@ -20,15 +20,43 @@
 <div id="top"></div>
 <script type="text/javascript">
 (function($){
+
 	var fliptime = 60000;	// one minute per airport
-	var airports = ['ATL', 'BKK', 'BOS', 'DEN', 'DFW', 'JFK', 'LAX', 'LHR', 'MIA', 'NRT', 'ORD', 'PEK', 'SEA', 'SFO', 'SLC'];
-	var curport = 0;
+	var airports = ['ATL', 'BOS', 'CLT', 'DEN', 'DFW', 'EWR', 'HNL', 'IAD', 'IAH',
+			'JFK', 'LAS', 'LAX', 'MCO', 'MIA', 'ORD', 'PDX', 'PHX', 'SEA', 'SFO', 'SLC',
+			'BKK', 'CDG', 'DXB', 'HKG', 'HND', 'LHR', 'NRT', 'PEK'];	// international
+	var curport;
+	var len = location.search === '?US' ? 20 : airports.length;
+	var fixport = location.search.length >= 4 ? location.search.slice(1) : null;
 	var $frame;
 
 	var appId = '9543a3e8',
 			appKey = '91d511451d9dbf38ede3efafefac5f09';
 
-	function getDepartures(data, status, xhr) {
+	setInterval(mainloop, fliptime);
+	mainloop();
+
+	function mainloop() {
+		if (fixport === null) {
+			var newport = airports[Math.floor(Math.random() * len)];
+			if (newport === curport) {
+				return;
+			} else {
+				curport = newport;
+			}
+		} else {
+			curport = fixport;
+		}
+		var direction = Math.random() < 0.5 ? '/dep' : '/arr';
+		$.ajax({  // airport tracks departures
+      url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + curport + direction,
+      data: { appId: appId, appKey: appKey, maxPositions: 2 },
+      dataType: 'jsonp',
+      success: getFlights
+    });
+	}	// end mainloop
+
+	function getFlights(data, status, xhr) {
 		if (!data || data.error) { return; }
 		var numflights = data.flightTracks.length;
 		if (numflights === 0) { return; }
@@ -45,27 +73,7 @@
 				src: 'index.html?demo=true&autoHide=true&zoomControl=false&mapType='+mapType+'&showTerrain='+terrain+'&showLabels='+labels+'&showArc='+arc+
 					'&id='+flight.flightId+'&airline='+flight.carrierFsCode+'&flight='+flight.flightNumber
 			}).appendTo('#top');
-	}	// end getDepartures
-
-	function mainloop() {
-		var newport = Math.floor(Math.random() * airports.length);
-		if (newport === curport) {
-			return;
-		} else {
-			curport = newport;
-		}
-		$.ajax({  // airport tracks departures
-      url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airports[curport] + '/dep',
-      data: { appId: appId, appKey: appKey, maxPositions: 2 },
-      dataType: 'jsonp',
-      success: getDepartures
-    });
-    // curport++;
-    // if (curport >= airports.length) { curport = 0; }
-	}
-
-	setInterval(mainloop, fliptime);
-	mainloop();
+	}	// end getFlights
 
 }(jQuery));
 </script>

@@ -58,6 +58,7 @@
 			showArc = false,
 			showMini = true,
 			showWeather = false,
+			demo = false,
 			view = '2D',
 			debug = false,	// interactive debug
 			zoomControl = 'auto',	// show zoom control
@@ -81,6 +82,7 @@
     if (params.showArc) { showArc = params.showArc === 'true'; }
     if (params.showMini) { showMini = params.showMini === 'true'; }
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
+    if (params.demo) { demo = params.demo === 'true'; }
     if (params.view) { view = params.view.toUpperCase(); }	// 3D or 3d
     if (params.debug) { debug = params.debug === 'true'; }
     if (params.autoHide) { autoHide = params.autoHide === 'true'; }
@@ -277,8 +279,12 @@
 		};
 
 		if (autoHide) {
-			fullscreentimer = setTimeout(hidecontrols, 10000);
-			map.on('click', unhidecontrols);
+			if (demo) {
+				hidecontrols();
+			} else {
+				fullscreentimer = setTimeout(hidecontrols, 10000);
+				map.on('click', unhidecontrols);				
+			}
 		}
 
 		if (zoomControl) {
@@ -398,10 +404,9 @@
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					// currot = +(flightData.heading || flightData.bearing);
 
-					// var ac = data.carrierFs.toLowerCase().replace('*', '@');
-					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					logourl = 'http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/png/150x50/'+
 							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
+					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					// logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
 					// prefetch image
 					logoimg = $('<img/>'); // prefetch logo
@@ -411,7 +416,12 @@
 					logoimg.attr('src', logourl);	// prefetch image
 
 					map.on('load', mapReady);
-					setfullview(map);
+					setfullview(map);						
+					if (demo) {
+						setTimeout(function() {
+							trackcontrol.settrack(map);							
+						}, 15000);
+					}
 
 				} else {	// update
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
@@ -1067,7 +1077,7 @@
 					.on(link, 'mousedown', L.DomEvent.stop)
 					.on(link, 'dblclick', L.DomEvent.stop)
 					.on(link, 'click', L.DomEvent.preventDefault)
-					.on(link, 'click', this._settrack, this);
+					.on(link, 'click', this.settrack, this);
 		},
 
 		onRemove: function (/* map */) {
@@ -1085,8 +1095,8 @@
 			return this._tracking === 2;
 		},
 
-		_settrack: function(/* e */) {
-			unhidecontrols();
+		settrack: function(/* e */) {
+			if (!demo) { unhidecontrols(); }
 			if (this._tracking === 2) {
 				this._tracking = 0;
 				// this._link.style.backgroundColor = '';

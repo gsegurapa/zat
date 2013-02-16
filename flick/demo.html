@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<title>Flightstats Flight Tracker Demo</title>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
+	<style>
+	body,
+	#top,
+	#top iframe {
+		width: 100%;
+		height: 100%;
+		margin: 0 0;
+		overflow: hidden;
+	}
+	</style>
+</head>
+<body>
+<div id="top"></div>
+<script type="text/javascript">
+(function($){
+	var fliptime = 60000;	// one minute per airport
+	var airports = ['ATL', 'BKK', 'BOS', 'DEN', 'DFW', 'JFK', 'LAX', 'LHR', 'MIA', 'NRT', 'ORD', 'PEK', 'SEA', 'SFO', 'SLC'];
+	var curport = 0;
+	var $frame;
+
+	var appId = '9543a3e8',
+			appKey = '91d511451d9dbf38ede3efafefac5f09';
+
+	function getDepartures(data, status, xhr) {
+		if (!data || data.error) { return; }
+		var numflights = data.flightTracks.length;
+		if (numflights === 0) { return; }
+		var flight = data.flightTracks[Math.floor(Math.random() * numflights)];
+		if (flight === undefined) { return; }
+		if ($frame) {	// frame exists, delete
+			$frame.remove();
+		}
+		var mapType = Math.random() < 0.4 ? 'map' : 'sat';
+		var terrain = Math.random() < 0.5;
+		var labels = Math.random() < 0.5;
+		var arc = Math.random() < 0.4;
+		$frame = $('<iframe />', {
+				src: 'index.html?demo=true&autoHide=true&mapType='+mapType+'&showTerrain='+terrain+'&showLabels='+labels+'&showArc='+arc+
+					'&id='+flight.flightId+'&airline='+flight.carrierFsCode+'&flight='+flight.flightNumber
+			}).appendTo('#top');
+	}	// end getDepartures
+
+	function mainloop() {
+		$.ajax({  // airport tracks departures
+      url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airports[curport] + '/dep',
+      data: { appId: appId, appKey: appKey, maxPositions: 2 },
+      dataType: 'jsonp',
+      success: getDepartures
+    });
+    curport++;
+    if (curport >= airports.length) { curport = 0; }
+	}
+
+	setInterval(mainloop, fliptime);
+	mainloop();
+
+}(jQuery));
+</script>
+</body>
+</html>

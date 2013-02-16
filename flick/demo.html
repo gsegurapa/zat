@@ -42,20 +42,26 @@
 		var labels = Math.random() < 0.5;
 		var arc = Math.random() < 0.4;
 		$frame = $('<iframe />', {
-				src: 'index.html?demo=true&autoHide=true&mapType='+mapType+'&showTerrain='+terrain+'&showLabels='+labels+'&showArc='+arc+
+				src: 'index.html?demo=true&autoHide=true&zoomControl=false&mapType='+mapType+'&showTerrain='+terrain+'&showLabels='+labels+'&showArc='+arc+
 					'&id='+flight.flightId+'&airline='+flight.carrierFsCode+'&flight='+flight.flightNumber
 			}).appendTo('#top');
 	}	// end getDepartures
 
 	function mainloop() {
+		var newport = Math.floor(Math.random() * airports.length);
+		if (newport === curport) {
+			return;
+		} else {
+			curport = newport;
+		}
 		$.ajax({  // airport tracks departures
       url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airports[curport] + '/dep',
       data: { appId: appId, appKey: appKey, maxPositions: 2 },
       dataType: 'jsonp',
       success: getDepartures
     });
-    curport++;
-    if (curport >= airports.length) { curport = 0; }
+    // curport++;
+    // if (curport >= airports.length) { curport = 0; }
 	}
 
 	setInterval(mainloop, fliptime);

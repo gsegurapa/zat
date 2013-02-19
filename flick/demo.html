@@ -27,11 +27,13 @@
 			'BKK', 'CDG', 'DXB', 'HKG', 'HND', 'LHR', 'NRT', 'PEK'];	// international
 	var curport;
 	var len = location.search === '?US' ? 20 : airports.length;
-	var fixport = location.search.length >= 4 ? location.search.slice(1) : null;
+	var fixport = location.search.length >= 4 ? location.search.slice(1) : null;	// single airport only
 	var $frame;
 
 	var appId = '9543a3e8',
 			appKey = '91d511451d9dbf38ede3efafefac5f09';
+
+	sessionStorage.asditotal = NaN;	// reset local storage
 
 	setInterval(mainloop, fliptime);
 	mainloop();
@@ -70,7 +72,8 @@
 		var labels = Math.random() < 0.5;
 		var arc = Math.random() < 0.4;
 		$frame = $('<iframe />', {
-				src: 'index.html?demo=true&autoHide=true&zoomControl=false&mapType='+mapType+'&showTerrain='+terrain+'&showLabels='+labels+'&showArc='+arc+
+				src: 'index.html?demo=true&autoHide=true&zoomControl=false&debug=true&mapType='+mapType+
+					'&showTerrain='+terrain+'&showLabels='+labels+'&showArc='+arc+
 					'&id='+flight.flightId+'&airline='+flight.carrierFsCode+'&flight='+flight.flightNumber
 			}).appendTo('#top');
 	}	// end getFlights

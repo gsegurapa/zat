@@ -793,26 +793,31 @@
     function fillDialog() {
       if (!BigScreen.enabled) { $('#cbutton input[value="Full"]').hide(); }
       $('#airportCode').val(airportCode);
-      $('#mapType option').removeAttr('selected');
-      $('#mapType option[value="'+mapType+'"]').attr('selected','true');
+      // $('#mapType option').removeAttr('selected');
+      // $('#mapType option[value="'+mapType+'"]').attr('selected','selected');
+      $('#mapType').val(mapType);
       $('#zoomLevel').val(zoomLevel);
       $('#showLabels').val(showLabels.toString());
-      $('#labelSize option').removeAttr('selected');
-      $('#labelSize option[value="'+labelSize+'"]').attr('selected','true');
+      // $('#labelSize option').removeAttr('selected');
+      // $('#labelSize option[value="'+labelSize+'"]').attr('selected','selected');
+      $('#labelSize').val(labelSize);
       $('#showAirlineLogos').val(showAirlineLogos.toString());
       $('#showOtherAirport').val(showOtherAirport.toString());
-      $('#flightMarker option').removeAttr('selected');
-      $('#flightMarker option[value="'+flightMarker+'"]').attr('selected','true');
+      // $('#flightMarker option').removeAttr('selected');
+      // $('#flightMarker option[value="'+flightMarker+'"]').attr('selected','true');
+      $('#flightMarker').val(flightMarker);
       $('#flightMarkerScale').val(flightMarkerScale); // .next().text(flightMarkerScale);
-      $('#airportMarker option').removeAttr('selected');
-      $('#airportMarker option[value="'+airportMarker+'"]').attr('selected','true');
+      // $('#airportMarker option').removeAttr('selected');
+      // $('#airportMarker option[value="'+airportMarker+'"]').attr('selected','true');
+      $('#airportMarker').val(airportMarker);
       $('#airportMarkerScale').val(airportMarkerScale); // .next().text(airportMarkerScale);
       $('#showLegend').val(showLegend.toString());
       $('#showOperatorAirlines').val(showOperatorAirlines.toString());
       $('#weatherStation').val(weatherStation);
       displayActualStation();
-      $('#weatherRadar option').removeAttr('selected');
-      $('#weatherRadar option[value="'+weatherRadar+'"]').attr('selected','true');
+      // $('#weatherRadar option').removeAttr('selected');
+      // $('#weatherRadar option[value="'+weatherRadar+'"]').attr('selected','true');
+      $('#weatherRadar').val(weatherRadar);
       $('#weatherFrames').val(weatherFrames);
       $('#weatherOpacity').val(weatherOpacity); // .next().text(weatherOpacity);
 

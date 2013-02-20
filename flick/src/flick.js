@@ -2,7 +2,7 @@
 /*global L:false, jQuery:false */
 
 (function($){
-	"use strict";
+// 	"use strict";
 
 	// tuning parameters
 	var updateRate = 10000;	// 10 seconds
@@ -141,69 +141,6 @@
 		}
 	}
 
-	var basemaps = { // map tiles
-		sat: L.tileLayer(
-			'http://maps{s}.flightstats.com/aerial/{z}/{x}/{y}.png',
-			{ subdomains: '1234',
-				zIndex: 2,
-				minZoom: 0, maxZoom: 12
-		}),
-		map: L.tileLayer(
-			'http://maps{s}.flightstats.com/streets/{z}/{x}/{y}.png',
-			{ subdomains: '1234',
-				zIndex: 2,
-				minZoom: 0, maxZoom: 12
-		})
-	};
-
-	// Flightstats weather tiles -----------------------------------------------------------
-  L.TileLayer.FSWeather = L.TileLayer.extend({
-    initialize: function(options) {
-      L.Util.setOptions(this, options);    
-    },
-    getTileUrl: function(xy) {
-      var z = this._getZoomForUrl();
-      var de = L.TileLayer.FSWeather.weather_tiles_range[z];
-      return (de && xy.x >= de.x.min && xy.x <= de.x.max && xy.y >= de.y.min && xy.y <= de.y.max) ?
-        ['http://www.flightstats.com/googlemaptiles/weather/noaa/radar/z', z,
-            '/radar_tile_z', z, 'x', xy.x, 'y', xy.y, '.png'].join('') : '';
-    }
-  });
-  
-  L.TileLayer.FSWeather.weather_tiles_range = {
-			2: { x: {min: 0, max: 1}, y: {min: 1, max: 1} },
-			3: { x: {min: 0, max: 2}, y: {min: 2, max: 3} },
-			4: { x: {min: 0, max: 5}, y: {min: 4, max: 7} },
-			5: { x: {min: 0, max: 10}, y: {min: 8, max: 14} },
-			6: { x: {min: 0, max: 20}, y: {min: 16, max: 28} }
-  };
-
-	var overlays = {
-		weather: new L.TileLayer.FSWeather({
-			opacity: '0.5',
-			// attribution: "Weather data &copy; 2011 IEM Nexrad",
-			zIndex: 4,
-			minZoom: 2, maxZoom: 6
-		}),
-		labels: L.tileLayer(
-			// 'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
-			'http://maps{s}.flightstats.com/labels/{z}/{x}/{y}.png',
-			{ subdomains: '1234',
-			zIndex: 5,
-				minZoom: 0, maxZoom: 12
-		}),
-		terrain: L.tileLayer(
-			// 'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
-			'http://maps{s}.flightstats.com/terrain/{z}/{x}/{y}.png',
-			{ subdomains: '1234',
-				opacity: 0.7,
-				zIndex: 3,
-				minZoom: 0, maxZoom: 12
-		})
-	};
-
-	// var scalecontrol = L.control.scale();
-
 	$(document).ready(function() {
 
 		var defaultlayers = [basemaps[mapType]];	// default map layers
@@ -233,13 +170,16 @@
 							(flightData.delayMinutes >= 15 ?
 								'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
 								'<br />On Time')))+
-					'</div><table id="flightinfo"><tr><td class="tn">Route:</td><td>'+dport.fsCode+' to '+aport.fsCode+'</td></tr>'+
-					'<tr><td class="tn">Altitude:</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+' m)</td></tr>'+
-					'<tr><td class="tn">Speed:</td><td>'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
-					'<tr><td class="tn">Heading:</td><td>'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
-					'<tr><td class="tn">Equipment:</td><td>'+
-							(flightData.flightEquipmentName && flightData.flightEquipmentName !== '??' ? formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata)+
-					// '</td></tr><tr><td>Status:</td><td class="t2">'+flightStatusValues[flightData.flightStatus]+
+					'</div><table id="flightinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
+					'</td></tr><tr><td class="tn">Altitude</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+
+					' m)</td></tr><tr><td class="tn">Speed</td><td>'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
+					'<tr><td class="tn">Heading</td><td>'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
+					(flightData.operatedByFsCode ?
+						'<tr><td class="tn">Operated&nbsp;by</td><td>'+flightData.operatedByFsCode+' '+
+						(flightData.operatedByFlightNum ? flightData.operatedByFlightNum : flightData.carrierFlightId)+'</td></tr>' : '')+
+					'<tr><td class="tn">Equipment</td><td>'+
+							(flightData.flightEquipmentName && flightData.flightEquipmentName !== '??' ?
+								formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata)+
 					'</td></tr></table>';
 		}
 		drawercontrol = new DrawerControl(flightinfo);
@@ -316,19 +256,14 @@
 			return false;
 		}).on('dragstart', trackcontrol.reset, trackcontrol);	// turn off tracking on drag
 
-		// --------------------------
+		// --------------------------------------
 		// get position data from API
 		function mainloop() {
 
-			// $.ajax({  // Call Flight Track by flight ID API
-			//		url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/track/' + flightID,
-			//		data: { appId: appId, appKey: appKey, includeFlightPlan: layers.plan===null, extendedOptions: 'includeNewFields' },
-			//		dataType: 'jsonp',
-			//		success: getFlight
-			//	});
 			$.ajax({  // Call Flight Track by flight ID API
-					url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
+					url: 'http://client-dev-stable.cloud-east.dev:3450/flightTracker/' + flightID,
 					// url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
+					// url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
 					data: { guid: guid, airline: airline, flight: flightnum, flightPlan: layers.plan===null },
 					dataType: 'jsonp',
 					success: getFlight
@@ -342,8 +277,6 @@
 					return;
 				}
 
-				if (debug && data.flightStatus !== 'A') { console.log('status: ', data.flightStatus, flightStatusValues[data.flightStatus]); }
-
 				flightData = data;
 				var p = data.positions;
 				numpos = p.length;
@@ -356,55 +289,69 @@
 					}
 				}
 
-				var newpos = p[0];
-				var newhead = +(data.heading || data.bearing);
-				// FIX ME!!!!!  Use timestamp from API instead of from position data
-				var newdate = Date.parse(newpos.date);
-				if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
-				timestamp += updateRate;	// 10 seconds
-				if (flightData.flightStatus === 'A' && timestamp - newdate > 120000 && !nodata) {	// no data for two minutes
-					showPopup('This flight is temporarily beyond the range of our tracking network or over a large body of water');
-					// airplane.setActive(false);	// set airplane color to gray
-					setFlightPath(true);	// draw entire flight history
-					nodata = true;
-					drawercontrol.update();
-				}
+				if (data.positions.length > 0) {	// have positions
 
-				if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon &&
-						newpos.date === pos.date && pos.altitudeFt === newpos.altitudeFt) {
-					return; // data has not changed
-				}
-				if (debug) {
-					var diff = data.responseTime - newdate/1000;
-					if (newpos.source === 'ASDI') {
-						diff -= 300;	// five minute delay
-						if (sessionStorage.asdimax === '') { sessionStorage.asdimax = diff; } else { sessionStorage.asdimax = Math.max(sessionStorage.asdimax, diff); } 
-						if (sessionStorage.asdimin === '') { sessionStorage.asdimin = diff; } else { sessionStorage.asdimin = Math.min(sessionStorage.asdimin, diff); }
-						sessionStorage.asditotal = (+sessionStorage.asditotal) + diff;
-						sessionStorage.asdicount = (+sessionStorage.asdicount) + 1;
-						console.log('ASDI avg: '+sessionStorage.asditotal/sessionStorage.asdicount+
-							', min: '+sessionStorage.asdimin+', max: '+sessionStorage.asdimax+', count: '+sessionStorage.asdicount);
-					} else {	// airnav
-						if (sessionStorage.airnavmax === '') { sessionStorage.airnavmax = diff; } else { sessionStorage.airnavmax = Math.max(sessionStorage.airnavmax, diff); } 
-						if (sessionStorage.airnavmin === '') { sessionStorage.airnavmin = diff; } else { sessionStorage.airnavmin = Math.min(sessionStorage.airnavmin, diff); }
-						sessionStorage.airnavtotal = (+sessionStorage.airnavtotal) + diff;
-						sessionStorage.airnavcount = (+sessionStorage.airnavcount) + 1;
-						console.log('AirNav avg: '+sessionStorage.airnavtotal/sessionStorage.airnavcount+
-							', min: '+sessionStorage.airnavmin+', max: '+sessionStorage.airnavmax+', count: '+sessionStorage.airnavcount);
+					var newpos = p[0];
+					var newhead = +(data.heading || data.bearing);
+					// FIX ME!!!!!  Use timestamp from API instead of from position data
+					var newdate = Date.parse(newpos.date);
+					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
+					timestamp += updateRate;	// 10 seconds
+					if (data.flightStatus === 'A' && timestamp - newdate > 120000 && !nodata) {	// no data for two minutes
+						showPopup('This flight is temporarily beyond the range of our tracking network or over a large body of water');
+						// airplane.setActive(false);	// set airplane color to gray
+						setFlightPath(true);	// draw entire flight history
+						nodata = true;
+						drawercontrol.update();
 					}
-					console.log('Edge API data: ', data, newdate/1000, data.responseTime, diff, newpos.source);
-				}
 
-				pos = newpos;
-				timestamp = newdate;
-				if (nodata) {
-					nodata = false;
-					if (debug) { console.log('Reestablishing position: ', pos); }
-					showPopup('Reestablishing position data');
-					// airplane.setActive(true);	// set airplane color back to purple
-					if (wrap !== undefined) {	// jump to new position
-						phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
+					if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon &&
+							newpos.date === pos.date && pos.altitudeFt === newpos.altitudeFt) {
+						return; // data has not changed
 					}
+					if (debug) {
+						var diff = data.responseTime - newdate/1000;
+						if (newpos.source === 'ASDI') {
+							diff -= 300;	// five minute delay
+							if (sessionStorage.asdimax === '') { sessionStorage.asdimax = diff; } else { sessionStorage.asdimax = Math.max(sessionStorage.asdimax, diff); } 
+							if (sessionStorage.asdimin === '') { sessionStorage.asdimin = diff; } else { sessionStorage.asdimin = Math.min(sessionStorage.asdimin, diff); }
+							sessionStorage.asditotal = (+sessionStorage.asditotal) + diff;
+							sessionStorage.asdicount = (+sessionStorage.asdicount) + 1;
+							console.log('ASDI avg: '+sessionStorage.asditotal/sessionStorage.asdicount+
+								', min: '+sessionStorage.asdimin+', max: '+sessionStorage.asdimax+', count: '+sessionStorage.asdicount);
+						} else {	// airnav
+							if (sessionStorage.airnavmax === '') { sessionStorage.airnavmax = diff; } else { sessionStorage.airnavmax = Math.max(sessionStorage.airnavmax, diff); } 
+							if (sessionStorage.airnavmin === '') { sessionStorage.airnavmin = diff; } else { sessionStorage.airnavmin = Math.min(sessionStorage.airnavmin, diff); }
+							sessionStorage.airnavtotal = (+sessionStorage.airnavtotal) + diff;
+							sessionStorage.airnavcount = (+sessionStorage.airnavcount) + 1;
+							console.log('AirNav avg: '+sessionStorage.airnavtotal/sessionStorage.airnavcount+
+								', min: '+sessionStorage.airnavmin+', max: '+sessionStorage.airnavmax+', count: '+sessionStorage.airnavcount);
+						}
+						console.log('Edge API data: ', data, newdate/1000, data.responseTime, diff, newpos.source);
+						if (data.flightStatus !== 'A') { console.log('status: ', data.flightStatus, flightStatusValues[data.flightStatus]); }
+					}
+
+					pos = newpos;
+					timestamp = newdate;
+					if (nodata) {
+						nodata = false;
+						if (debug) { console.log('Reestablishing position: ', pos); }
+						showPopup('Reestablishing position data');
+						// airplane.setActive(true);	// set airplane color back to purple
+						if (wrap !== undefined) {	// jump to new position
+							phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
+						}
+					}
+				} else {	// not active, no positions
+					var dad = data.airports.departure;
+					timestamp = data.responseTime;
+					pos = {
+						lat: dad.latitude,
+						lon: dad.longitude,
+						date: timestamp,
+						altitudeFt: dad.elevationFt,
+						speedMph: 0
+					};
 				}
 
 				// fields for mini-tracker
@@ -418,12 +365,13 @@
 					aport = data.airports.arrival;	// arrival airport data
 
 					// load mini-tracker
-					var miniurl = [ 'http://edge.dev.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
+					var miniurl = [ 'http://client-dev-stable.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
+					// var miniurl = [ 'http://client-test.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
+					// var miniurl = [ 'http://edge.dev.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
 						dport.fsCode, '&arrivalAirport=', aport.fsCode, '&guid=', guid ];
 					$.each(minifields, function(k, v) {
 						miniurl.push('&'+k+'='+v);
 					});
-					// if (debug) { console.log('mini-tracker:', miniurl); }
 					if (!showMini) { $('#mini-tracker').hide(); }
 					$('<iframe />', { src: miniurl.join('') }).appendTo('#mini-tracker');
 					// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
@@ -440,7 +388,7 @@
 					dpos = createLatLng(+dport.latitude, +dport.longitude, wrap);
 					apos = createLatLng(+aport.latitude, +aport.longitude, wrap);
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
-					// currot = +(flightData.heading || flightData.bearing);
+					// currot = +(data.heading || data.bearing);
 
 					logourl = 'http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/png/150x50/'+
 							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
@@ -464,12 +412,14 @@
 
 				} else {	// update
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
-					if (trackcontrol.isTracking()) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
-					aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
-					setFlightPath();
-					drawercontrol.update();
-					var mtf = $('#mini-tracker iframe')[0];	// mini-tracker frame
-					(mtf.contentWindow ? mtf.contentWindow : mtf.documentWindow).postMessage(minifields, '*');
+					if (!fpos.equals(curpos)) {
+						if (trackcontrol.isTracking()) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
+						aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
+						setFlightPath();
+						drawercontrol.update();
+						var mtf = $('#mini-tracker iframe')[0];	// mini-tracker frame
+						(mtf.contentWindow ? mtf.contentWindow : mtf.documentWindow).postMessage(minifields, '*');						
+					}
 				}
 
 				// ------------------------------------------------
@@ -546,10 +496,11 @@
 					}
 
 					// flight marker (airplane)
-					var alt = +(pos.altitudeFt || dport.elevationFeet || aport.elevationFeet || 0);
+					var alt = +(pos.altitudeFt || dport.elevationFt || aport.elevationFt || 0);
 					var heading = +(flightData.heading || flightData.bearing);
 					// now that I get current time from API, fix this to go back 1 minute in time to start animation
 					// and display warning if no new data
+
 					if (flightData.positions.length > 2) {	// FIX ME!!!!! Should be based on time.
 						p = flightData.positions[2];
 						var a2 = +(p.altitudeFt || alt);
@@ -812,8 +763,9 @@
 
 			var drawer = L.DomUtil.get('drawer');
 
-			L.DomEvent.on(drawer, 'click', this._toggle, this)
-						.on(drawer, 'click', L.DomEvent.stop);
+			L.DomEvent.on(drawer, 'mousedown', this._toggle, this).
+						on(drawer, 'mousedown', L.DomEvent.stop).
+						on(drawer, 'click', L.DomEvent.stop);
 		},
 
 		onRemove: function(/* map */) {
@@ -1070,7 +1022,7 @@
 		},
 
 		expand: function() {
-			if (drawercontrol.expanded()) {
+			if (drawercontrol.expanded() && $('#map_div').height() < 650) {
 				drawerwasopen = true;
 				drawercontrol.collapse();
 			}
@@ -1188,6 +1140,7 @@
 
 	function setFlightPath(all) { // draw flight positions
 		var p = flightData.positions;
+		if (p.length === 0) { return; }
 		var positions = [];
 		var last = null, ct, tail;
 		var i = 1;
@@ -1271,6 +1224,7 @@
 	}
 
 	function formatEquip(es) {
+		es = es.replace('De Havilland (Bombardier) DHC-8-400 Dash 8/8Q', 'Bombardier Dash 8-Q400');
 		return es.replace(/\s*(Passenger|Industrie|\([^\)]*\))/g, '');
 	}
 
@@ -1284,6 +1238,68 @@
 		R: 'Redirected',
 		S: 'Scheduled',
 		U: 'Unknown Status'
+	};
+
+	// Flightstats weather tiles -----------------------------------------------------------
+  L.TileLayer.FSWeather = L.TileLayer.extend({
+    initialize: function(options) {
+      L.Util.setOptions(this, options);    
+    },
+    getTileUrl: function(xy) {
+      var z = this._getZoomForUrl();
+      var de = L.TileLayer.FSWeather.weather_tiles_range[z];
+      return (de && xy.x >= de.x.min && xy.x <= de.x.max && xy.y >= de.y.min && xy.y <= de.y.max) ?
+        ['http://www.flightstats.com/googlemaptiles/weather/noaa/radar/z', z,
+            '/radar_tile_z', z, 'x', xy.x, 'y', xy.y, '.png'].join('') : '';
+    }
+  });
+  
+  L.TileLayer.FSWeather.weather_tiles_range = {
+			2: { x: {min: 0, max: 1}, y: {min: 1, max: 1} },
+			3: { x: {min: 0, max: 2}, y: {min: 2, max: 3} },
+			4: { x: {min: 0, max: 5}, y: {min: 4, max: 7} },
+			5: { x: {min: 0, max: 10}, y: {min: 8, max: 14} },
+			6: { x: {min: 0, max: 20}, y: {min: 16, max: 28} }
+  };
+
+	// Map tile sets -----------------------------------------------------------
+	var basemaps = { // map tiles
+		sat: L.tileLayer(
+			'http://maps{s}.flightstats.com/aerial/{z}/{x}/{y}.png',
+			{ subdomains: '1234',
+				zIndex: 2,
+				minZoom: 0, maxZoom: 12
+		}),
+		map: L.tileLayer(
+			'http://maps{s}.flightstats.com/streets/{z}/{x}/{y}.png',
+			{ subdomains: '1234',
+				zIndex: 2,
+				minZoom: 0, maxZoom: 12
+		})
+	};
+
+	var overlays = {
+		weather: new L.TileLayer.FSWeather({
+			opacity: '0.5',
+			// attribution: "Weather data &copy; 2011 IEM Nexrad",
+			zIndex: 4,
+			minZoom: 2, maxZoom: 6
+		}),
+		labels: L.tileLayer(
+			// 'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
+			'http://maps{s}.flightstats.com/labels/{z}/{x}/{y}.png',
+			{ subdomains: '1234',
+			zIndex: 5,
+				minZoom: 0, maxZoom: 12
+		}),
+		terrain: L.tileLayer(
+			// 'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
+			'http://maps{s}.flightstats.com/terrain/{z}/{x}/{y}.png',
+			{ subdomains: '1234',
+				opacity: 0.7,
+				zIndex: 3,
+				minZoom: 0, maxZoom: 12
+		})
 	};
 
 }(jQuery));

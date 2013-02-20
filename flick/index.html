@@ -216,9 +216,9 @@
 			bottom: 0px;
 			width: 240px;
 			font-size: 13px;
-			line-height: 18px;
+			line-height: 15px;
 			font-family: Helvetica, Arial, sans-serif;
-			color: white; /* #EBEBEB; */
+			color: #EBEBEB;
 			padding: 0 30px;
 		}
 		div.labelhead {
@@ -232,11 +232,11 @@
 			width: 150px;
 			height: 50px;
 			background-color: #EBEBEB;
+			border: 2px solid #EBEBEB;
 			border-left: 5px solid #EBEBEB;
 			border-right: 5px solid #EBEBEB;
 			margin-left: 40px;
 		}
-		svg
 		div.fakelogo {
 			text-align: center;
 			font-size: 1.5em;
@@ -246,20 +246,22 @@
 			text-shadow: 0.1em 0.1em 0.06em #222;
 		}
 		#flightinfo {
-			margin-top: 6px;
+			margin-top: 2px;
 			width: 100%;
-			line-height: 14px;
+			line-height: 13px;
 		}
 		#flightinfo td.tn {
 			text-align: right;
+			color: #B3B4B6;
+			padding-right: 3px;
 		}
 	</style>
 </head>
 <body>
 	<div id="map_div"></div>
 	<div id="control">
-		<a id="control-track" href="#" title="Track Flight"></a>
-		<a id="control-layer-toggle" href="#" title="Map Layers"></a>
+		<div id="control-track" title="Track Flight"></div>
+		<div id="control-layer-toggle" title="Map Layers"></div>
 		<form id="control-layer-list">
 			<label><input id="layer-sat" type="radio" name="layers-base" /> SATELLITE</label>
 			<label class="sep-bel"><input id="layer-map" type="radio" name="layers-base" /> MAP</label>

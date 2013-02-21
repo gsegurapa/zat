@@ -166,10 +166,11 @@
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
 					(flightData.flightStatus !== 'A' ? '<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
-						(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
-							(flightData.delayMinutes >= 15 ?
-								'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
-								'<br />On Time')))+
+						(nodata ? '<br /><span style="color:yellow">'+
+							(timestamp < flightData.operationalTimes.arrivalTime ? 'out of range for tracking' : flightStatusValues['L'])+'</span>' :
+								(flightData.delayMinutes >= 15 ?
+									'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
+									'<br />On Time')))+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
 					'</td></tr><tr><td class="tn">Altitude</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+
 					' m)</td></tr><tr><td class="tn">Speed</td><td>'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
@@ -261,8 +262,8 @@
 		function mainloop() {
 
 			$.ajax({  // Call Flight Track by flight ID API
-					url: 'http://client-dev-stable.cloud-east.dev:3450/flightTracker/' + flightID,
-					// url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
+					// url: 'http://client-dev-stable.cloud-east.dev:3450/flightTracker/' + flightID,
+					url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
 					// url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
 					data: { guid: guid, airline: airline, flight: flightnum, flightPlan: layers.plan===null },
 					dataType: 'jsonp',
@@ -271,9 +272,10 @@
 
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
-				if (!data || data.error) {
-					console.log('API error:', data.error);
-					alert('flight data error: '+data.error.errorMessage);
+				console.log(data);
+				if (data.status || data.tracks) {
+					showNote(data.status ? data.status.message : data.tracks.message, new Date().toUTCString());
+					map.fitWorld();
 					return;
 				}
 
@@ -298,7 +300,7 @@
 					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 					timestamp += updateRate;	// 10 seconds
 					if (data.flightStatus === 'A' && timestamp - newdate > 120000 && !nodata) {	// no data for two minutes
-						showPopup('This flight is temporarily beyond the range of our tracking network or over a large body of water');
+						showNote('This flight is temporarily beyond the range of our tracking network');
 						// airplane.setActive(false);	// set airplane color to gray
 						setFlightPath(true);	// draw entire flight history
 						nodata = true;
@@ -336,7 +338,7 @@
 					if (nodata) {
 						nodata = false;
 						if (debug) { console.log('Reestablishing position: ', pos); }
-						showPopup('Reestablishing position data');
+						showNote('Re-established position data');
 						// airplane.setActive(true);	// set airplane color back to purple
 						if (wrap !== undefined) {	// jump to new position
 							phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
@@ -650,8 +652,8 @@
 				return L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
 	}
 
-	function showPopup(message) {
-		$('#message').html(message+'<br />'+(new Date(timestamp)).toUTCString());
+	function showNote(message, t) {
+		$('#message').html(message+'<br />'+(t?t:(new Date(timestamp)).toUTCString()));
 		$('#messagepopup').show().on('click', function() { $(this).hide(); });
 	}
 

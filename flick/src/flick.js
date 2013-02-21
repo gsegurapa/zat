@@ -272,7 +272,7 @@
 
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
-
+				if (debug) { console.log(data); }
 				if (data.status || data.tracks) {	// error!
 					showNote(data.status ? data.status.message : data.tracks.message, new Date().toUTCString());
 					map.fitWorld();
@@ -291,7 +291,7 @@
 					}
 				}
 
-				if (numpos > 0 && data.flightStatus === 'A') {	// have positions
+				if (numpos > 0 && data.flightStatus !== 'L') {	// have positions
 
 					var newpos = p[0];
 					var newhead = +(data.heading || data.bearing);
@@ -345,7 +345,7 @@
 						}
 					}
 				} else {	// not active, no positions
-					var ap = data.flightStatus === 'S' ? data.airports.departure : data.airports.arrival;
+					var ap = data.flightStatus !== 'L' ? data.airports.departure : data.airports.arrival;
 					timestamp = data.responseTime;
 					pos = {
 						lat: ap.latitude,

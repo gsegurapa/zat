@@ -170,7 +170,7 @@
 							(flightData.delayMinutes >= 15 ?
 								'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
 								'<br />On Time')))+
-					'</div><table id="flightinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
+					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
 					'</td></tr><tr><td class="tn">Altitude</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+
 					' m)</td></tr><tr><td class="tn">Speed</td><td>'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
 					'<tr><td class="tn">Heading</td><td>'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
@@ -365,8 +365,8 @@
 					aport = data.airports.arrival;	// arrival airport data
 
 					// load mini-tracker
-					var miniurl = [ 'http://client-dev-stable.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
-					// var miniurl = [ 'http://client-test.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
+					// var miniurl = [ 'http://client-dev-stable.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
+					var miniurl = [ 'http://client-test.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
 					// var miniurl = [ 'http://edge.dev.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
 						dport.fsCode, '&arrivalAirport=', aport.fsCode, '&guid=', guid ];
 					$.each(minifields, function(k, v) {
@@ -431,11 +431,11 @@
 					}
 
 					function depinfo() {	// drawer info for departing airport
-						return '<div class="labelhead">Departing '+dport.fsCode+'</div>'+formatAirport(dport.name)+
-							'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+dport.countryCode+
-							'<br />Weather: '+formatWeather(dport.conditions)+
-							'<br />Temperature: '+(32 + (1.8 * dport.tempCelsius)).toFixed()+'&deg;F ('+dport.tempCelsius.toFixed(1)+'&deg;C)'+
-							'<br />Local time: '+formatTime(dport.localTime);
+						return '<div class="labelhead">Departing '+dport.fsCode+'</div><div style="text-align:center;width:100%">'+
+							formatAirport(dport.name)+'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+dport.countryCode+
+							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(dport.conditions)+
+							'</td></tr><tr><td class="tn">Temperature</td><td>'+(32 + (1.8 * dport.tempCelsius)).toFixed()+'&deg;F ('+dport.tempCelsius.toFixed(1)+'&deg;C)'+
+							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(dport.localTime)+'</td></tr></table>';
 					}
 
 					// departing airport marker
@@ -451,11 +451,11 @@
 						});								
 
 					function arrinfo() {	// drawer info for arriving airport
-						return '<div class="labelhead">Arriving '+aport.fsCode+'</div>'+formatAirport(aport.name)+
-							'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+aport.countryCode+
-							'<br />Weather: '+formatWeather(aport.conditions)+
-							'<br />Temperature: '+(32 + (1.8 * aport.tempCelsius)).toFixed()+'&deg;F ('+aport.tempCelsius.toFixed(1)+'&deg;C)'+
-							'<br />Local time: '+formatTime(aport.localTime);
+						return '<div class="labelhead">Arriving '+aport.fsCode+'</div><div style="text-align:center;width:100%">'+
+							formatAirport(aport.name)+'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+aport.countryCode+
+							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(aport.conditions)+
+							'</td></tr><tr><td class="tn">Temperature</td><td>'+(32 + (1.8 * aport.tempCelsius)).toFixed()+'&deg;F ('+aport.tempCelsius.toFixed(1)+'&deg;C)'+
+							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(aport.localTime)+'</td></tr></table>';
 					}
 
 					// arriving airport marker

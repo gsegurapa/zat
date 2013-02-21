@@ -90,6 +90,13 @@
     if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
 	}
 
+	function setCookie(name, value) {
+    var date = new Date();
+    date.setTime(date.getTime() + 365*86400000); // 1 year
+    document.cookie = name+'='+value+'; expires='+date.toGMTString()+'; path='+window.location.pathname;
+  }
+
+	getParams('?'+document.cookie); // params from cookies
 	getParams(window.location.href); // read parameters from URL
 	if (autoHide === 'auto') { autoHide = L.Browser.touch; }
 	if (zoomControl === 'auto') { zoomControl = !L.Browser.touch; }
@@ -1061,6 +1068,7 @@
 
 		_notify: function(k, v) {
 			if (debug) { console.log('notify', k, v); }
+			setCookie(k, v);
 		}
 
 	});

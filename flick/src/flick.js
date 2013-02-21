@@ -168,6 +168,8 @@
 
 		function flightinfo() {	// info about flight for drawer
 			var airlinename = flightData.carrierName;
+			var s = (flightData.flightStatus === 'A' && flightData.speedMph === 0) ? 'N/A' :
+					pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)';
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 					'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
@@ -181,7 +183,7 @@
 									'<br />On Time')))+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
 					'</td></tr><tr><td class="tn">Altitude</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+
-					' m)</td></tr><tr><td class="tn">Speed</td><td>'+pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)</td></tr>'+
+					' m)</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+
 					'<tr><td class="tn">Heading</td><td>'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
 					(flightData.operatedByFsCode ?
 						'<tr><td class="tn">Operated&nbsp;by</td><td>'+flightData.operatedByFsCode+' '+
@@ -667,7 +669,7 @@
 	}
 
 	function showNote(message, t) {
-		$('#message').html(message+'<br />'+(t?t:(new Date(timestamp)).toUTCString()));
+		$('#message').html(message+'<div class="ntime">'+(t?t:(new Date(timestamp)).toUTCString()))+'</div>';
 		$('#messagepopup').show().on('click', function() { $(this).hide(); });
 	}
 

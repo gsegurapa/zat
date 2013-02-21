@@ -67,9 +67,9 @@ Departing airport:
 		var now = new Date();
 		$.ajax({  // airport tracks departures
 			url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/' + airportCode + '/dep/' +
-					now.getFullYear() + '/' + (1+now.getMonth()) + '/' + now.getDate() + '/' + now.getHours(),
+					now.getFullYear() + '/' + (1+now.getMonth()) + '/' + now.getDate() + '/' + (now.getHours() - 1),
       // url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
-      data: { appId: appId, appKey: appKey },
+      data: { appId: appId, appKey: appKey, numHours: 2 },
       dataType: 'jsonp',
       success: getDepartures
     });

@@ -22,7 +22,7 @@
 				pathHalo: null, path: null,	// actual path
 				planHalo: null, plan: null,	// flight plan (if available)
 				arcHalo: null, arc: null,	// shortest arc (geodesic)
-				mini: null },
+				mini: null },	// mini-tracker
 			wrap;	// does route cross the anti-meridian?
 	var maxZoom = 12;	// cannot zoom in any more than this
 	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
@@ -34,12 +34,13 @@
 			currot, // current heading of animation
 			curspeed, // current speed of airplane in mph
 			curheading,	// current heading
+			curstatus = null,	// current status
 			frames = 0,	// frames of animation remaining
-			rotframes,	// frames of animation in rotation remaining
+			rotframes,	// frames of rotation animation remaining
 			anitimer;	// animation timer
 	var vlat, vlng, vrot;	// animation parameters
 	var zooming = false;	// true during zoom animation
-	var numpos, // debug stuff
+	var numpos, // debug stuff for simulating a data loss
 			data_off = 0,	// index of where data is off for testing
 			data_on = 0;	// index of where data is back on
 	var trackcontrol, layercontrol, drawercontrol;	// UI
@@ -298,6 +299,12 @@
 					}
 				}
 
+				if (data.flightStatus !== curstatus) {
+					var m = flightStatusMessages[data.flightStatus];
+					if (m) { showNote(m, new Date(data.responseTime).toUTCString()); }
+					curstatus = data.flightStatus;
+				}
+
 				if (numpos > 0 && data.flightStatus !== 'L') {	// have positions
 
 					var newpos = p[0];
@@ -381,8 +388,8 @@
 					$.each(minifields, function(k, v) {
 						miniurl.push('&'+k+'='+v);
 					});
-					if (!showMini) { $('#mini-tracker').hide(); }
-					$('<iframe />', { src: miniurl.join('') }).appendTo('#mini-tracker');
+					if (!showMini) { $('#mini-tracker-div').hide(); }
+					$('<iframe />', { src: miniurl.join('') }).appendTo('#mini-tracker-div');
 					// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
 					// <!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1
 					//      &totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622
@@ -426,7 +433,7 @@
 						aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
 						setFlightPath();
 						drawercontrol.update();
-						var mtf = $('#mini-tracker iframe')[0];	// mini-tracker frame
+						var mtf = $('#mini-tracker-div iframe')[0];	// mini-tracker frame
 						(mtf.contentWindow ? mtf.contentWindow : mtf.documentWindow).postMessage(minifields, '*');						
 					}
 				}
@@ -853,7 +860,6 @@
 		onAdd: function(map) {
 			this._map = map;
 			this._expanded = false;
-			// this._mini = true;	// mini-tracker
 
 			var toggle = this._toggle = L.DomUtil.get('control-layer-toggle');
 			var list = L.DomUtil.get('control-layer-list');
@@ -997,11 +1003,11 @@
 			// click on mini-tracker
 			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function() {
 				if ($('#layer-mini:checked').length > 0) {
-					$('#mini-tracker').show();
+					$('#mini-tracker-div').show();
 					showMini = true;
 					this._notify('showMini','true');
 				} else {
-					$('#mini-tracker').hide();
+					$('#mini-tracker-div').hide();
 					showMini = false;
 					this._notify('showMini','false');
 				}
@@ -1248,6 +1254,17 @@
 		R: 'Redirected',
 		S: 'Scheduled',
 		U: 'Unknown Status'
+	};
+
+	var flightStatusMessages = {
+		C: 'The flight has been cancelled',
+		D: 'The flight has been diverted to another airport',
+		DN: 'Tracking data is not available for this flight',
+		L: 'The flight has landed',
+		NO: 'Flight not operating',
+		R: 'The flight has been redirected to another airport',
+		S: 'Tracking will begin upon departure',
+		U: 'Tracking is not enabled for this flight'
 	};
 
 	// Flightstats weather tiles -----------------------------------------------------------

@@ -17,6 +17,7 @@
 Departing airport:
 <input id="aircode" type="text" size="4" value="PDX" />
 <input id="lookup" type="button" value="Lookup" />
+<span id="ctime"></span>
 </div>
 <div id="out">
 <table id="flights">
@@ -25,6 +26,7 @@ Departing airport:
 <script type="text/javascript">
 (function($){
 	var airportCode = 'PDX',	// default
+			now,	// current time
 			appId = '9543a3e8',
 			appKey = '91d511451d9dbf38ede3efafefac5f09';
 
@@ -64,7 +66,7 @@ Departing airport:
 	function lookup(e) {
 		if (e.type === 'keydown' && e.keyCode !== 13) { return; }
 		airportCode = $('#aircode').val().toUpperCase();
-		var now = new Date();
+		now = new Date();
 		$.ajax({  // airport tracks departures
 			url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/' + airportCode + '/dep/' +
 					now.getUTCFullYear() + '/' + (1+now.getUTCMonth()) + '/' + now.getUTCDate() + '/' + (now.getUTCHours() - 1),
@@ -85,10 +87,12 @@ Departing airport:
 		if (debug) { console.log('departing flights: ',data); }
 		var airlines = getAppendix(data.appendix.airlines);
 		var airports = getAppendix(data.appendix.airports);
+		$('#ctime').text(airports[airportCode].localTime.slice(0,16));
 		var deps = [];
 		$.each(data.flightStatuses, function(index, val) {
 			deps.push({
 					id: val.flightId,
+					status: val.status,
 					airlineCode: val.carrierFsCode,
 					airline: airlines[val.carrierFsCode].name,
 					flight: val.flightNumber,
@@ -100,13 +104,14 @@ Departing airport:
 				});
 		});
 		function comp(a, b) {
-			return a.leaves > b.leaves ? -1 : 1;
+			return a.leaves < b.leaves ? -1 : 1;
 		}
 		deps.sort(comp);
 
-		$flights.append('<tr><td>ID</td><td>LEAVES</td><td>TO</td><td>FLIGHT</td><td>CODESHARES</td></tr>');
+		$flights.append('<tr><td>ID</td><td>?</td><td>LEAVES</td><td>TO</td><td>FLIGHT</td><td>CODESHARES</td></tr>');
 		$.each(deps, function(index, val) {
-			var fl = '<tr><td>'+val.id+'</td><td>'+val.leaves+'</td><td>'+val.to+' - '+val.city+
+			var status = 'SAL'.indexOf(val.status) === -1 ? '<span style="color:red">'+val.status+'</span>' : val.status;
+			var fl = '<tr><td>'+val.id+'</td><td>'+status+'</td><td>'+val.leaves+'</td><td>'+val.to+' - '+val.city+
 				'</td><td><a href="index.html?id='+val.id+'&airline='+val.airlineCode+'&flight='+val.flight+extras+'" title="'+val.airline+'">'+
 				val.airlineCode+' '+val.flight+'</a></td><td>';
 			$.each(val.codeshares, function(i, v) {

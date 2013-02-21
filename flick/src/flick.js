@@ -10,7 +10,7 @@
 	var rotRate = aniRate / 500;	// 2 degrees per second max
 	var guid = '34b64945a69b9cac:5ae30721:13ca699d305:75ee';
 
-	var map;
+	var map;	// Leaflet map object
 	var dport,	// departure airport data
 			dpos,	// lat/lng position of departure airport
 			aport,	// arrival airport data
@@ -24,7 +24,7 @@
 				arcHalo: null, arc: null,	// shortest arc (geodesic)
 				mini: null },
 			wrap;	// does route cross the anti-meridian?
-	var maxZoom = 12;
+	var maxZoom = 12;	// cannot zoom in any more than this
 	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
 	var flightData,	// flight data returned by API
 			pos,	// position data returned by API
@@ -47,23 +47,23 @@
 
 	// process URL parameters
 	var flightID, // flightstats flight id
-			airline,
-			flightnum,
+			airline,	// airline code
+			flightnum,	// flight number
 			// timeFormat=12, // 12 or 24
 			// units='metric', // metric or US
-			mapType = 'sat', // name of map
-			showLabels = false,
-			showTerrain = false,
-			showPath = true,
-			showPlan = true,
-			showArc = false,
-			showMini = true,
-			showWeather = false,
-			demo = false,
-			view = '2D',
-			debug = false,	// interactive debug
-			zoomControl = 'auto',	// show zoom control
-			autoHide = 'auto';	// auto hide controls
+			mapType = 'sat', // name of map (sat or map)
+			showLabels = false,	// show label layer on sat map
+			showTerrain = false,	// show terrain layer on map
+			showPath = true,	// actual path
+			showPlan = true,	// flight plan
+			showArc = false,	// great arc
+			showMini = true,	// mini-tracker
+			showWeather = false,	// US weather
+			demo = false,	// demo mode for signage
+			view = '2D',	// 3D mode not really working
+			debug = false,	//  debug
+			zoomControl = 'auto',	// show zoom control (auto = if !touch)
+			autoHide = 'auto';	// auto hide controls (auto = if touch)
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -272,8 +272,8 @@
 
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
-				console.log(data);
-				if (data.status || data.tracks) {
+
+				if (data.status || data.tracks) {	// error!
 					showNote(data.status ? data.status.message : data.tracks.message, new Date().toUTCString());
 					map.fitWorld();
 					return;
@@ -291,7 +291,7 @@
 					}
 				}
 
-				if (data.positions.length > 0) {	// have positions
+				if (numpos > 0 && data.flightStatus === 'A') {	// have positions
 
 					var newpos = p[0];
 					var newhead = +(data.heading || data.bearing);
@@ -345,13 +345,13 @@
 						}
 					}
 				} else {	// not active, no positions
-					var dad = data.airports.departure;
+					var ap = data.flightStatus === 'S' ? data.airports.departure : data.airports.arrival;
 					timestamp = data.responseTime;
 					pos = {
-						lat: dad.latitude,
-						lon: dad.longitude,
+						lat: ap.latitude,
+						lon: ap.longitude,
 						date: timestamp,
-						altitudeFt: dad.elevationFt,
+						altitudeFt: ap.elevationFt,
 						speedMph: 0
 					};
 				}

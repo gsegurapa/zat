@@ -303,7 +303,7 @@
 
 				if (data.flightStatus !== curstatus) {
 					var m = flightStatusMessages[data.flightStatus];
-					if (m) { showNote(m, new Date(data.responseTime).toUTCString()); }
+					if (m) { showNote(m, new Date(data.responseTime*1000).toUTCString()); }
 					curstatus = data.flightStatus;
 				}
 
@@ -1251,6 +1251,7 @@
 		C: 'Cancelled',
 		D: 'Diverted',
 		DN: 'No Data Source',
+		I: 'Not Tracking',
 		L: 'Landed',
 		NO: 'Not Operational',
 		R: 'Redirected',
@@ -1262,6 +1263,7 @@
 		C: 'The flight has been cancelled',
 		D: 'The flight has been diverted to another airport',
 		DN: 'Tracking data is not available for this flight',
+		I: 'This flight is not being tracked',
 		L: 'The flight has landed',
 		NO: 'Flight not operating',
 		R: 'The flight has been redirected to another airport',

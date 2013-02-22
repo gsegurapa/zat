@@ -1251,7 +1251,7 @@
 		I: 'Not Tracking',
 		L: 'Landed',
 		NO: 'Not Operational',
-		R: 'Redirected',
+		R: 'Possibly Redirected',
 		S: 'Scheduled',
 		U: 'Unknown Status'
 	};
@@ -1263,7 +1263,7 @@
 		I: 'This flight is not being tracked',
 		L: 'The flight has landed',
 		NO: 'Flight not operating',
-		R: 'The flight has been redirected to another airport',
+		// R: 'The flight has possibly been redirected',
 		S: 'Tracking will begin upon departure',
 		U: 'Tracking is not enabled for this flight'
 	};

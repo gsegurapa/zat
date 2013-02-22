@@ -5,7 +5,7 @@
 // 	"use strict";
 
 	// tuning parameters
-	var updateRate = 10000;	// 10 seconds
+	var updateRate = 30000;	// 30 seconds
 	var aniRate = 250;	// 1/4 second
 	var rotRate = aniRate / 500;	// 2 degrees per second max
 	var guid = '34b64945a69b9cac:5ae30721:13ca699d305:75ee';
@@ -519,9 +519,8 @@
 					// now that I get current time from API, fix this to go back 1 minute in time to start animation
 					// and display warning if no new data
 
-					if (flightData.positions.length > 2) {	// FIX ME!!!!! Should be based on time.
+					if (flightData.positions.length > 2) {
 						p = flightData.positions[2];
-						console.log('positions[2]', p, curpos);
 						var a2 = +(p.altitudeFt || alt);
 						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground
 						var fp2 = createLatLng(+p.lat, +p.lon, wrap);

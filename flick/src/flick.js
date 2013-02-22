@@ -315,10 +315,10 @@
 
 				var newheading = +(data.heading || data.bearing);
 
-				if (numpos > 0) {	// have positions
+				if (numpos > 0 && curstatus !=='L') {	// have positions
 
 					var newpos = p[0];
-					// FIX ME!!!!!  Use timestamp from API instead of from position data
+					// Want to use timestamp from API instead of from position data, but it might not be reliable enough
 					var newdate = Date.parse(newpos.date);
 					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 					timestamp += updateRate;	// 10 seconds
@@ -367,7 +367,7 @@
 						}
 					}
 				} else {	// no positions
-					var ap = data.airports.departure;
+					var ap = curstatus === 'L' ? data.airports.arrival : data.airports.departure;
 					timestamp = data.responseTime;
 					pos = {
 						lat: ap.latitude,
@@ -1159,7 +1159,7 @@
 		var positions = [];
 		var last = null, ct, tail;
 		var i = 1;
-		if (all || !curpos || curspeed < 120) {	// draw all positions
+		if (all || !curpos || curspeed < 120 || flightData.flightStatus === 'L') {	// draw all positions
 			tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
 		} else { // find last point in flight path to be displayed
 			var m = Math.min(p.length, 10);

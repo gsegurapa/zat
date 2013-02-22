@@ -26,7 +26,6 @@ Departing airport:
 <script type="text/javascript">
 (function($){
 	var airportCode = 'PDX',	// default
-			now,	// current time
 			appId = '9543a3e8',
 			appKey = '91d511451d9dbf38ede3efafefac5f09';
 
@@ -66,12 +65,13 @@ Departing airport:
 	function lookup(e) {
 		if (e.type === 'keydown' && e.keyCode !== 13) { return; }
 		airportCode = $('#aircode').val().toUpperCase();
-		now = new Date();
+		var now = new Date();	// current date and time
+		now.setHours(now.getHours() - 2);
 		$.ajax({  // airport tracks departures
 			url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/' + airportCode + '/dep/' +
-					now.getUTCFullYear() + '/' + (1+now.getUTCMonth()) + '/' + now.getUTCDate() + '/' + (now.getUTCHours() - 1),
+					now.getUTCFullYear() + '/' + (1+now.getUTCMonth()) + '/' + now.getUTCDate() + '/' + now.getUTCHours(),
       // url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
-      data: { appId: appId, appKey: appKey, utc: true, numHours: 2 },
+      data: { appId: appId, appKey: appKey, utc: true, numHours: 3 },
       dataType: 'jsonp',
       success: getDepartures
     });

@@ -189,12 +189,13 @@
 						'<tr><td class="tn">Operated&nbsp;by</td><td>'+flightData.operatedByFsCode+' '+
 						(flightData.operatedByFlightNum ? flightData.operatedByFlightNum : flightData.carrierFlightId)+'</td></tr>' : '')+
 					'<tr><td class="tn">Equipment</td><td>'+
-							(flightData.flightEquipmentName && flightData.flightEquipmentName !== '??' ?
-								formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata)+
+							(flightData.flightEquipmentName ? (flightData.flightEquipmentName !== '??' ?
+								formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata) : 'unknown')+
 					'</td></tr></table>';
 		}
 		drawercontrol = new DrawerControl(flightinfo);
 
+		// --------------------------------------------------
     // create map
 		map = L.map('map_div', {	// create map
 			attributionControl: false,
@@ -273,7 +274,7 @@
 
 			$.ajax({  // Call Flight Track by flight ID API
 					// url: 'http://client-dev-stable.cloud-east.dev:3450/flightTracker/' + flightID,
-					url: 'http://client-test.cloud-east.dev:3450/flightTracker/' + flightID,
+					url: 'http://client-dev.cloud-east.dev:3450/flightTracker/' + flightID,
 					// url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
 					data: { guid: guid, airline: airline, flight: flightnum, flightPlan: layers.plan===null },
 					dataType: 'jsonp',
@@ -301,25 +302,31 @@
 					}
 				}
 
-				if (data.flightStatus !== curstatus) {
+				if (data.flightStatus !== curstatus) {	// change of status
 					var m = flightStatusMessages[data.flightStatus];
-					if (m) { showNote(m, new Date(data.responseTime*1000).toUTCString()); }
+					if (data.flightStatus === 'A' && numpos === 0) {	// taxi to runway
+						m = 'Tracking will begin upon take off';
+					}
+					if (m) {
+						showNote(m, new Date(data.responseTime*1000).toUTCString());
+					}
 					curstatus = data.flightStatus;
 				}
 
-				if (numpos > 0 && data.flightStatus !== 'L') {	// have positions
+				var newheading = +(data.heading || data.bearing);
+
+				if (numpos > 0) {	// have positions
 
 					var newpos = p[0];
-					var newhead = +(data.heading || data.bearing);
 					// FIX ME!!!!!  Use timestamp from API instead of from position data
 					var newdate = Date.parse(newpos.date);
 					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 					timestamp += updateRate;	// 10 seconds
-					if (data.flightStatus === 'A' && timestamp - newdate > 120000 && !nodata) {	// no data for two minutes
-						showNote('This flight is temporarily beyond the range of our tracking network');
-						// airplane.setActive(false);	// set airplane color to gray
-						setFlightPath(true);	// draw entire flight history
+																											// no data for two minutes  OR  last data point is more than 10 minutes old
+					if (data.flightStatus === 'A' && !nodata && (timestamp - newdate > 120000 /* || data.responseTime - newdate/1000 > 600 */) ) {	
 						nodata = true;
+						showNote('This flight is temporarily beyond the range of our tracking network');
+						if (layers.path) { setFlightPath(true); }	// draw entire flight history
 						drawercontrol.update();
 					}
 
@@ -355,13 +362,12 @@
 						nodata = false;
 						if (debug) { console.log('Reestablishing position: ', pos); }
 						showNote('Re-established position data');
-						// airplane.setActive(true);	// set airplane color back to purple
 						if (wrap !== undefined) {	// jump to new position
-							phat(createLatLng(+pos.lat, +pos.lon, wrap), newhead, +pos.altitudeFt, timestamp);
+							phat(createLatLng(+pos.lat, +pos.lon, wrap), newheading, +pos.altitudeFt, timestamp);
 						}
 					}
-				} else {	// not active, no positions
-					var ap = data.flightStatus !== 'L' ? data.airports.departure : data.airports.arrival;
+				} else {	// no positions
+					var ap = data.airports.departure;
 					timestamp = data.responseTime;
 					pos = {
 						lat: ap.latitude,
@@ -370,12 +376,12 @@
 						altitudeFt: ap.elevationFt,
 						speedMph: 0
 					};
-				}
+				} // end have positions
 
 				// fields for mini-tracker
 				var minifields = $.extend({ flightStatusCode: data.flightStatus,
-					speedMph: pos.speedMph, altitudeFt: pos.altitudeFt },
-							data.operationalTimes, data.miniTracker);
+								speedMph: pos.speedMph, altitudeFt: pos.altitudeFt },
+						data.operationalTimes, data.miniTracker);
 
 				if (dport === undefined) { // first time called
 
@@ -384,22 +390,16 @@
 
 					// load mini-tracker
 					// var miniurl = [ 'http://client-dev-stable.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
-					var miniurl = [ 'http://client-test.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
+					var miniurl = [ 'http://client-dev.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
 					// var miniurl = [ 'http://edge.dev.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
+					// var miniurl = [ 'http://edge.staging.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
 						dport.fsCode, '&arrivalAirport=', aport.fsCode, '&guid=', guid ];
 					$.each(minifields, function(k, v) {
 						miniurl.push('&'+k+'='+v);
 					});
 					if (!showMini) { $('#mini-tracker-div').hide(); }
 					$('<iframe />', { src: miniurl.join('') }).appendTo('#mini-tracker-div');
-					// <iframe src="http://client-test.cloud-east.dev:3500/tracker"></iframe>
-					// <!-- ?animate=1&departureAirport=SEA&arrivalAirport=LAX&isoClock=1&metric=1
-					//      &totalKilometers=1826&departureTime=1360017412&arrivalTime=1360024622
 
-					// This test does not take into account flights that fly the "wrong" way around
-					// the world. In particular Singapore to New York (because of the wind).
-					// Could do this by looking at flight plan, except flight plan is sometimes wrong.
-					// See https://www.pivotaltracker.com/projects/709005#!/stories/40465187
 					// See setfullview for hack to fix long Singapore flights
 					wrap = Math.abs(dport.longitude - aport.longitude) > 180; // does route cross anti-meridian?
 
@@ -432,7 +432,7 @@
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					if (!fpos.equals(curpos)) {
 						if (trackcontrol.isTracking()) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
-						aniPhats(fpos, newhead, +pos.altitudeFt, timestamp, +pos.speedMph);
+						aniPhats(fpos, newheading, +pos.altitudeFt, timestamp, +pos.speedMph);
 						setFlightPath();
 						drawercontrol.update();
 						var mtf = $('#mini-tracker-div iframe')[0];	// mini-tracker frame
@@ -521,6 +521,7 @@
 
 					if (flightData.positions.length > 2) {	// FIX ME!!!!! Should be based on time.
 						p = flightData.positions[2];
+						console.log('positions[2]', p, curpos);
 						var a2 = +(p.altitudeFt || alt);
 						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground
 						var fp2 = createLatLng(+p.lat, +p.lon, wrap);
@@ -710,11 +711,8 @@
 			$shadow.css({opacity: 0.6, left: offset, top: offset});
 			return this;
 		}
-		// setActive: function(v) {	// change color when data feed lost
-		//	$(this._icon).find('.airplaneicon').attr('src', v ? 'img/airplane-purple.png' : 'img/airplane-gray.png');
-		//	return this;
-		// }
 	});
+
 	var flightMarker = function(latlng) { // factory
 		return new FlightMarker(latlng);
 	};
@@ -1158,7 +1156,7 @@
 
 	function setFlightPath(all) { // draw flight positions
 		var p = flightData.positions;
-		if (p.length === 0) { return; }
+		if (p.length < 2) { return; }
 		var positions = [];
 		var last = null, ct, tail;
 		var i = 1;

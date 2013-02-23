@@ -178,10 +178,11 @@
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
 					(flightData.flightStatus !== 'A' && flightData.flightStatus !== 'R' ?
-						'<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
+						'<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+
+						(flightData.delayMinutes >= 15 ? ', delayed by '+flightData.delayMinutes+' minutes' : '')+'</span>' :
 							(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
-								(flightData.delayMinutes < 15 ? '<br />On Time' :
-									'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' )))+
+								(flightData.delayMinutes >= 15 ?
+									'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')))+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
 					'</td></tr><tr><td class="tn">Altitude</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+
 					' m)</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+
@@ -330,7 +331,7 @@
 							if (layers.path) { setFlightPath(true); }	// draw entire flight history
 							drawercontrol.update();
 						}
-						if (estland && nodata && data.responseTime > data.operationalTimes.arrivalTime) {
+						if (estland && nodata && data.responseTime > data.operationalTimes.arrivalTime + 120) {
 							showNote('The flight is estimated to have landed, but is beyond the range of our tracking network');
 							estland = false;	// suppress future Notes
 						}
@@ -384,7 +385,7 @@
 						altitudeFt: ap.elevationFt,
 						speedMph: 0
 					};
-					if (curstatus === 'S' && estdep && data.responseTime > data.operationalTimes.departureTime) {
+					if (curstatus === 'S' && estdep && data.responseTime > data.operationalTimes.departureTime + 120) {
 						showNote('The flight is past its expected departure time, but is not reporting position data yet');
 						estdep = false;	// suppress future Notes
 					}
@@ -598,12 +599,9 @@
 
 					currot = (currot + 360) % 360;
 					var turn = smallAngle(currot, h);
-					// if (Math.abs(turn) > 90 && speed > 200) {	// stop plane from going backwards
-					//	return;
-					// }					
 
 					// number of frames to move that distance at current speed (s)
-					if (debug) { console.log('curspeed: '+curspeed, 'speedMph: '+pos.speedMph, curpos.toString(), p.toString()); }
+					if (debug) { console.log('curspeed: '+curspeed, 'speedMph: '+pos.speedMph, 'turn: '+turn); }
 					frames = $.isNumeric(curspeed) ? Math.floor(curpos.distanceTo(p) * 2236.936292 / (curspeed * aniRate)) : 0;
 					if (frames <= 0) {
 						curpos = p;

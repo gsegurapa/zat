@@ -35,6 +35,8 @@
 			curspeed, // current speed of airplane in mph
 			curheading,	// current heading
 			curstatus = null,	// current status
+			estland = true,	// can estimate landing
+			estdep = true,	// can estimate departure
 			frames = 0,	// frames of animation remaining
 			rotframes,	// frames of rotation animation remaining
 			anitimer;	// animation timer
@@ -175,12 +177,11 @@
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
-					(flightData.flightStatus !== 'A' ? '<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
-						(nodata ? '<br /><span style="color:yellow">'+
-							(timestamp < flightData.operationalTimes.arrivalTime ? 'out of range for tracking' : flightStatusValues['L'])+'</span>' :
-								(flightData.delayMinutes >= 15 ?
-									'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' :
-									'<br />On Time')))+
+					(flightData.flightStatus !== 'A' && flightData.flightStatus !== 'R' ?
+						'<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
+							(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
+								(flightData.delayMinutes < 15 ? '<br />On Time' :
+									'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' )))+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
 					'</td></tr><tr><td class="tn">Altitude</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+
 					' m)</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+
@@ -273,7 +274,8 @@
 		function mainloop() {
 
 			$.ajax({  // Call Flight Track by flight ID API
-					// url: 'http://client-dev-stable.cloud-east.dev:3450/flightTracker/' + flightID,
+					// url: 'http://edge-staging.flightstats.com/flight/tracker/' + flightID,
+					// url: 'http://client-dev-stable.cloud-east.dev/flightTracker/' + flightID,
 					url: 'http://client-dev.cloud-east.dev:3450/flightTracker/' + flightID,
 					// url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
 					data: { guid: guid, airline: airline, flight: flightnum, flightPlan: layers.plan===null },
@@ -283,7 +285,7 @@
 
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
-				if (debug) { console.log(data); }
+				if (debug) { console.log('data:', data); }
 				if (data.status || data.tracks) {	// error!
 					showNote(data.status ? data.status.message : data.tracks.message, new Date().toUTCString());
 					map.fitWorld();
@@ -303,14 +305,12 @@
 				}
 
 				if (data.flightStatus !== curstatus) {	// change of status
-					var m = flightStatusMessages[data.flightStatus];
-					if (data.flightStatus === 'A' && numpos === 0) {	// taxi to runway
-						m = 'Tracking will begin upon take off';
-					}
+					curstatus = data.flightStatus;
+					var m =  numpos === 0 && (curstatus === 'A' || curstatus === 'R') ?	// taxi to runway
+							'Tracking will begin upon take off' : flightStatusMessages[curstatus];
 					if (m) {
 						showNote(m, new Date(data.responseTime*1000).toUTCString());
 					}
-					curstatus = data.flightStatus;
 				}
 
 				var newheading = +(data.heading || data.bearing);
@@ -321,19 +321,26 @@
 					// Want to use timestamp from API instead of from position data, but it might not be reliable enough
 					var newdate = Date.parse(newpos.date);
 					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
-					timestamp += updateRate;	// 10 seconds
+					timestamp += updateRate;	// 30 seconds
 																											// no data for two minutes  OR  last data point is more than 10 minutes old
-					if (data.flightStatus === 'A' && !nodata && (timestamp - newdate > 120000 /* || data.responseTime - newdate/1000 > 600 */) ) {	
-						nodata = true;
-						showNote('This flight is temporarily beyond the range of our tracking network');
-						if (layers.path) { setFlightPath(true); }	// draw entire flight history
-						drawercontrol.update();
+					if (curstatus === 'A' || curstatus === 'R') {	// in flight
+						if (!nodata && (timestamp - newdate > 120000 /* || data.responseTime - newdate/1000 > 600 */) ) {	
+							nodata = true;
+							showNote('The flight is temporarily beyond the range of our tracking network');
+							if (layers.path) { setFlightPath(true); }	// draw entire flight history
+							drawercontrol.update();
+						}
+						if (estland && nodata && data.responseTime > data.operationalTimes.arrivalTime) {
+							showNote('The flight is estimated to have landed, but is beyond the range of our tracking network');
+							estland = false;	// suppress future Notes
+						}
 					}
 
 					if (pos && newpos.lat === pos.lat && newpos.lon === pos.lon &&
 							newpos.date === pos.date && pos.altitudeFt === newpos.altitudeFt) {
 						return; // data has not changed
 					}
+
 					if (debug) {
 						var diff = data.responseTime - newdate/1000;
 						if (newpos.source === 'ASDI') {
@@ -352,14 +359,15 @@
 							console.log('AirNav avg: '+sessionStorage.airnavtotal/sessionStorage.airnavcount+
 								', min: '+sessionStorage.airnavmin+', max: '+sessionStorage.airnavmax+', count: '+sessionStorage.airnavcount);
 						}
-						console.log('Edge API data: ', data, newdate/1000, data.responseTime, diff, newpos.source);
-						if (data.flightStatus !== 'A') { console.log('status: ', data.flightStatus, flightStatusValues[data.flightStatus]); }
+						console.log('Edge API data: ', data, newpos.source, diff);
+						if (curstatus !== 'A') { console.log('status: ', curstatus, flightStatusValues[curstatus]); }
 					}
 
 					pos = newpos;
 					timestamp = newdate;
 					if (nodata) {
 						nodata = false;
+						estland = true;	// may calculate a landing again
 						if (debug) { console.log('Reestablishing position: ', pos); }
 						showNote('Re-established position data');
 						if (wrap !== undefined) {	// jump to new position
@@ -376,6 +384,10 @@
 						altitudeFt: ap.elevationFt,
 						speedMph: 0
 					};
+					if (curstatus === 'S' && estdep && data.responseTime > data.operationalTimes.departureTime) {
+						showNote('The flight is past its expected departure time, but is not reporting position data yet');
+						estdep = false;	// suppress future Notes
+					}
 				} // end have positions
 
 				// fields for mini-tracker
@@ -389,6 +401,7 @@
 					aport = data.airports.arrival;	// arrival airport data
 
 					// load mini-tracker
+					// var miniurl = [ 'http://edge-staging.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
 					// var miniurl = [ 'http://client-dev-stable.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
 					var miniurl = [ 'http://client-dev.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
 					// var miniurl = [ 'http://edge.dev.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
@@ -1072,7 +1085,7 @@
 		},
 
 		_notify: function(k, v) {
-			if (debug) { console.log('notify', k, v); }
+			// if (debug) { console.log('notify', k, v); }
 			setCookie(k, v);
 		}
 
@@ -1186,7 +1199,6 @@
 			last = ct;
 		}
 		multi.push(positions);
-		if (debug) { console.log('tail: ', tail, 'multi: ', multi)}
 		if (layers.path) {	// layer already exists
 			layers.pathHalo.setLatLngs(multi);
 			layers.path.setLatLngs(multi);
@@ -1260,7 +1272,7 @@
 		C: 'The flight has been cancelled',
 		D: 'The flight has been diverted to another airport',
 		DN: 'Tracking data is not available for this flight',
-		I: 'This flight is not being tracked',
+		I: 'The flight is not being tracked',
 		L: 'The flight has landed',
 		NO: 'Flight not operating',
 		// R: 'The flight has possibly been redirected',

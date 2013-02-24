@@ -601,7 +601,7 @@
 					var turn = smallAngle(currot, h);
 
 					// number of frames to move that distance at current speed (s)
-					if (debug) { console.log('curspeed: '+curspeed, 'speedMph: '+pos.speedMph, 'turn: '+turn); }
+					if (debug) { console.log('curspeed: '+curspeed, 'speedMph: '+pos.speedMph, 'turn: '+turn.toFixed(2)); }
 					frames = $.isNumeric(curspeed) ? Math.floor(curpos.distanceTo(p) * 2236.936292 / (curspeed * aniRate)) : 0;
 					if (frames <= 0) {
 						curpos = p;

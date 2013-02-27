@@ -789,9 +789,12 @@
 
 			var drawer = L.DomUtil.get('drawer');
 
-			L.DomEvent.on(drawer, 'mousedown touchstart', this._toggle, this).
-						on(drawer, 'mousedown touchstart', L.DomEvent.stop).
+			L.DomEvent.on(drawer, 'mousedown', this._toggle, this).
+						on(drawer, 'mousedown', L.DomEvent.stop).
 						on(drawer, 'click', L.DomEvent.stop);
+			if (L.Browser.touch) {
+				L.DomEvent.on(drawer, 'touchstart', this._toggle, this).on(drawer, 'touchstart', L.DomEvent.stop);
+			}
 		},
 
 		onRemove: function(/* map */) {

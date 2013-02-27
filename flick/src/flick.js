@@ -789,8 +789,8 @@
 
 			var drawer = L.DomUtil.get('drawer');
 
-			L.DomEvent.on(drawer, 'mousedown', this._toggle, this).
-						on(drawer, 'mousedown', L.DomEvent.stop).
+			L.DomEvent.on(drawer, 'mousedown touchstart', this._toggle, this).
+						on(drawer, 'mousedown touchstart', L.DomEvent.stop).
 						on(drawer, 'click', L.DomEvent.stop);
 		},
 

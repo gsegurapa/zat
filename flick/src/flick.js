@@ -178,9 +178,8 @@
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
 					(flightData.flightStatus !== 'A' && flightData.flightStatus !== 'R' ?
-						'<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+
-						(flightData.delayMinutes >= 15 ? ', delayed by '+flightData.delayMinutes+' minutes' : '')+'</span>' :
-							(nodata ? '<br /><span style="color:yellow">out of range for tracking</span>' :
+						'<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
+							(nodata ? '<br /><span style="color:yellow">Out of range for tracking</span>' :
 								(flightData.delayMinutes >= 15 ?
 									'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')))+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+

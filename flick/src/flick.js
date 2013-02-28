@@ -52,8 +52,8 @@
 	var flightID, // flightstats flight id
 			airline,	// airline code
 			flightnum,	// flight number
-			// timeFormat=12, // 12 or 24
-			// units='metric', // metric or US
+			hours24=false, // 12 or 24 hour time
+			metric=false, // metric or US
 			mapType = 'sat', // name of map (sat or map)
 			showLabels = false,	// show label layer on sat map
 			showTerrain = false,	// show terrain layer on map
@@ -76,8 +76,8 @@
     if (params.id) { flightID = params.id; }
     if (params.airline) { airline = params.airline; }
     if (params.flight) { flightnum = params.flight; }
-    // if (params.timeFormat) { timeFormat = +params.timeFormat; }
-    // if (params.units) { units = params.units; }
+    if (params.hours24) { hours24 = params.hours24 === 'true'; }
+    if (params.metric) { metric = params.metric === 'true'; }
     if (params.mapType) { mapType = params.mapType === 'map' ? 'map' : 'sat'; }
     if (params.showLabels) { showLabels = params.showLabels === 'true'; }
     if (params.showTerrain) { showTerrain = params.showTerrain === 'true'; }
@@ -171,7 +171,7 @@
 		function flightinfo() {	// info about flight for drawer
 			var airlinename = flightData.carrierName;
 			var s = (flightData.flightStatus === 'A' && flightData.speedMph === 0) ? 'N/A' :
-					pos.speedMph+' mph ('+(pos.speedMph * 1.60934).toFixed()+' kph)';
+					(metric ? (pos.speedMph * 1.60934).toFixed()+' kph' : pos.speedMph+' mph');
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 					'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
@@ -183,8 +183,8 @@
 								(flightData.delayMinutes >= 15 ?
 									'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')))+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
-					'</td></tr><tr><td class="tn">Altitude</td><td>'+pos.altitudeFt+' ft ('+(pos.altitudeFt * 0.3048).toFixed()+
-					' m)</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+
+					'</td></tr><tr><td class="tn">Altitude</td><td>'+(metric ? (pos.altitudeFt * 0.3048).toFixed()+' meters' : pos.altitudeFt+' feet')+
+					'</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+
 					'<tr><td class="tn">Heading</td><td>'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
 					(flightData.operatedByFsCode ?
 						'<tr><td class="tn">Operated&nbsp;by</td><td>'+flightData.operatedByFsCode+' '+
@@ -465,7 +465,7 @@
 						return '<div class="labelhead">Departing '+dport.fsCode+'</div><div style="text-align:center;width:100%">'+
 							formatAirport(dport.name)+'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+dport.countryCode+
 							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(dport.conditions)+
-							'</td></tr><tr><td class="tn">Temperature</td><td>'+(32 + (1.8 * dport.tempCelsius)).toFixed()+'&deg;F ('+dport.tempCelsius.toFixed(1)+'&deg;C)'+
+							'</td></tr><tr><td class="tn">Temperature</td><td>'+(metric ? dport.tempCelsius.toFixed(1)+'&deg;C' : (32 + (1.8 * dport.tempCelsius)).toFixed()+'&deg;F')+
 							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(dport.localTime)+'</td></tr></table>';
 					}
 
@@ -485,7 +485,7 @@
 						return '<div class="labelhead">Arriving '+aport.fsCode+'</div><div style="text-align:center;width:100%">'+
 							formatAirport(aport.name)+'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+aport.countryCode+
 							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(aport.conditions)+
-							'</td></tr><tr><td class="tn">Temperature</td><td>'+(32 + (1.8 * aport.tempCelsius)).toFixed()+'&deg;F ('+aport.tempCelsius.toFixed(1)+'&deg;C)'+
+							'</td></tr><tr><td class="tn">Temperature</td><td>'+(metric ? aport.tempCelsius.toFixed(1)+'&deg;C' : (32 + (1.8 * aport.tempCelsius)).toFixed()+'&deg;F')+
 							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(aport.localTime)+'</td></tr></table>';
 					}
 
@@ -1233,12 +1233,10 @@
 	function formatTime(ts) {
 		// var tv = new Date(ts);
 		var hour = +ts.slice(11,13);
-		var tw = hour >= 12 ? 'p' : 'a';
+		var tw = hour >= 12 ? 'pm' : 'am';
 		if (hour > 12) { hour -= 12; }
-		if (hour === 0) {
-			hour = 12;
-		}
-		return hour+':'+ts.slice(14,16)+tw+' ('+ts.slice(11,16)+'h) '+ts.slice(8,10)+' '+months[ts.slice(5,7)-1]+' '+ts.slice(0,4);
+		if (hour === 0) { hour = 12; }
+		return (hours24 ?  ts.slice(11,16) : hour+':'+ts.slice(14,16)+tw) +', '+ts.slice(8,10)+' '+months[ts.slice(5,7)-1]+' '+ts.slice(0,4);
 	}
 
 	function formatAirport(as) {
@@ -1247,7 +1245,7 @@
 	}
 
 	function formatWeather(ws) {
-		return ws === undefined ? 'unknown' : ws;
+		return ws === undefined ? 'Unknown' : ws;
 	}
 
 	function formatEquip(es) {

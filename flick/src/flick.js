@@ -27,7 +27,9 @@
 	var maxZoom = 12;	// cannot zoom in any more than this
 	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
 	var flightData,	// flight data returned by API
-			pos,	// position data returned by API
+			actualposs = [],	// actual positions (built up)
+			apts,	// last actual pos timestamp
+			pos,	// current position data returned by API
 			timestamp,	// time of API call
 			nodata = false;	// haven't received data from API recently
 	var curpos,	// current lat/lng of animation
@@ -273,12 +275,16 @@
 		// get position data from API
 		function mainloop() {
 
+			var ajaxoptions = { guid: guid, airline: airline, flight: flightnum, flightPlan: layers.plan===null };
+			if (apts !== undefined) {
+				ajaxoptions.limit = apts;
+			}
 			$.ajax({  // Call Flight Track by flight ID API
 					// url: 'http://edge-staging.flightstats.com/flight/tracker/' + flightID,
 					// url: 'http://client-dev-stable.cloud-east.dev/flightTracker/' + flightID,
 					url: 'http://client-dev.cloud-east.dev:3450/flightTracker/' + flightID,
 					// url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
-					data: { guid: guid, airline: airline, flight: flightnum, flightPlan: layers.plan===null },
+					data: ajaxoptions,
 					dataType: 'jsonp',
 					success: getFlight
 				});
@@ -293,14 +299,22 @@
 				}
 
 				flightData = data;
-				var p = data.positions;
-				numpos = p.length;
+
+				var newp = data.positions;
+				if (newp.length > 0) {
+					if (debug && apts !== undefined) {
+						console.log('time diff: ', Date.parse(newp[newp.length - 1].date) - Date.parse(apts));
+					}
+					actualposs = newp.concat(actualposs);
+					apts = newp[0].date;
+				}
+				numpos = actualposs.length;
 
 				if (data_off !== 0) {	// simulate data loss for testing
 					if (data_on === 0) {	// data is dead
-						p.splice(0, numpos-data_off);					
+						actualposs.splice(0, numpos-data_off);					
 					} else {	// data is back on
-						p.splice(-data_on, data_on-data_off);
+						actualposs.splice(-data_on, data_on-data_off);
 					}
 				}
 
@@ -317,7 +331,7 @@
 
 				if (numpos > 0 && curstatus !=='L') {	// have positions
 
-					var newpos = p[0];
+					var newpos = actualposs[0];
 					// Want to use timestamp from API instead of from position data, but it might not be reliable enough
 					var newdate = Date.parse(newpos.date);
 					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
@@ -394,6 +408,7 @@
 				var minifields = $.extend({ flightStatusCode: data.flightStatus,
 								speedMph: pos.speedMph, altitudeFt: pos.altitudeFt },
 						data.operationalTimes, data.miniTracker);
+				// var minifields = data.miniTracker;
 
 				if (dport === undefined) { // first time called
 
@@ -465,7 +480,7 @@
 						return '<div class="labelhead">Departing '+dport.fsCode+'</div><div style="text-align:center;width:100%">'+
 							formatAirport(dport.name)+'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+dport.countryCode+
 							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(dport.conditions)+
-							'</td></tr><tr><td class="tn">Temperature</td><td>'+(metric ? dport.tempCelsius.toFixed(1)+'&deg;C' : (32 + (1.8 * dport.tempCelsius)).toFixed()+'&deg;F')+
+							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(dport.tempCelsius)+
 							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(dport.localTime)+'</td></tr></table>';
 					}
 
@@ -485,7 +500,7 @@
 						return '<div class="labelhead">Arriving '+aport.fsCode+'</div><div style="text-align:center;width:100%">'+
 							formatAirport(aport.name)+'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+aport.countryCode+
 							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(aport.conditions)+
-							'</td></tr><tr><td class="tn">Temperature</td><td>'+(metric ? aport.tempCelsius.toFixed(1)+'&deg;C' : (32 + (1.8 * aport.tempCelsius)).toFixed()+'&deg;F')+
+							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(aport.tempCelsius)+
 							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(aport.localTime)+'</td></tr></table>';
 					}
 
@@ -1066,8 +1081,10 @@
 
 		collapse: function() {
 			unhidecontrols();
-			$('#control-layer-list').hide(100,'linear');
-			this._toggle.style.backgroundImage = 'url(img/layers.png)';
+			if (this._expanded) {
+				$('#control-layer-list').hide(100,'linear');
+				this._toggle.style.backgroundImage = 'url(img/layers.png)';				
+			}
 			this._expanded = false;
 			if (drawerwasopen) {
 				drawercontrol.expand();
@@ -1228,6 +1245,7 @@
 		return t > 180 ? t - 360 : (t < -180 ? t + 360 : t );
 	}
 
+	// string formatting routines --------------------------
 	var months = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
 
 	function formatTime(ts) {
@@ -1236,7 +1254,7 @@
 		var tw = hour >= 12 ? 'pm' : 'am';
 		if (hour > 12) { hour -= 12; }
 		if (hour === 0) { hour = 12; }
-		return (hours24 ?  ts.slice(11,16) : hour+':'+ts.slice(14,16)+tw) +', '+ts.slice(8,10)+' '+months[ts.slice(5,7)-1]+' '+ts.slice(0,4);
+		return (hours24 ?  ts.slice(11,16) : hour+':'+ts.slice(14,16)+tw) +' '+ts.slice(8,10)+'-'+months[ts.slice(5,7)-1]+'-'+ts.slice(0,4);
 	}
 
 	function formatAirport(as) {
@@ -1246,6 +1264,11 @@
 
 	function formatWeather(ws) {
 		return ws === undefined ? 'Unknown' : ws;
+	}
+
+	function formatTemperature(ts) {
+		return ts === undefined || ts === 'Unknown' || isNaN(ts) ? 'Unknown' :
+				(metric ? ts.toFixed(1)+'&deg;C' : (32 + (1.8 * ts)).toFixed()+'&deg;F')
 	}
 
 	function formatEquip(es) {

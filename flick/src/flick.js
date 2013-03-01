@@ -49,6 +49,7 @@
 			data_on = 0;	// index of where data is back on
 	var trackcontrol, layercontrol, drawercontrol;	// UI
 	var fullscreentimer, hidecontrols, unhidecontrols, drawerwasopen = false;	// hide buttons and drawer timer
+	var controlshidden = false;
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -231,6 +232,7 @@
 
 		hidecontrols = function() {
 			if (autoHide && !drawercontrol.expanded() && !layercontrol.expanded()) {
+				controlshidden = true;
 				$('#control').fadeOut(1000);
 				$('.leaflet-control-container').fadeOut(1000);
 				drawercontrol.hide();
@@ -240,9 +242,11 @@
 		unhidecontrols = function() {	// unhide
 			if (autoHide) {
 				clearTimeout(fullscreentimer);
-				$('#control').finish().fadeIn(100);
-				$('.leaflet-control-container').finish().fadeIn(100);
-				drawercontrol.unhide();
+				if (controlshidden) {
+					$('#control').finish().fadeIn(100);	// my controls
+					$('.leaflet-control-container').finish().fadeIn(100);	// leaflet controls
+					drawercontrol.unhide();
+			}
 				fullscreentimer = setTimeout(hidecontrols, 5000);
 			}
 		};

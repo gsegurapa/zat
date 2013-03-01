@@ -193,11 +193,15 @@
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
-					(flightData.flightStatus !== 'A' && flightData.flightStatus !== 'R' ?
-						'<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
-							(nodata ? '<br /><span style="color:yellow">Out of range for tracking</span>' :
-								(flightData.delayMinutes >= 15 ?
-									'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')))+
+					'<br /><span'+(flightData.statusColor ? ' style="color:'+flightData.statusColor+'">' : '>')+
+					flightData.statusName+
+					(flightData.statusAppend ? ', '+flightData.statusAppend : '')+'</span>'+
+
+					// (flightData.flightStatus !== 'A' && flightData.flightStatus !== 'R' ?
+					// 	'<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
+					// 		(nodata ? '<br /><span style="color:yellow">Out of range for tracking</span>' :
+					// 			(flightData.delayMinutes >= 15 ?
+					// 				'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')))+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
 					'</td></tr><tr><td class="tn">Altitude</td><td>'+(metric ? (pos.altitudeFt * 0.3048).toFixed()+' meters' : pos.altitudeFt+' feet')+
 					'</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+

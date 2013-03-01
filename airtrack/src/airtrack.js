@@ -242,6 +242,10 @@
     setCookie('weatherOpacity', weatherOpacity);
     // setCookie('interactive', interactive.toString());
     // setCookie('view', view);
+
+    $('#configurl').width($('#config table').width()).
+      text(window.location.href.replace(/\?.*$/, '')+'?'+
+        document.cookie.replace(/;\s__.*$/, '').replace(/;\s*/g, '&'));
   }
 
   var view = null; // 2D or 3D
@@ -791,6 +795,7 @@
     });
 
     function fillDialog() {
+      $('#configurl').text('');
       if (!BigScreen.enabled) { $('#cbutton input[value="Full"]').hide(); }
       $('#airportCode').val(airportCode);
       // $('#mapType option').removeAttr('selected');
@@ -820,10 +825,6 @@
       $('#weatherRadar').val(weatherRadar);
       $('#weatherFrames').val(weatherFrames);
       $('#weatherOpacity').val(weatherOpacity); // .next().text(weatherOpacity);
-
-      // if ($('#weatherOpacity').prop('type') !== 'range') {
-      //   $('#config input[type="range"]').next().hide();
-      // }
     }
 
     function configurator(e) {
@@ -883,7 +884,7 @@
         break;
        case 'Save':
         saveCookies();
-        $('#config').slideUp();
+        // $('#config').slideUp();
         break;
        case 'Reset':
         setDefaults();
@@ -921,6 +922,7 @@
     // input change
     $('#config :input').change(function(e) {
       var tinfo, v, i, newz, $el = $(e.delegateTarget);
+      $('#configurl').text('');
       switch($el.attr('id')) {
        case 'airportCode':
         v = $el.val().toUpperCase();

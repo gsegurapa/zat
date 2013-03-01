@@ -440,8 +440,10 @@
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					// currot = +(data.heading || data.bearing);
 
-					logourl = 'http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/png/150x50/'+
+					logourl = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/png/150x50/'+
 							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
+					// logourl = 'http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/png/150x50/'+
+					// 		data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					// logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
 					// prefetch image

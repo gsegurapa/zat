@@ -69,7 +69,18 @@
 			view = '2D',	// 3D mode not really working
 			debug = false,	//  debug
 			zoomControl = 'auto',	// show zoom control (auto = if !touch)
-			autoHide = 'auto';	// auto hide controls (auto = if touch)
+			autoHide = 'auto',	// auto hide controls (auto = if touch)
+			edgeurl = 'http://edge.flightstats.com/flight/tracker/',
+					// 'http://edge-staging.flightstats.com/flight/tracker/'
+					// 'http://client-dev-stable.cloud-east.dev/flightTracker/'
+					// 'http://client-dev.cloud-east.dev:3450/flightTracker/'
+					// 'http://edge.dev.flightstats.com/flight/tracker/'
+			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/';
+					// 'http://edge-staging.flightstats.com/flight/mini-tracker/',
+					// 'http://client-dev-stable.cloud-east.dev:3500/tracker/',
+					// 'http://client-dev.cloud-east.dev:3500/tracker/',
+					// 'http://edge.dev.flightstats.com/flight/mini-tracker/',
+					// 'http://edge.staging.flightstats.com/flight/mini-tracker/',
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -94,6 +105,8 @@
     if (params.debug) { debug = params.debug === 'true'; }
     if (params.autoHide) { autoHide = params.autoHide === 'true'; }
     if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
+    if (params.edgeurl) { edgeurl = params.edgeurl; }
+    if (params.miniurl) { miniurl = params.miniurl; }
 	}
 
 	function setCookie(name, value) {
@@ -284,10 +297,7 @@
 				ajaxoptions.limit = apts;
 			}
 			$.ajax({  // Call Flight Track by flight ID API
-					// url: 'http://edge-staging.flightstats.com/flight/tracker/' + flightID,
-					// url: 'http://client-dev-stable.cloud-east.dev/flightTracker/' + flightID,
-					url: 'http://client-dev.cloud-east.dev:3450/flightTracker/' + flightID,
-					// url: 'http://edge.dev.flightstats.com/flight/tracker/' + flightID,
+					url: edgeurl + flightID,
 					data: ajaxoptions,
 					dataType: 'jsonp',
 					success: getFlight
@@ -409,10 +419,10 @@
 				} // end have positions
 
 				// fields for mini-tracker
-				var minifields = $.extend({ flightStatusCode: data.flightStatus,
-								speedMph: pos.speedMph, altitudeFt: pos.altitudeFt },
-						data.operationalTimes, data.miniTracker);
-				// var minifields = data.miniTracker;
+				// var minifields = $.extend({ flightStatusCode: data.flightStatus,
+				// 				speedMph: pos.speedMph, altitudeFt: pos.altitudeFt },
+				// 		data.operationalTimes, data.miniTracker);
+				var minifields = data.miniTracker;
 
 				if (dport === undefined) { // first time called
 
@@ -420,17 +430,12 @@
 					aport = data.airports.arrival;	// arrival airport data
 
 					// load mini-tracker
-					// var miniurl = [ 'http://edge-staging.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
-					// var miniurl = [ 'http://client-dev-stable.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
-					var miniurl = [ 'http://client-dev.cloud-east.dev:3500/tracker/?skin=0&departureAirport=',
-					// var miniurl = [ 'http://edge.dev.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
-					// var miniurl = [ 'http://edge.staging.flightstats.com/flight/mini-tracker/?skin=0&departureAirport=',
-						dport.fsCode, '&arrivalAirport=', aport.fsCode, '&guid=', guid ];
+					var mini = [ miniurl, '?skin=0&guid=', guid ];
 					$.each(minifields, function(k, v) {
-						miniurl.push('&'+k+'='+v);
+						mini.push('&'+k+'='+v);
 					});
 					if (!showMini) { $('#mini-tracker-div').hide(); }
-					$('<iframe />', { src: miniurl.join('') }).appendTo('#mini-tracker-div');
+					$('<iframe />', { src: mini.join('') }).appendTo('#mini-tracker-div');
 
 					// See setfullview for hack to fix long Singapore flights
 					wrap = Math.abs(dport.longitude - aport.longitude) > 180; // does route cross anti-meridian?

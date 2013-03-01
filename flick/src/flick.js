@@ -39,6 +39,7 @@
 			curstatus = null,	// current status
 			estland = true,	// can estimate landing
 			estdep = true,	// can estimate departure
+			taxi = false,	// flight is active, but no positions
 			frames = 0,	// frames of animation remaining
 			rotframes,	// frames of rotation animation remaining
 			anitimer;	// animation timer
@@ -190,8 +191,6 @@
 					(metric ? (pos.speedMph * 1.60934).toFixed()+' kph' : pos.speedMph+' mph');
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 					'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
-					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
-					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
 					'<br /><span'+(flightData.statusColor ? ' style="color:'+flightData.statusColor+'">' : '>')+
 					flightData.statusName+
@@ -338,10 +337,13 @@
 
 				if (data.flightStatus !== curstatus) {	// change of status
 					curstatus = data.flightStatus;
-					var m =  numpos === 0 && (curstatus === 'A' || curstatus === 'R') ?	// taxi to runway
-							'Tracking will begin upon take off' : flightStatusMessages[curstatus];
-					if (m) {
-						showNote(m, new Date(data.responseTime*1000).toUTCString());
+					if (numpos === 0 && (curstatus === 'A' || curstatus === 'R')) {	// taxi to runway
+						showNote('Flight has departed the gate; tracking will begin upon take off',
+								new Date(data.responseTime*1000).toUTCString());
+						taxi = true;
+					} else {
+						var m = flightStatusMessages[curstatus];
+						if (m) { showNote(m, new Date(data.responseTime*1000).toUTCString()); }
 					}
 				}
 
@@ -356,6 +358,10 @@
 					timestamp += updateRate;	// 30 seconds
 																											// no data for two minutes  OR  last data point is more than 10 minutes old
 					if (curstatus === 'A' || curstatus === 'R') {	// in flight
+						if (taxi && numpos > 0) {
+							showNote('Flight is now tracking');
+							taxi = false;
+						}
 						if (!nodata && (timestamp - newdate > 120000 /* || data.responseTime - newdate/1000 > 600 */) ) {	
 							nodata = true;
 							showNote('The flight is temporarily beyond the range of our tracking network');
@@ -417,7 +423,7 @@
 						speedMph: 0
 					};
 					if (curstatus === 'S' && estdep && data.responseTime > data.operationalTimes.departureTime + 120) {
-						showNote('The flight is past its expected departure time, but is not reporting position data yet');
+						showNote('The flight is past its expected take-off time, but is not reporting tracking data yet');
 						estdep = false;	// suppress future Notes
 					}
 				} // end have positions
@@ -455,6 +461,8 @@
 					// 		data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					// logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
+					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
+					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					// prefetch image
 					logoimg = $('<img/>'); // prefetch logo
 					logoimg.load(function(/* e */) {	// if image exists, use it
@@ -562,8 +570,8 @@
 					// now that I get current time from API, fix this to go back 1 minute in time to start animation
 					// and display warning if no new data
 
-					if (flightData.positions.length > 2) {
-						p = flightData.positions[2];
+					if (actualposs.length > 2) {
+						p = actualposs[2];
 						var a2 = +(p.altitudeFt || alt);
 						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground
 						var fp2 = createLatLng(+p.lat, +p.lon, wrap);
@@ -1199,7 +1207,7 @@
 	}
 
 	function setFlightPath(all) { // draw flight positions
-		var p = flightData.positions;
+		var p = actualposs;
 		if (p.length < 2) { return; }
 		var positions = [];
 		var last = null, ct, tail;

@@ -13,8 +13,10 @@
 	var map;	// Leaflet map object
 	var dport,	// departure airport data
 			dpos,	// lat/lng position of departure airport
+			dmarker,	// departing airport marker
 			aport,	// arrival airport data
 			apos,	// lat/lng position of arrival airport
+			amarker,	// arriving airport marker
 			airplane,	// L.marker for airplane icon
 			fpos,	// lat/lng position of airplane
 			multi,	// lat/lngs for flight path
@@ -308,7 +310,7 @@
 
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
-				if (debug) { console.log('data:', data); }
+				if (debug) { console.log('data:', data, data.positions.length, actualposs.length); }
 				if (data.status || data.tracks) {	// error!
 					showNote(data.status ? data.status.message : data.tracks.message, new Date().toUTCString());
 					map.fitWorld();
@@ -406,7 +408,6 @@
 					if (nodata) {
 						nodata = false;
 						estland = true;	// may calculate a landing again
-						if (debug) { console.log('Reestablishing position: ', pos); }
 						showNote('Re-established position data');
 						if (wrap !== undefined) {	// jump to new position
 							phat(createLatLng(+pos.lat, +pos.lon, wrap), newheading, +pos.altitudeFt, timestamp);
@@ -508,7 +509,7 @@
 					}
 
 					// departing airport marker
-					L.marker(dpos, {
+					dmarker = L.marker(dpos, {
 							icon: L.icon({	// departing airport icon
 									iconUrl: 'img/tower-large@2x.png',
 									iconSize: [78, 151],
@@ -528,7 +529,7 @@
 					}
 
 					// arriving airport marker
-					L.marker(apos, {
+					amarker = L.marker(apos, {
 							icon: L.icon({	// arriving airport icon
 									iconUrl: 'img/tower-large@2x.png',
 									iconSize: [78, 151],
@@ -550,7 +551,7 @@
 						layers.plan = L.polyline(positions, { color: '#362F2D', weight: 8 , opacity: 0.6, clickable: false });
 					} 
 					// calculate great arc (geodesic)
-					var npoints = Math.max(128 - 16 * map.getZoom(), 4);
+					var npoints = Math.max(128 - 14 * map.getZoom(), 4);
 					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', weight: 7, opacity: 0.4, clickable: false }).greatCircle(npoints);
 					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', weight: 4, opacity: 0.6, clickable: false }).greatCircle(npoints);
 					
@@ -706,6 +707,7 @@
 		mainloop();
 		setInterval(mainloop, updateRate); // update every 10 seconds
 
+		// !!! will this work when the two points are on opposite sides of the antimeridian?
 		function halfway(p1, p2) {	// return lat/lng halfway between two points
 			return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
 		}
@@ -733,7 +735,7 @@
 			}),
 			zIndexOffset: 1000
 		},
-		initialize: function (latlng) {
+		initialize: function(latlng) {
 			L.Util.setOptions(this, this.defaultFlightMarkerOptions);
 			this._latlng = L.latLng(latlng);
 			this._stamp = 0;
@@ -800,9 +802,6 @@
 					points.push(createLatLng(R2D *
 							Math.atan2(A * Math.sin(starty) + B * Math.sin(endy), Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))),
 							R2D * Math.atan2(y, x), wrap));
-					// var lat = R2D * Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
-					// var lon = R2D * Math.atan2(y, x);
-          // points.push(L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true));
         }
 			}
 			this._latlngs = points;
@@ -1188,18 +1187,26 @@
 			m.fitWorld();
 			return;
 		}
+		// Workaround for Leaflet issue #1481
+		var tempa = createLatLng(apos.lat, apos.lng, false);
+		var tempd = createLatLng(dpos.lat, dpos.lng, false);
+		var tempf = createLatLng(fpos.lat, fpos.lng, false);
 		if (wrap) { // shift by 180 degrees if flight crosses anti-meridian
 			flightBounds = L.latLngBounds([
 					[dpos.lat, dpos.lng+180],
 					[apos.lat, apos.lng+180],
 					[fpos.lat, fpos.lng+180]
-				]).pad(0.05);
+				]).pad(0.06);
 			var c = flightBounds.getCenter();
-			m.setView(L.latLng(c.lat, c.lng - 180, true), m.getBoundsZoom(flightBounds));
+			m.setView(L.latLng(c.lat, c.lng - 180), m.getBoundsZoom(flightBounds));
 		} else {
 			flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
 			m.fitBounds(flightBounds);
 		}
+		// Workaround for Leaflet issue #1481
+		apos = tempa; amarker.setLatLng(apos);
+		dpos = tempd; dmarker.setLatLng(dpos);
+		fpos = tempf; airplane.setLatLng(fpos);
 	}
 
 	function settrackingview(m) {

@@ -429,24 +429,17 @@
 					}
 				} // end have positions
 
-				// fields for mini-tracker
-				// var minifields = $.extend({ flightStatusCode: data.flightStatus,
-				// 				speedMph: pos.speedMph, altitudeFt: pos.altitudeFt },
-				// 		data.operationalTimes, data.miniTracker);
-				var minifields = data.miniTracker;
-
 				if (dport === undefined) { // first time called
 
 					dport = data.airports.departure;	// departure airport data
 					aport = data.airports.arrival;	// arrival airport data
 
 					// load mini-tracker
-					var mini = [ miniurl, '?skin=0&guid=', guid ];
-					$.each(minifields, function(k, v) {
-						mini.push('&'+k+'='+v);
-					});
-					if (!showMini) { $('#mini-tracker-div').hide(); }
-					$('<iframe />', { src: mini.join('') }).appendTo('#mini-tracker-div');
+					if (showMini) {
+						createMiniTracker(data.miniTracker);
+					} else {
+						$('#mini-tracker-div').hide();
+					}
 
 					// See setfullview for hack to fix long Singapore flights
 					wrap = Math.abs(dport.longitude - aport.longitude) > 180; // does route cross anti-meridian?
@@ -487,8 +480,10 @@
 						aniPhats(fpos, newheading, +pos.altitudeFt, timestamp, +pos.speedMph);
 						setFlightPath();
 						drawercontrol.update();
-						var mtf = $('#mini-tracker-div iframe')[0];	// mini-tracker frame
-						(mtf.contentWindow ? mtf.contentWindow : mtf.documentWindow).postMessage(minifields, '*');						
+						if (showMini) {
+							var mft = $('#mini-tracker-div iframe')[0];	// mini-tracker frame
+							(mft.contentWindow ? mft.contentWindow : mft.documentWindow).postMessage(data.miniTracker, '*');
+						}
 					}
 				}
 
@@ -1052,11 +1047,13 @@
 			// click on mini-tracker
 			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function() {
 				if ($('#layer-mini:checked').length > 0) {
+					createMiniTracker(flightData.miniTracker);
 					$('#mini-tracker-div').show();
 					showMini = true;
 					this._notify('showMini','true');
 				} else {
 					$('#mini-tracker-div').hide();
+					destroyMiniTracker();
 					showMini = false;
 					this._notify('showMini','false');
 				}
@@ -1273,6 +1270,19 @@
 	function smallAngle(o, n) {	// smallest angle from o to n (degrees)
 		var t = n - o;	// difference between new and old
 		return t > 180 ? t - 360 : (t < -180 ? t + 360 : t );
+	}
+
+	// Mini-tracker ----------------------
+	function createMiniTracker(d) {
+		var mini = [ miniurl, '?skin=0&guid=', guid ];
+		$.each(d, function(k, v) {
+			mini.push('&'+k+'='+v);
+		});
+		$('<iframe />', { src: mini.join('') }).appendTo('#mini-tracker-div');
+	}
+
+	function destroyMiniTracker() {
+		$('#mini-tracker-div').empty();
 	}
 
 	// string formatting routines --------------------------

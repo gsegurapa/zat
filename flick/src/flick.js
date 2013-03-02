@@ -359,7 +359,7 @@
 																											// no data for two minutes  OR  last data point is more than 10 minutes old
 					if (curstatus === 'A' || curstatus === 'R') {	// in flight
 						if (taxi && numpos > 0) {
-							showNote('Flight is now tracking');
+							showNote('The flight is now tracking');
 							taxi = false;
 						}
 						if (!nodata && (timestamp - newdate > 120000 /* || data.responseTime - newdate/1000 > 600 */) ) {	
@@ -398,7 +398,7 @@
 								', min: '+sessionStorage.airnavmin+', max: '+sessionStorage.airnavmax+', count: '+sessionStorage.airnavcount);
 						}
 						console.log('Edge API data: ', data, newpos.source, diff);
-						if (curstatus !== 'A') { console.log('status: ', curstatus, flightStatusValues[curstatus]); }
+						if (curstatus !== 'A') { console.log('status: ', curstatus, flightData.flightStatus, flightData.statusCode, flightData.statusName); }
 					}
 
 					pos = newpos;
@@ -1299,18 +1299,18 @@
 		return es.replace(/\s*(Passenger|Industrie|\([^\)]*\))/g, '');
 	}
 
-	var flightStatusValues = {
-		A: 'Active',
-		C: 'Cancelled',
-		D: 'Diverted',
-		DN: 'No Data Source',
-		I: 'Not Tracking',
-		L: 'Landed',
-		NO: 'Not Operational',
-		R: 'Possibly Redirected',
-		S: 'Scheduled',
-		U: 'Unknown Status'
-	};
+	// var flightStatusValues = {
+	// 	A: 'Active',
+	// 	C: 'Cancelled',
+	// 	D: 'Diverted',
+	// 	DN: 'No Data Source',
+	// 	I: 'Not Tracking',
+	// 	L: 'Landed',
+	// 	NO: 'Not Operational',
+	// 	R: 'Possibly Redirected',
+	// 	S: 'Scheduled',
+	// 	U: 'Unknown Status'
+	// };
 
 	var flightStatusMessages = {
 		C: 'The flight has been cancelled',

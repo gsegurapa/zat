@@ -189,24 +189,19 @@
 
 		function flightinfo() {	// info about flight for drawer
 			var airlinename = flightData.carrierName;
-			var s = (flightData.flightStatus === 'A' && flightData.speedMph === 0) ? 'N/A' :
+			var s = (flightData.flightStatus === 'A' && isNaN(pos.speedMph)) ? 'N/A' :
 					(metric ? (pos.speedMph * 1.60934).toFixed()+' kph' : pos.speedMph+' mph');
+			var heading = (+(flightData.heading || flightData.bearing)).toFixed();
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 					'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
 					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
 					'<br /><span'+(flightData.statusColor ? ' style="color:'+flightData.statusColor+'">' : '>')+
-					flightData.statusName+
-					(flightData.statusAppend ? ', '+flightData.statusAppend : '')+'</span>'+
-
-					// (flightData.flightStatus !== 'A' && flightData.flightStatus !== 'R' ?
-					// 	'<br /><span style="color:yellow">'+flightStatusValues[flightData.flightStatus]+'</span>' :
-					// 		(nodata ? '<br /><span style="color:yellow">Out of range for tracking</span>' :
-					// 			(flightData.delayMinutes >= 15 ?
-					// 				'<br /><span style="color:red">Delayed by '+flightData.delayMinutes+' minutes</span>' : '<br />On Time')))+
+					flightData.statusName+(flightData.statusAppend ? ', '+flightData.statusAppend : '')+'</span>'+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
-					'</td></tr><tr><td class="tn">Altitude</td><td>'+(metric ? (pos.altitudeFt * 0.3048).toFixed()+' meters' : pos.altitudeFt+' feet')+
+					'</td></tr><tr><td class="tn">Altitude</td><td>'+(isNaN(pos.altitudeFt) ? 'N/A' :
+							(metric ? (pos.altitudeFt * 0.3048).toFixed()+' meters' : pos.altitudeFt+' feet'))+
 					'</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+
-					'<tr><td class="tn">Heading</td><td>'+(+(flightData.heading?flightData.heading:flightData.bearing)).toFixed()+' degrees</td></tr>'+
+					'<tr><td class="tn">Heading</td><td>'+(isNaN(heading) ? 'N/A' : heading)+' degrees</td></tr>'+
 					(flightData.operatedByFsCode ?
 						'<tr><td class="tn">Operated&nbsp;by</td><td>'+flightData.operatedByFsCode+' '+
 						(flightData.operatedByFlightNum ? flightData.operatedByFlightNum : flightData.carrierFlightId)+'</td></tr>' : '')+
@@ -749,7 +744,7 @@
 		},
 		setShadow: function(alt) {	// shadow for flight icon
 			var $shadow = $(this._icon).find('.airplaneshadow');
-			var offset = Math.round(alt * 0.0004); // shadow offset based on altitude
+			var offset = isNaN(alt) ? 0 : Math.round(alt * 0.0004); // shadow offset based on altitude
 			var shimg = 'img/shadow'+ (Math.max(0, Math.min(9, Math.floor(alt / 3000))))+'.png'; // shadow image 0-9 (progressive blur)
 			if ($shadow.attr('src') !== shimg) { $shadow.attr('src', shimg); }
 			$shadow.css({opacity: 0.6, left: offset, top: offset});

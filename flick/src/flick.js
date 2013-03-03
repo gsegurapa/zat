@@ -2,7 +2,7 @@
 /*global L:false, jQuery:false */
 
 (function($){
-// 	"use strict";
+	"use strict";
 
 	// tuning parameters
 	var updateRate = 30000;	// 30 seconds
@@ -424,7 +424,7 @@
 					logourl = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/png/150x50/'+
 							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
 					// logourl = 'http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/png/150x50/'+
-					// 		data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
+					//		data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
 					// logo sizes: 90x30, 120x40, 150x50, 256x86
 					// logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
@@ -686,7 +686,7 @@
 	}
 
 	function showNote(message, t) {
-		$('#message').html(message+'<div class="ntime">'+(t?t:(new Date(timestamp)).toUTCString()))+'</div>';
+		$('#message').html(message+'<div class="ntime">'+(t?t:(new Date(timestamp)).toUTCString())+'</div>');
 		$('#messagepopup').show().on('click', function() { $(this).hide(); });
 	}
 
@@ -1270,7 +1270,7 @@
 	}
 
 	function formatAirport(as) {
-		as = as.replace(/\sInternational/, ' Intl\.');
+		as = as.replace(/\sInternational/, ' Intl.');
 		return as.length < 30 ? as : as.replace(/\s*Airport\s*$/, '');
 	}
 
@@ -1280,7 +1280,7 @@
 
 	function formatTemperature(ts) {
 		return ts === undefined || ts === 'Unknown' || isNaN(ts) ? 'Unknown' :
-				(metric ? ts.toFixed(1)+'&deg;C' : (32 + (1.8 * ts)).toFixed()+'&deg;F')
+				(metric ? ts.toFixed(1)+'&deg;C' : (32 + (1.8 * ts)).toFixed()+'&deg;F');
 	}
 
 	function formatEquip(es) {
@@ -1288,29 +1288,17 @@
 		return es.replace(/\s*(Passenger|Industrie|\([^\)]*\))/g, '');
 	}
 
-	// var flightStatusValues = {
-	// 	A: 'Active',
-	// 	C: 'Cancelled',
-	// 	D: 'Diverted',
-	// 	DN: 'No Data Source',
-	// 	I: 'Not Tracking',
-	// 	L: 'Landed',
-	// 	NO: 'Not Operational',
-	// 	R: 'Possibly Redirected',
-	// 	S: 'Scheduled',
-	// 	U: 'Unknown Status'
-	// };
-
 	var flightStatusMessages = {
+		// A: Active
 		C: 'The flight has been cancelled',
 		D: 'The flight has been diverted to another airport',
-		DN: 'Tracking data is not available for this flight',
-		I: 'The flight is not being tracked',
+		DN: 'Tracking data is not available for this flight', // No Data Source
+		I: 'The flight is not being tracked', // Incident
 		L: 'The flight has landed',
 		NO: 'Flight not operating',
 		// R: 'The flight has possibly been redirected',
-		S: 'Tracking will begin upon departure',
-		U: 'Tracking is not enabled for this flight'
+		S: 'Tracking will begin upon departure', // Scheduled
+		U: 'Tracking is not enabled for this flight' // Unknown
 	};
 
 	// Flightstats weather tiles -----------------------------------------------------------

@@ -182,7 +182,7 @@
 			var heading = (+(flightData.heading || flightData.bearing)).toFixed();
 			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 					'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
-					'<div style="text-align:center;width:100%">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
+					'<div id="drawer-status">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
 					'<br /><span'+(flightData.statusColor ? ' style="color:'+flightData.statusColor+'">' : '>')+
 					flightData.statusName+(flightData.statusAppend ? ', '+flightData.statusAppend : '')+'</span>'+
 					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
@@ -676,13 +676,13 @@
 
 	});	// end document ready
 
+	function createLatLng(lat, lon, wrap) {
+		return L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
+	}
+
 	// !!! will this work when the two points are on opposite sides of the antimeridian?
 	function halfway(p1, p2) {	// return lat/lng halfway between two points
 		return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
-	}
-
-	function createLatLng(lat, lon, wrap) {
-				return L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
 	}
 
 	function showNote(message, t) {

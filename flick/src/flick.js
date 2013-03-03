@@ -70,7 +70,6 @@
 			showWeather = false,	// US weather
 			demo = false,	// demo mode for signage
 			view = '2D',	// 3D mode not really working
-			debug = false,	//  debug
 			zoomControl = 'auto',	// show zoom control (auto = if !touch)
 			autoHide = 'auto',	// auto hide controls (auto = if touch)
 			edgeurl = 'http://edge.flightstats.com/flight/tracker/',
@@ -78,12 +77,13 @@
 					// 'http://client-dev-stable.cloud-east.dev/flightTracker/'
 					// 'http://client-dev.cloud-east.dev:3450/flightTracker/'
 					// 'http://edge.dev.flightstats.com/flight/tracker/'
-			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/';
+			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',
 					// 'http://edge-staging.flightstats.com/flight/mini-tracker/',
 					// 'http://client-dev-stable.cloud-east.dev:3500/tracker/',
 					// 'http://client-dev.cloud-east.dev:3500/tracker/',
 					// 'http://edge.dev.flightstats.com/flight/mini-tracker/',
 					// 'http://edge.staging.flightstats.com/flight/mini-tracker/',
+			debug = false;	// debug to console
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -128,18 +128,6 @@
 	} 
 
 	if (debug) {	// interactive debug mode
-
-		if (!$.isNumeric(sessionStorage.asditotal)) {	// initialize session storage
-			console.log('session storage reset');
-			sessionStorage.asdimin = '';
-			sessionStorage.asdimax = '';
-			sessionStorage.asditotal = 0;
-			sessionStorage.asdicount = 0;
-			sessionStorage.airnavmin = '';
-			sessionStorage.airnavmax = '';
-			sessionStorage.airnavtotal = 0;
-			sessionStorage.airnavcount = 0;
-		}
 
 		$(document).keydown(function(e) {
 			if (e.which === 83) {	// "s" stop data
@@ -307,7 +295,7 @@
 			function getFlight(data /*, status, xhr */) { // callback
 				if (debug) { console.log('data:', data, data.positions.length, actualposs.length); }
 				if (data.status || data.tracks) {	// error!
-					showNote(data.status ? data.status.message : data.tracks.message, new Date().toUTCString());
+					showNote('Cannot connect to server: '+(data.status ? data.status.message : data.tracks.message), new Date().toUTCString());
 					map.fitWorld();
 					return;
 				}
@@ -321,6 +309,8 @@
 					}
 					actualposs = newp.concat(actualposs);
 					apts = newp[0].date;
+
+
 				}
 				numpos = actualposs.length;
 
@@ -349,8 +339,10 @@
 				if (numpos > 0 && curstatus !=='L') {	// have positions
 
 					var newpos = actualposs[0];
-					// Want to use timestamp from API instead of from position data, but it might not be reliable enough
 					var newdate = Date.parse(newpos.date);
+					var diff = data.responseTime - newdate/1000 + (newpos.source === 'ASDI'? -300 : 0);
+
+					// !!! Want to use timestamp from API instead of from position data, but it might not be reliable enough
 					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 					timestamp += updateRate;	// 30 seconds
 																											// no data for two minutes  OR  last data point is more than 10 minutes old
@@ -359,11 +351,11 @@
 							showNote('The flight is now tracking');
 							taxi = false;
 						}
-						if (!nodata && (timestamp - newdate > 120000 /* || data.responseTime - newdate/1000 > 600 */) ) {	
-							nodata = true;
+						if (!nodata && (timestamp - newdate > 120000 || diff > 600)) {	
 							showNote('The flight is temporarily beyond the range of our tracking network');
-							if (layers.path) { setFlightPath(true); }	// draw entire flight history
-							drawercontrol.update();
+							nodata = true;
+							// if (layers.path) { setFlightPath(true); }	// draw entire flight history
+							// drawercontrol.update();
 						}
 						if (estland && nodata && data.responseTime > data.operationalTimes.arrivalTime + 120) {
 							showNote('The flight is estimated to have landed, but is beyond the range of our tracking network');
@@ -377,30 +369,14 @@
 					}
 
 					if (debug) {
-						var diff = data.responseTime - newdate/1000;
-						if (newpos.source === 'ASDI') {
-							diff -= 300;	// five minute delay
-							if (sessionStorage.asdimax === '') { sessionStorage.asdimax = diff; } else { sessionStorage.asdimax = Math.max(sessionStorage.asdimax, diff); } 
-							if (sessionStorage.asdimin === '') { sessionStorage.asdimin = diff; } else { sessionStorage.asdimin = Math.min(sessionStorage.asdimin, diff); }
-							sessionStorage.asditotal = (+sessionStorage.asditotal) + diff;
-							sessionStorage.asdicount = (+sessionStorage.asdicount) + 1;
-							console.log('ASDI avg: '+sessionStorage.asditotal/sessionStorage.asdicount+
-								', min: '+sessionStorage.asdimin+', max: '+sessionStorage.asdimax+', count: '+sessionStorage.asdicount);
-						} else {	// airnav
-							if (sessionStorage.airnavmax === '') { sessionStorage.airnavmax = diff; } else { sessionStorage.airnavmax = Math.max(sessionStorage.airnavmax, diff); } 
-							if (sessionStorage.airnavmin === '') { sessionStorage.airnavmin = diff; } else { sessionStorage.airnavmin = Math.min(sessionStorage.airnavmin, diff); }
-							sessionStorage.airnavtotal = (+sessionStorage.airnavtotal) + diff;
-							sessionStorage.airnavcount = (+sessionStorage.airnavcount) + 1;
-							console.log('AirNav avg: '+sessionStorage.airnavtotal/sessionStorage.airnavcount+
-								', min: '+sessionStorage.airnavmin+', max: '+sessionStorage.airnavmax+', count: '+sessionStorage.airnavcount);
-						}
 						console.log('Edge API data: ', data, newpos.source, diff);
 						if (curstatus !== 'A') { console.log('status: ', curstatus, flightData.flightStatus, flightData.statusCode, flightData.statusName); }
 					}
 
 					pos = newpos;
 					timestamp = newdate;
-					if (nodata) {
+
+					if (nodata && diff < 600) {
 						nodata = false;
 						estland = true;	// may calculate a landing again
 						showNote('Re-established position data');
@@ -408,6 +384,7 @@
 							phat(createLatLng(+pos.lat, +pos.lon, wrap), newheading, +pos.altitudeFt, timestamp);
 						}
 					}
+
 				} else {	// no positions
 					var ap = curstatus === 'L' ? data.airports.arrival : data.airports.departure;
 					timestamp = data.responseTime;
@@ -501,10 +478,10 @@
 					// departing airport marker
 					dmarker = L.marker(dpos, {
 							icon: L.icon({	// departing airport icon
-									iconUrl: 'img/tower-large@2x.png',
+									iconUrl: 'img/tower-large.png',
+									iconRetinaUrl: 'img/tower-large@2x.png',
 									iconSize: [78, 151],
 									iconAnchor: [16, 94]
-									// popupAnchor: [2, -93]
 							})
 						}).addTo(map).on('click', function() {
 							drawercontrol.content(depinfo);
@@ -521,10 +498,10 @@
 					// arriving airport marker
 					amarker = L.marker(apos, {
 							icon: L.icon({	// arriving airport icon
-									iconUrl: 'img/tower-large@2x.png',
+									iconUrl: 'img/tower-large.png',
+									iconRetinaUrl: 'img/tower-large@2x.png',
 									iconSize: [78, 151],
 									iconAnchor: [16, 94]
-									// popupAnchor: [2, -93]
 							})
 						}).addTo(map).on('click', function() {
 							drawercontrol.content(arrinfo);
@@ -697,12 +674,12 @@
 		mainloop();
 		setInterval(mainloop, updateRate); // update every 10 seconds
 
-		// !!! will this work when the two points are on opposite sides of the antimeridian?
-		function halfway(p1, p2) {	// return lat/lng halfway between two points
-			return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
-		}
-
 	});	// end document ready
+
+	// !!! will this work when the two points are on opposite sides of the antimeridian?
+	function halfway(p1, p2) {	// return lat/lng halfway between two points
+		return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
+	}
 
 	function createLatLng(lat, lon, wrap) {
 				return L.latLng(lat, wrap && lon>0 ? lon-360 : lon, true);
@@ -1202,7 +1179,7 @@
 	}
 
 	function settrackingview(m) {
-		if (fpos) { m.setView(fpos, maxZoom > 9 ? 9 : maxZoom); }
+		if (fpos) { m.setView(curpos ? halfway(curpos, fpos) : fpos, maxZoom > 9 ? 9 : maxZoom); }
 	}
 
 	function setFlightPath(all) { // draw flight positions

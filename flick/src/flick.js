@@ -468,8 +468,9 @@
 					}
 
 					function depinfo() {	// drawer info for departing airport
-						return '<div class="labelhead">DEPARTING '+dport.fsCode+'</div><div style="text-align:center;width:100%">'+
-							formatAirport(dport.name)+'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+dport.countryCode+
+						return '<div class="labelhead">DEPARTING - '+dport.fsCode+'</div><div style="text-align:center;width:100%">'+
+							formatAirport(dport.name)+'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+
+							(dport.countryCode === 'US' ? 'USA' : dport.countryName)+
 							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(dport.conditions)+
 							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(dport.tempCelsius)+
 							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(dport.localTime)+'</td></tr></table>';
@@ -488,8 +489,9 @@
 						});								
 
 					function arrinfo() {	// drawer info for arriving airport
-						return '<div class="labelhead">ARRIVING '+aport.fsCode+'</div><div style="text-align:center;width:100%">'+
-							formatAirport(aport.name)+'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+aport.countryCode+
+						return '<div class="labelhead">ARRIVING - '+aport.fsCode+'</div><div style="text-align:center;width:100%">'+
+							formatAirport(aport.name)+'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+
+							(aport.countryCode === 'US' ? 'USA' : aport.countryName)+
 							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(aport.conditions)+
 							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(aport.tempCelsius)+
 							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(aport.localTime)+'</td></tr></table>';
@@ -1123,7 +1125,7 @@
 		reset: function() {
 			if (this._tracking === 2) {
 				this._tracking = 1;
-				// this._link.style.backgroundColor = '';
+				this._link.style.backgroundColor = '';
 				this._link.style.backgroundImage = 'url(img/tracking-icon.png)';
 			}			
 		},
@@ -1136,12 +1138,12 @@
 			if (!demo) { unhidecontrols(); }
 			if (this._tracking === 2) {
 				this._tracking = 0;
-				// this._link.style.backgroundColor = '';
+				this._link.style.backgroundColor = '';
 				this._link.style.backgroundImage = 'url(img/tracking-icon.png)';
 				setfullview(this._map);
 			} else {
 				this._tracking = 2;
-				// this._link.style.backgroundColor = '#95b';
+				this._link.style.backgroundColor = '#64BF08';
 				this._link.style.backgroundImage = 'url(img/tracking-icon-white.png)';
 				settrackingview(this._map);
 				setFlightPath();

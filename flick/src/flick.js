@@ -468,7 +468,7 @@
 					}
 
 					function depinfo() {	// drawer info for departing airport
-						return '<div class="labelhead">Departing '+dport.fsCode+'</div><div style="text-align:center;width:100%">'+
+						return '<div class="labelhead">DEPARTING '+dport.fsCode+'</div><div style="text-align:center;width:100%">'+
 							formatAirport(dport.name)+'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+dport.countryCode+
 							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(dport.conditions)+
 							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(dport.tempCelsius)+
@@ -488,7 +488,7 @@
 						});								
 
 					function arrinfo() {	// drawer info for arriving airport
-						return '<div class="labelhead">Arriving '+aport.fsCode+'</div><div style="text-align:center;width:100%">'+
+						return '<div class="labelhead">ARRIVING '+aport.fsCode+'</div><div style="text-align:center;width:100%">'+
 							formatAirport(aport.name)+'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+aport.countryCode+
 							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(aport.conditions)+
 							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(aport.tempCelsius)+

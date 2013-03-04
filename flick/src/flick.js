@@ -72,17 +72,14 @@
 			view = '2D',	// 3D mode not really working
 			zoomControl = 'auto',	// show zoom control (auto = if !touch)
 			autoHide = 'auto',	// auto hide controls (auto = if touch)
-			edgeurl = 'http://edge.flightstats.com/flight/tracker/',
-					// 'http://edge-staging.flightstats.com/flight/tracker/'
-					// 'http://client-dev-stable.cloud-east.dev/flightTracker/'
-					// 'http://client-dev.cloud-east.dev:3450/flightTracker/'
-					// 'http://edge.dev.flightstats.com/flight/tracker/'
-			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',
-					// 'http://edge-staging.flightstats.com/flight/mini-tracker/',
-					// 'http://client-dev-stable.cloud-east.dev:3500/tracker/',
-					// 'http://client-dev.cloud-east.dev:3500/tracker/',
-					// 'http://edge.dev.flightstats.com/flight/mini-tracker/',
-					// 'http://edge.staging.flightstats.com/flight/mini-tracker/',
+			edgeurl = // 'http://edge.flightstats.com/flight/tracker/',	// production
+					'http://edge-staging.flightstats.com/flight/tracker/',	// staging
+					// 'http://edge.dev.flightstats.com/flight/tracker/',	// development
+					// 'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
+			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',	// production
+					// 'http://edge-staging.flightstats.com/flight/mini-tracker/',	// staging
+					// 'http://edge.dev.flightstats.com/flight/mini-tracker/',	// development
+					// 'http://client-dev.cloud-east.dev:3500/tracker/',	// dev internal
 			debug = false;	// debug to console
 
 	function getParams(p) {
@@ -656,7 +653,7 @@
 	var FlightMarker = L.Marker.extend({
 		defaultFlightMarkerOptions: {
 			icon: L.divIcon({ // airplane icon (rotatable)
-					html: '<img class="airplaneshadow" src="img/shadow4.png" /><img class="airplaneicon" src="img/plane@2x.png" />',
+					html: '<img class="airplaneshadow" src="img/shadow-4@2x.png" /><img class="airplaneicon" src="img/plane@2x.png" />',
 					iconSize: [48, 48],	// airplane-purple.png [62, 62],
 					iconAnchor: [24, 24],	// [31, 31],
 					className: ''
@@ -682,10 +679,10 @@
 		},
 		setShadow: function(alt) {	// shadow for flight icon
 			var $shadow = $(this._icon).find('.airplaneshadow');
-			var offset = isNaN(alt) ? 0 : Math.round(alt * 0.0004); // shadow offset based on altitude
-			var shimg = 'img/shadow'+ (Math.max(0, Math.min(9, Math.floor(alt / 3000))))+'.png'; // shadow image 0-9 (progressive blur)
+			var offset = isNaN(alt) ? 0 : Math.round(alt * 0.00035); // shadow offset based on altitude
+			var shimg = 'img/shadow-'+ (Math.max(0, Math.min(9, Math.floor(alt / 3000))))+'@2x.png'; // shadow image 0-9 (progressive blur)
 			if ($shadow.attr('src') !== shimg) { $shadow.attr('src', shimg); }
-			$shadow.css({opacity: 0.6, left: offset, top: offset});
+			$shadow.css({opacity: 0.7, left: offset-19, top: offset-14});
 			return this;
 		}
 	});

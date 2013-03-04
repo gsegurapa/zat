@@ -1,0 +1,25 @@
+Outer
+	Global variables
+	Process parameters
+
+Document ready
+	map layers and controls
+	create map
+	hide controls (fullscreen)
+
+mainloop & getFlight
+	edge service call
+	change of status
+	have positions?
+	first time called?
+		airport positions
+		prefetch airline logo
+		set map view (fires mapReady)
+	else update position
+
+mapReady
+	draw airport markers
+	flight plan
+	great arc
+	airplane marker
+	start animation

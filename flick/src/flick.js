@@ -158,6 +158,7 @@
 		}
 	}
 
+	// document ready! ------------------------------------
 	$(document).ready(function() {
 
 		var defaultlayers = [basemaps[mapType]];	// default map layers
@@ -175,29 +176,6 @@
 		layers = $.extend(layers, basemaps, overlays);
 		layercontrol = new LayerControl(layers);
 
-		function flightinfo() {	// info about flight for drawer
-			var airlinename = flightData.carrierName;
-			var s = (flightData.flightStatus === 'A' && isNaN(pos.speedMph)) ? 'N/A' :
-					(metric ? (pos.speedMph * 1.60934).toFixed()+' kph' : pos.speedMph+' mph');
-			var heading = (+(flightData.heading || flightData.bearing)).toFixed();
-			return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
-					'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
-					'<div id="drawer-status">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
-					'<br /><span'+(flightData.statusColor ? ' style="color:'+flightData.statusColor+'">' : '>')+
-					flightData.statusName+(flightData.statusAppend ? ', '+flightData.statusAppend : '')+'</span>'+
-					'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
-					'</td></tr><tr><td class="tn">Altitude</td><td>'+(isNaN(pos.altitudeFt) ? 'N/A' :
-							(metric ? (pos.altitudeFt * 0.3048).toFixed()+' meters' : pos.altitudeFt+' feet'))+
-					'</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+
-					'<tr><td class="tn">Heading</td><td>'+(isNaN(heading) ? 'N/A' : heading)+' degrees</td></tr>'+
-					(flightData.operatedByFsCode ?
-						'<tr><td class="tn">Operated&nbsp;by</td><td>'+flightData.operatedByFsCode+' '+
-						(flightData.operatedByFlightNum ? flightData.operatedByFlightNum : flightData.carrierFlightId)+'</td></tr>' : '')+
-					'<tr><td class="tn">Equipment</td><td>'+
-							(flightData.flightEquipmentName ? (flightData.flightEquipmentName !== '??' ?
-								formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata) : 'unknown')+
-					'</td></tr></table>';
-		}
 		drawercontrol = new DrawerControl(flightinfo);
 
 		// --------------------------------------------------
@@ -231,7 +209,7 @@
 				zooming = false;
 			});
 
-		hidecontrols = function() {
+		hidecontrols = function() {	// go fullscreen
 			if (autoHide && !drawercontrol.expanded() && !layercontrol.expanded()) {
 				controlshidden = true;
 				$('#control').fadeOut(1000);
@@ -240,7 +218,7 @@
 			}
 		};
 
-		unhidecontrols = function() {	// unhide
+		unhidecontrols = function() {	// show buttons and drawers
 			if (autoHide) {
 				clearTimeout(fullscreentimer);
 				if (controlshidden) {
@@ -276,8 +254,8 @@
 			return false;
 		}).on('dragstart', trackcontrol.reset, trackcontrol);	// turn off tracking on drag
 
-		// --------------------------------------
-		// get position data from API
+		// -------------------------------------------------
+		// get position data from edge API
 		function mainloop() {
 
 			var ajaxoptions = { guid: guid, airline: airline, flight: flightnum, flightPlan: layers.plan===null };
@@ -294,8 +272,9 @@
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
 				if (debug) { console.log('data:', data, data.positions.length, actualposs.length); }
+
 				if (data.status || data.tracks) {	// error!
-					showNote('Cannot connect to server: '+(data.status ? data.status.message : data.tracks.message), new Date().toUTCString());
+					showNote('Cannot connect to flight tracking server: '+(data.status ? data.status.message : data.tracks.message), new Date().toUTCString());
 					map.fitWorld();
 					return;
 				}
@@ -309,8 +288,6 @@
 					}
 					actualposs = newp.concat(actualposs);
 					apts = newp[0].date;
-
-
 				}
 				numpos = actualposs.length;
 
@@ -345,12 +322,12 @@
 					// !!! Want to use timestamp from API instead of from position data, but it might not be reliable enough
 					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 					timestamp += updateRate;	// 30 seconds
-																											// no data for two minutes  OR  last data point is more than 10 minutes old
 					if (curstatus === 'A' || curstatus === 'R') {	// in flight
 						if (taxi && numpos > 0) {
 							showNote('The flight is now tracking');
 							taxi = false;
 						}
+															// no data for two minutes OR last data point is more than 10 minutes old
 						if (!nodata && (timestamp - newdate > 120000 || diff > 600)) {	
 							showNote('The flight is temporarily beyond the range of our tracking network');
 							nodata = true;
@@ -467,15 +444,6 @@
 						$('#map_div').addClass('threed');
 					}
 
-					function airportinfo(w) {
-						return '<div class="labelhead">DEPARTING - '+w.fsCode+'</div><div style="text-align:center;width:100%">'+
-							formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
-							(w.countryCode === 'US' ? 'USA' : w.countryName)+
-							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(w.conditions)+
-							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(w.tempCelsius)+
-							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(w.localTime)+'</td></tr></table>';
-					}
-
 					// departing airport marker
 					dmarker = L.marker(dpos, {
 							icon: L.icon({	// departing airport icon
@@ -500,7 +468,7 @@
 							drawercontrol.content(function() { return airportinfo(aport); });
 						});
 
-					// flight plan and great arc
+					// create flight plan polylines
 					var p = flightData.flightPlan;	// do flight plan (waypoints) if available
 					if (p) { // there is a flight plan
 						var positions = new Array(p.length);
@@ -510,7 +478,7 @@
 						layers.planHalo = L.polyline(positions, { color: '#D1D1D2', weight: 12, opacity: 0.4, clickable: false });
 						layers.plan = L.polyline(positions, { color: '#362F2D', weight: 8 , opacity: 0.6, clickable: false });
 					} 
-					// calculate great arc (geodesic)
+					// create great arc (geodesic) polylines
 					var npoints = Math.max(128 - 14 * map.getZoom(), 4);
 					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', weight: 7, opacity: 0.4, clickable: false }).greatCircle(npoints);
 					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', weight: 4, opacity: 0.6, clickable: false }).greatCircle(npoints);
@@ -526,9 +494,9 @@
 					}
 
 					// flight marker (airplane)
-					var alt = +(pos.altitudeFt || dport.elevationFt || aport.elevationFt || 0);
+					var alt = +(pos.altitudeFt || 0);
 					var heading = +(flightData.heading || flightData.bearing);
-					// now that I get current time from API, fix this to go back 1 minute in time to start animation
+					// !!! now that I get current time from API, fix this to go back 1 minute in time to start animation
 					// and display warning if no new data
 
 					if (actualposs.length > 2) {
@@ -665,7 +633,7 @@
 		} // end mainloop
 
 		mainloop();
-		setInterval(mainloop, updateRate); // update every 10 seconds
+		setInterval(mainloop, updateRate); // update every 30 seconds
 
 	});	// end document ready
 
@@ -768,6 +736,40 @@
 			return this;
 		}
 	});
+
+	// Drawer info functions ---------------------------------------------
+	function flightinfo() {	// info about flight for drawer
+		var airlinename = flightData.carrierName;
+		var s = (flightData.flightStatus === 'A' && isNaN(pos.speedMph)) ? 'N/A' :
+				(metric ? (pos.speedMph * 1.60934).toFixed()+' kph' : pos.speedMph+' mph');
+		var heading = (+(flightData.heading || flightData.bearing)).toFixed();
+		return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
+				'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
+				'<div id="drawer-status">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
+				'<br /><span'+(flightData.statusColor ? ' style="color:'+flightData.statusColor+'">' : '>')+
+				flightData.statusName+(flightData.statusAppend ? ', '+flightData.statusAppend : '')+'</span>'+
+				'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
+				'</td></tr><tr><td class="tn">Altitude</td><td>'+(isNaN(pos.altitudeFt) ? 'N/A' :
+						(metric ? (pos.altitudeFt * 0.3048).toFixed()+' meters' : pos.altitudeFt+' feet'))+
+				'</td></tr><tr><td class="tn">Speed</td><td>'+s+'</td></tr>'+
+				'<tr><td class="tn">Heading</td><td>'+(isNaN(heading) ? 'N/A' : heading)+' degrees</td></tr>'+
+				(flightData.operatedByFsCode ?
+					'<tr><td class="tn">Operated&nbsp;by</td><td>'+flightData.operatedByFsCode+' '+
+					(flightData.operatedByFlightNum ? flightData.operatedByFlightNum : flightData.carrierFlightId)+'</td></tr>' : '')+
+				'<tr><td class="tn">Equipment</td><td>'+
+						(flightData.flightEquipmentName ? (flightData.flightEquipmentName !== '??' ?
+							formatEquip(flightData.flightEquipmentName) : flightData.flightEquipmentIata) : 'unknown')+
+				'</td></tr></table>';
+	}
+
+	function airportinfo(w) {
+		return '<div class="labelhead">DEPARTING - '+w.fsCode+'</div><div style="text-align:center;width:100%">'+
+			formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
+			(w.countryCode === 'US' ? 'USA' : w.countryName)+
+			'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(w.conditions)+
+			'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(w.tempCelsius)+
+			'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(w.localTime)+'</td></tr></table>';
+	}
 
 	// ---------------------------------------------------------
 	// DrawerControl displays information about items on the map

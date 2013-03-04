@@ -467,13 +467,13 @@
 						$('#map_div').addClass('threed');
 					}
 
-					function depinfo() {	// drawer info for departing airport
-						return '<div class="labelhead">DEPARTING - '+dport.fsCode+'</div><div style="text-align:center;width:100%">'+
-							formatAirport(dport.name)+'<br />'+dport.city+(dport.stateCode ? ', '+dport.stateCode : '')+', '+
-							(dport.countryCode === 'US' ? 'USA' : dport.countryName)+
-							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(dport.conditions)+
-							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(dport.tempCelsius)+
-							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(dport.localTime)+'</td></tr></table>';
+					function airportinfo(w) {
+						return '<div class="labelhead">DEPARTING - '+w.fsCode+'</div><div style="text-align:center;width:100%">'+
+							formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
+							(w.countryCode === 'US' ? 'USA' : w.countryName)+
+							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(w.conditions)+
+							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(w.tempCelsius)+
+							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(w.localTime)+'</td></tr></table>';
 					}
 
 					// departing airport marker
@@ -485,17 +485,8 @@
 									iconAnchor: [16, 94]
 							})
 						}).addTo(map).on('click', function() {
-							drawercontrol.content(depinfo);
+							drawercontrol.content(function() { return airportinfo(dport); });
 						});								
-
-					function arrinfo() {	// drawer info for arriving airport
-						return '<div class="labelhead">ARRIVING - '+aport.fsCode+'</div><div style="text-align:center;width:100%">'+
-							formatAirport(aport.name)+'<br />'+aport.city+(aport.stateCode ? ', '+aport.stateCode : '')+', '+
-							(aport.countryCode === 'US' ? 'USA' : aport.countryName)+
-							'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(aport.conditions)+
-							'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(aport.tempCelsius)+
-							'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(aport.localTime)+'</td></tr></table>';
-					}
 
 					// arriving airport marker
 					amarker = L.marker(apos, {
@@ -506,7 +497,7 @@
 									iconAnchor: [16, 94]
 							})
 						}).addTo(map).on('click', function() {
-							drawercontrol.content(arrinfo);
+							drawercontrol.content(function() { return airportinfo(aport); });
 						});
 
 					// flight plan and great arc

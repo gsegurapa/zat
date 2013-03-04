@@ -302,7 +302,7 @@
 				if (data.flightStatus !== curstatus) {	// change of status
 					curstatus = data.flightStatus;
 					if (numpos === 0 && (curstatus === 'A' || curstatus === 'R')) {	// taxi to runway
-						showNote('Flight has departed the gate; tracking will begin upon take off',
+						showNote('Flight has departed the gate; tracking should begin upon take off',
 								new Date(data.responseTime*1000).toUTCString());
 						taxi = true;
 					} else {

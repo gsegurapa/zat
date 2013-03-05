@@ -204,6 +204,14 @@
 			}).
 			on('zoomend', function(/* e */) {
 				zooming = false;
+				if (dmarker === undefined) { return; }
+				var opts = $.extend({}, towerproto);	// copy
+				var scale = towerscale[Math.min(this.getZoom(), towerscale.length-1)];
+				opts.iconSize = [opts.iconSize[0] * scale, opts.iconSize[1] * scale];
+				opts.iconAnchor = [opts.iconAnchor[0] * scale, opts.iconAnchor[1] * scale];
+				var icon = L.icon(opts);
+				dmarker.setIcon(icon);
+				amarker.setIcon(icon);
 			});
 
 		hidecontrols = function() {	// go fullscreen
@@ -1292,6 +1300,15 @@
 		S: 'Tracking will begin upon departure', // Scheduled
 		U: 'Tracking is not enabled for this flight' // Unknown
 	};
+
+	var towerproto = {
+			iconUrl: 'img/tower-large.png',
+			iconRetinaUrl: 'img/tower-large@2x.png',
+			iconSize: [78, 151],	// full size
+			iconAnchor: [16, 94]
+		};
+
+	var towerscale = [ 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1 ];
 
 	// Flightstats weather tiles -----------------------------------------------------------
   L.TileLayer.FSWeather = L.TileLayer.extend({

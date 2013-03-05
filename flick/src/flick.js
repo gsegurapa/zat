@@ -1181,7 +1181,12 @@
 	}
 
 	function settrackingview(m) {
-		if (fpos) { m.setView(curpos ? halfway(curpos, fpos) : fpos, maxZoom > 9 ? 9 : maxZoom); }
+		if (fpos) {
+			m.setView(
+					curpos ? halfway(curpos, fpos) : fpos,
+					Math.max(Math.min(maxZoom, 9), m.getZoom())	// don't zoom out
+			);
+		}
 	}
 
 	function setFlightPath(all) { // draw flight positions

@@ -305,9 +305,9 @@
 					}
 				}
 
-				if (data.flightStatus !== curstatus) {	// change of status
-					curstatus = data.flightStatus;
-					if (numpos === 0 && (curstatus === 'A' || curstatus === 'R')) {	// taxi to runway
+				if (data.statusCode !== curstatus) {	// change of status
+					curstatus = data.statusCode;
+					if (numpos === 0 && curstatus === 'A') {	// taxi to runway
 						showNote('Flight has departed the gate; tracking should begin upon take off',
 								new Date(data.responseTime*1000).toUTCString());
 						taxi = true;
@@ -319,7 +319,7 @@
 
 				var newheading = +(data.heading || data.bearing);
 
-				if (numpos > 0 && curstatus !=='L') {	// have positions
+				if (numpos > 0 && curstatus !== 'L') {	// have positions
 
 					var newpos = actualposs[0];
 					var newdate = Date.parse(newpos.date);
@@ -328,7 +328,7 @@
 					// !!! Want to use timestamp from API instead of from position data, but it might not be reliable enough
 					if (timestamp === undefined) { timestamp = newdate; }	// if uninitialized
 					timestamp += updateRate;	// 30 seconds
-					if (curstatus === 'A' || curstatus === 'R') {	// in flight
+					if (curstatus === 'A') {	// in flight
 						if (taxi && numpos > 0) {
 							showNote('The flight is now tracking');
 							taxi = false;
@@ -353,7 +353,7 @@
 
 					if (debug) {
 						console.log('Edge API data: ', data, newpos.source, diff);
-						if (curstatus !== 'A') { console.log('status: ', curstatus, flightData.flightStatus, flightData.statusCode, flightData.statusName); }
+						if (curstatus !== 'A') { console.log('status: ', curstatus, flightData.statusCode, flightData.flightStatus, flightData.statusName); }
 					}
 
 					pos = newpos;
@@ -747,7 +747,7 @@
 	// Drawer info functions ---------------------------------------------
 	function flightinfo() {	// info about flight for drawer
 		var airlinename = flightData.carrierName;
-		var s = (flightData.flightStatus === 'A' && isNaN(pos.speedMph)) ? 'N/A' :
+		var s = (flightData.statusCode === 'A' && isNaN(pos.speedMph)) ? 'N/A' :
 				(metric ? (pos.speedMph * 1.60934).toFixed()+' kph' : pos.speedMph+' mph');
 		var heading = (+(flightData.heading || flightData.bearing)).toFixed();
 		return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
@@ -1190,7 +1190,7 @@
 		var positions = [];
 		var last = null, ct, tail;
 		var i = 1;
-		if (all || !curpos || curspeed < 120 || flightData.flightStatus === 'L') {	// draw all positions
+		if (all || !curpos || curspeed < 120 || flightData.statusCode === 'L') {	// draw all positions
 			tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
 		} else { // find last point in flight path to be displayed
 			var m = Math.min(p.length, 10);

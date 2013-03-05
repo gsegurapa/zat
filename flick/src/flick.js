@@ -459,7 +459,7 @@
 									iconAnchor: [16, 94]
 							})
 						}).addTo(map).on('click', function() {
-							drawercontrol.content(function() { return airportinfo(dport); });
+							drawercontrol.content(function() { return airportinfo(true); });
 						});								
 
 					// arriving airport marker
@@ -471,7 +471,7 @@
 									iconAnchor: [16, 94]
 							})
 						}).addTo(map).on('click', function() {
-							drawercontrol.content(function() { return airportinfo(aport); });
+							drawercontrol.content(function() { return airportinfo(false); });
 						});
 
 					// create flight plan polylines
@@ -769,8 +769,10 @@
 				'</td></tr></table>';
 	}
 
-	function airportinfo(w) {
-		return '<div class="labelhead">DEPARTING - '+w.fsCode+'</div><div style="text-align:center;width:100%">'+
+	function airportinfo(wt) {	// true for departing, false for arriving
+		var w = wt ? dport : aport;
+		return '<div class="labelhead">'+(wt ? 'DEPARTING' : 'ARRIVING')+' - '+w.fsCode+
+			'</div><div style="text-align:center;width:100%">'+
 			formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
 			(w.countryCode === 'US' ? 'USA' : w.countryName)+
 			'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(w.conditions)+

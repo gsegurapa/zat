@@ -72,8 +72,8 @@
 			view = '2D',	// 3D mode not really working
 			zoomControl = 'auto',	// show zoom control (auto = if !touch)
 			autoHide = 'auto',	// auto hide controls (auto = if touch)
-			edgeurl = // 'http://edge.flightstats.com/flight/tracker/',	// production
-					'http://edge-staging.flightstats.com/flight/tracker/',	// staging
+			edgeurl = 'http://edge.flightstats.com/flight/tracker/',	// production
+					// 'http://edge-staging.flightstats.com/flight/tracker/',	// staging
 					// 'http://edge.dev.flightstats.com/flight/tracker/',	// development
 					// 'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
 			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',	// production

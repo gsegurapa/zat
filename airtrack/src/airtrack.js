@@ -775,6 +775,7 @@
     $('#flightMarkerScale, #airportMarkerScale, #weatherOpacity').rangeinput({
       speed: 100, keyboard: false
     }).bind('onSlide', function(e) {
+      $('#configurl').text('');
       var $el = $(e.delegateTarget);
       switch($el.attr('id')) {
        case 'flightMarkerScale':
@@ -795,7 +796,6 @@
     });
 
     function fillDialog() {
-      $('#configurl').text('');
       if (!BigScreen.enabled) { $('#cbutton input[value="Full"]').hide(); }
       $('#airportCode').val(airportCode);
       // $('#mapType option').removeAttr('selected');
@@ -901,6 +901,7 @@
     });
 
     $('#inczoom, #deczoom').click(function(e) {
+      $('#configurl').text('');
       var tinfo = tilesinfo[actualMapType];
       var newz = zoomLevel;
       if ($(e.target).attr('id') === 'inczoom') {

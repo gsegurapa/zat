@@ -26,7 +26,7 @@
 				arcHalo: null, arc: null,	// shortest arc (geodesic)
 				mini: null },	// mini-tracker
 			wrap;	// does route cross the anti-meridian?
-	var maxZoom = 12;	// cannot zoom in any more than this
+	var maxZoom = 11;	// cannot zoom in any more than this
 	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
 	var flightData,	// flight data returned by API
 			actualposs = [],	// actual positions (built up)
@@ -184,7 +184,7 @@
 			zoomAnimation: true,
 			markerZoomAnimation: true,
 			layers: defaultlayers,
-			worldCopyJump: false
+			worldCopyJump: false	// !!! only one copy of markers and polylines, for now
 		});
 		map.addLayer(layercontrol).addLayer(trackcontrol).addLayer(drawercontrol).
 			on('layeradd', function(e) { // reset zoom on basemap change
@@ -204,6 +204,7 @@
 			}).
 			on('zoomend', function(/* e */) {
 				zooming = false;
+				if (debug) { console.log('zoom: ', this.getZoom()); }
 				if (dmarker === undefined) { return; }
 				var opts = $.extend({}, towerproto);	// copy
 				var scale = towerscale[Math.min(this.getZoom(), towerscale.length-1)];
@@ -647,6 +648,7 @@
 	}
 
 	// !!! will this work when the two points are on opposite sides of the antimeridian?
+	// I think so, since if wrap then points west of antimeridian are < -180
 	function halfway(p1, p2) {	// return lat/lng halfway between two points
 		return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
 	}
@@ -1338,13 +1340,13 @@
 			'http://maps{s}.flightstats.com/aerial/{z}/{x}/{y}.png',
 			{ subdomains: '1234',
 				zIndex: 2,
-				minZoom: 0, maxZoom: 12
+				minZoom: 0, maxZoom: 11
 		}),
 		map: L.tileLayer(
 			'http://maps{s}.flightstats.com/streets/{z}/{x}/{y}.png',
 			{ subdomains: '1234',
 				zIndex: 2,
-				minZoom: 0, maxZoom: 12
+				minZoom: 0, maxZoom: 11
 		})
 	};
 
@@ -1360,7 +1362,7 @@
 			'http://maps{s}.flightstats.com/labels/{z}/{x}/{y}.png',
 			{ subdomains: '1234',
 			zIndex: 5,
-				minZoom: 0, maxZoom: 12
+				minZoom: 0, maxZoom: 11
 		}),
 		terrain: L.tileLayer(
 			// 'http://129.206.74.245:8004/tms_hs.ashx?x={x}&y={y}&z={z}',
@@ -1368,7 +1370,7 @@
 			{ subdomains: '1234',
 				opacity: 0.7,
 				zIndex: 3,
-				minZoom: 0, maxZoom: 12
+				minZoom: 0, maxZoom: 11
 		})
 	};
 

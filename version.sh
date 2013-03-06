@@ -19,7 +19,7 @@ do
 	#update all html files with new filename
 	for f in $(find ${1}/build/*.html)
 	do
-		echo "updating html file: ${f}"
+	    echo "updating html file: ${f}.  Changing ${originfilename} to ${newname}."
 	    sed "s/${origfilename}/${newname}/g" $f > ${1}/build/output
 	    mv ${1}/build/output ${f}
 	done

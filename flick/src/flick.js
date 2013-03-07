@@ -27,7 +27,7 @@
 				mini: null },	// mini-tracker
 			wrap;	// does route cross the anti-meridian?
 	var maxZoom = 11;	// cannot zoom in any more than this
-	var logo = false, logoimg, logourl;	// airline logo image and prefetch (for flight label)
+	var logo = true, logoimg, logourl;	// airline logo image and prefetch (for flight label)
 	var flightData,	// flight data returned by API
 			actualposs = [],	// actual positions (built up)
 			apts,	// last actual pos timestamp
@@ -72,10 +72,11 @@
 			view = '2D',	// 3D mode not really working
 			zoomControl = 'auto',	// show zoom control (auto = if !touch)
 			autoHide = 'auto',	// auto hide controls (auto = if touch)
-			edgeurl = 'http://edge.flightstats.com/flight/tracker/',	// production
+			edgeurl = // 'http://edge.flightstats.com/flight/tracker/',	// production
 					// 'http://edge-staging.flightstats.com/flight/tracker/',	// staging
 					// 'http://edge.dev.flightstats.com/flight/tracker/',	// development
-					// 'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
+					'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
+					// 'http://edge01.cloud-east.staging:3450/flightTracker/',	// staging internal
 			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',	// production
 					// 'http://edge-staging.flightstats.com/flight/mini-tracker/',	// staging
 					// 'http://edge.dev.flightstats.com/flight/mini-tracker/',	// development
@@ -406,16 +407,13 @@
 
 					logourl = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/png/150x50/'+
 							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
-					// logourl = 'http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/png/150x50/'+
-					//		data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
-					// logo sizes: 90x30, 120x40, 150x50, 256x86
-					// logourl = 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_150x50.png';
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					// prefetch image
 					logoimg = $('<img/>'); // prefetch logo
-					logoimg.load(function(/* e */) {	// if image exists, use it
-						logo = true;
+					logoimg.error(function(e) {	// if image exists, use it
+						logo = false;
+						e.stopImmediatePropagation();
 					});
 					logoimg.attr('src', logourl);	// prefetch image
 
@@ -744,7 +742,7 @@
 		}
 	});
 
-	// Drawer info functions ---------------------------------------------
+	// Drawer info content ---------------------------------------------
 	function flightinfo() {	// info about flight for drawer
 		var airlinename = flightData.carrierName;
 		var s = (flightData.statusCode === 'A' && isNaN(pos.speedMph)) ? 'N/A' :
@@ -775,9 +773,13 @@
 			'</div><div style="text-align:center;width:100%">'+
 			formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
 			(w.countryCode === 'US' ? 'USA' : w.countryName)+
-			'</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(w.conditions)+
-			'</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(w.tempCelsius)+
-			'</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(w.localTime)+'</td></tr></table>';
+			'</div><br /><table id="drawerinfo" style="line-height:14px"><tr><td rowspan="5"><img src="http://d1bopfe20gjmus.cloudfront.net/airports/0.0.4/images/'+
+			w.conditionIcon+'" style="width:100px;height100px;padding-right:5px" /></td><td class="dark">LOCAL&nbsp;WEATHER</td></tr><tr><td style="font-size:1.15em">'+
+			formatWeather(w.conditions)+'</td></tr><tr><td style="font-size:26px;height:30px">'+formatTemperature(w.temperatureCelsius)+
+			'</td></tr><tr><td class="dark">LOCAL&nbsp;TIME</td></tr><tr><td>'+formatTime(w.localTime)+'</td></tr></table>';
+			// '</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(w.conditions)+
+			// '</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(w.tempCelsius)+
+			// '</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(w.localTime)+'</td></tr></table>';
 	}
 
 	// ---------------------------------------------------------
@@ -1284,12 +1286,12 @@
 	}
 
 	function formatWeather(ws) {
-		return ws === undefined ? 'Unknown' : ws;
+		return ws === undefined ? 'Unknown' : ws.toUpperCase();
 	}
 
 	function formatTemperature(ts) {
 		return ts === undefined || ts === 'Unknown' || isNaN(ts) ? 'Unknown' :
-				(metric ? ts.toFixed(1)+'&deg;C' : (32 + (1.8 * ts)).toFixed()+'&deg;F');
+				(metric ? ts.toFixed(1)+'&deg; C' : (32 + (1.8 * ts)).toFixed()+'&deg; F');
 	}
 
 	function formatEquip(es) {

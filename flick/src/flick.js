@@ -280,7 +280,8 @@
 				if (debug) { console.log('data:', data, data.positions.length, actualposs.length); }
 
 				if (data.status || data.tracks) {	// error!
-					showNote('Cannot connect to flight tracking server: '+(data.status ? data.status.message : data.tracks.message), new Date().toUTCString());
+					showNote('Cannot connect to flight tracking server: '+
+							(data.status ? data.status.message : data.tracks.message));
 					map.fitWorld();
 					return;
 				}
@@ -308,12 +309,11 @@
 				if (data.statusCode !== curstatus) {	// change of status
 					curstatus = data.statusCode;
 					if (numpos === 0 && curstatus === 'A') {	// taxi to runway
-						showNote('Flight has departed the gate; tracking should begin upon take off',
-								new Date(data.responseTime*1000).toUTCString());
+						showNote('Flight has departed the gate; tracking should begin upon take off');
 						taxi = true;
 					} else {
 						var m = flightStatusMessages[curstatus];
-						if (m) { showNote(m, new Date(data.responseTime*1000).toUTCString()); }
+						if (m) { showNote(m); }
 					}
 				}
 
@@ -323,6 +323,7 @@
 
 					var newpos = actualposs[0];
 					var newdate = Date.parse(newpos.date);
+					if (newdate < 1000) { alert('bad date!',newpos.date); }
 					var diff = data.responseTime - newdate/1000 + (newpos.source === 'ASDI'? -300 : 0);
 
 					// !!! Want to use timestamp from API instead of from position data, but it might not be reliable enough
@@ -440,6 +441,13 @@
 							(mft.contentWindow ? mft.contentWindow : mft.documentWindow).postMessage(data.miniTracker, '*');
 						}
 					}
+				}
+
+				function showNote(message) {
+					$('#message').html(message+'<div class="ntime">'+
+							(flightData && flightData.responseTime ? new Date(flightData.responseTime*1000) : new Date()).toUTCString()
+							+'</div>');
+					$('#messagepopup').show().on('click', function() { $(this).hide(); });
 				}
 
 				// ------------------------------------------------
@@ -651,11 +659,6 @@
 	// I think so, since if wrap then points west of antimeridian are < -180
 	function halfway(p1, p2) {	// return lat/lng halfway between two points
 		return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
-	}
-
-	function showNote(message, t) {
-		$('#message').html(message+'<div class="ntime">'+(t?t:(new Date(timestamp)).toUTCString())+'</div>');
-		$('#messagepopup').show().on('click', function() { $(this).hide(); });
 	}
 
 	// -----------------------------------------------

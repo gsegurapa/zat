@@ -308,7 +308,7 @@
 				if (data.statusCode !== curstatus) {	// change of status
 					curstatus = data.statusCode;
 					if (numpos === 0 && curstatus === 'A') {	// taxi to runway
-						showNote('Flight has departed the gate; tracking should begin upon take off',
+						showNote('Flight has departed the gate; tracking should begin after take off',
 								new Date(data.responseTime*1000).toUTCString());
 						taxi = true;
 					} else {
@@ -1145,7 +1145,7 @@
 				setfullview(this._map);
 			} else {
 				this._tracking = 2;
-				this._link.style.backgroundColor = '#64BF08';
+				this._link.style.backgroundColor = '#306ADB';	// blue
 				this._link.style.backgroundImage = 'url(img/tracking-icon-white.png)';
 				settrackingview(this._map);
 				setFlightPath();
@@ -1306,7 +1306,7 @@
 		L: 'The flight has landed',
 		NO: 'Flight not operating',
 		// R: 'The flight has possibly been redirected',
-		S: 'Tracking will begin upon departure', // Scheduled
+		S: 'Tracking will begin after departure', // Scheduled
 		U: 'Tracking is not enabled for this flight' // Unknown
 	};
 

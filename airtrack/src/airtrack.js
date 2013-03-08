@@ -8,8 +8,8 @@
     window.location.href = 'help.html';
   }
 
-  var default_appId = 'd649f376'; // default app ID (rate limited)
-  var default_appKey = 'ACIDEMO'; // default app key
+  var default_appId = '368357de'; // default app ID (rate limited)
+  var default_appKey = '03072013'; // default app key
 
   var tilesinfo = {
     terrain: {

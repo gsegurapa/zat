@@ -6,7 +6,7 @@
 
 if [ $4 ]
 then
-	touch ./{$1}/build/DEPLOY-VERSION-$4
+	touch ./$1/build/DEPLOY-VERSION-$4
 fi
 
 for f in $(find ./${1}/build)

@@ -72,10 +72,10 @@
 			view = '2D',	// 3D mode not really working
 			zoomControl = 'auto',	// show zoom control (auto = if !touch)
 			autoHide = 'auto',	// auto hide controls (auto = if touch)
-			edgeurl = // 'http://edge.flightstats.com/flight/tracker/',	// production
+			edgeurl = 'http://edge.flightstats.com/flight/tracker/',	// production
 					// 'http://edge-staging.flightstats.com/flight/tracker/',	// staging
 					// 'http://edge.dev.flightstats.com/flight/tracker/',	// development
-					'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
+					// 'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
 					// 'http://edge01.cloud-east.staging:3450/flightTracker/',	// staging internal
 			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',	// production
 					// 'http://edge-staging.flightstats.com/flight/mini-tracker/',	// staging
@@ -106,8 +106,8 @@
     if (params.debug) { debug = params.debug === 'true'; }
     if (params.autoHide) { autoHide = params.autoHide === 'true'; }
     if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
-    if (params.edgeurl) { edgeurl = params.edgeurl; }
-    if (params.miniurl) { miniurl = params.miniurl; }
+    if (params.edgeurl) { edgeurl = decodeURIComponent(params.edgeurl); }
+    if (params.miniurl) { miniurl = decodeURIComponent(params.miniurl); }
 	}
 
 	function setCookie(name, value) {

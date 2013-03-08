@@ -106,8 +106,8 @@
     if (params.debug) { debug = params.debug === 'true'; }
     if (params.autoHide) { autoHide = params.autoHide === 'true'; }
     if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
-    if (params.edgeurl) { edgeurl = params.edgeurl; }
-    if (params.miniurl) { miniurl = params.miniurl; }
+    if (params.edgeurl) { edgeurl = decodeURIComponent(params.edgeurl); }
+    if (params.miniurl) { miniurl = decodeURIComponent(params.miniurl); }
 	}
 
 	function setCookie(name, value) {

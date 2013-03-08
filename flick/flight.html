@@ -8,7 +8,7 @@
 <style>
 	body {
 	  font-family: Tahoma, Geneva, sans-serif;
-	  font-size: 1em;
+	  font-size: 0.9em;
 	}
 </style>
 </head>
@@ -17,6 +17,15 @@
 Departing airport:
 <input id="aircode" type="text" size="4" value="PDX" />
 <input id="lookup" type="button" value="Lookup" />
+<select id="env">
+	<option value="prodx">edge.flightstats.com</option>
+	<option value="stagingx">edge-staging.flightstats.com</option>
+	<option value="devx">edge.dev.flightstats.com</option>
+	<option disabled="disabled">-------------------</option>
+	<option value="prod">edge01.cloud-east.prod</option>
+	<option value="staging">edge01.cloud-east.staging</option>
+	<option value="dev">client-dev.cloud-east.dev</option>
+</select>
 <span id="ctime"></span>
 </div>
 <div id="out">
@@ -29,27 +38,53 @@ Departing airport:
 			appId = '9543a3e8',
 			appKey = '91d511451d9dbf38ede3efafefac5f09';
 
+	var urls = {
+		edgeurl: {
+			prodx: 'http://edge.flightstats.com/flight/tracker/',	// production
+			stagingx: 'http://edge-staging.flightstats.com/flight/tracker/',	// staging
+			devx: 'http://edge.dev.flightstats.com/flight/tracker/',	// development
+			prod: 'http://edge01.cloud-east.prod:3450/flightTracker/',	// production
+			staging: 'http://edge01.cloud-east.staging:3450/flightTracker/',	// staging internal
+			dev: 'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
+		},
+		miniurl: {
+			prodx: 'http://edge.flightstats.com/flight/mini-tracker/',	// production
+			stagingx: 'http://edge-staging.flightstats.com/flight/mini-tracker/',	// staging
+			devx: 'http://edge.dev.flightstats.com/flight/mini-tracker/',	// development
+			prod: 'http://edge01.cloud-east.prod:3500/tracker/',	// production
+			staging: 'http://edge01.cloud-east.staging:3500/tracker/',	// staging
+			dev: 'http://client-dev.cloud-east.dev:3500/tracker/',	// dev internal
+		}
+	};
+
 	$('#aircode').select();
 
 	$('#lookup').on('click', lookup);
 	$('#aircode').on('keydown', lookup);
 
-	var debug,	// interactive debug
+	var debug = location.protocol === 'file:',	// interactive debug
+			env,
 			zoomControl,	// show zoom control
 			autoHide;	// auto hide controls
 
 	function getParams(p) {
-    var params = {}; // parameters
-    p.replace(/[?&;]\s?([^=&;]+)=([^&;]*)/gi,
-        function(m,key,value) { params[key] = value; });
+	    var params = {}; // parameters
+	    p.replace(/[?&;]\s?([^=&;]+)=([^&;]*)/gi,
+	        function(m,key,value) { params[key] = value; });
 
-    if (params.debug) { debug = params.debug === 'true'; }
-    if (params.autoHide) { autoHide = params.autoHide === 'true'; }
-    if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
-	}
+	    if (params.debug) { debug = params.debug === 'true'; }
+	    if (params.autoHide) { autoHide = params.autoHide === 'true'; }
+	    if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
+		}
 
 	getParams(window.location.href); // read parameters from URL
 	var extras = (debug ? '&debug='+debug : '') + (autoHide ? '&autoHide='+autoHide : '') + (zoomControl ? '&zoomControl='+zoomControl : '');
+
+	if (debug) {
+		$('#env').val('dev');
+	} else {
+		$('#env').hide();
+	}
 
 	function getAppendix(data) { // read in data from appendix and convert to dictionary
     ret = {};
@@ -65,6 +100,7 @@ Departing airport:
 	function lookup(e) {
 		if (e.type === 'keydown' && e.keyCode !== 13) { return; }
 		airportCode = $('#aircode').val().toUpperCase();
+		env = $('#env').val();
 		var now = new Date();	// current date and time
 		now.setHours(now.getHours() - 2);
 		$.ajax({  // airport tracks departures
@@ -84,7 +120,15 @@ Departing airport:
 			$flights.text('AJAX error: '+data.error.errorMessage)
 			return;
 		}
-		if (debug) { console.log('departing flights: ',data); }
+		$('#env').hide();
+		if (debug) {
+			console.log('departing flights: ',data);
+			if (env !== 'prodx') {
+				console.log(extras);
+				extras += '&edgeurl='+encodeURIComponent(urls.edgeurl[env])+'&miniurl='+encodeURIComponent(urls.miniurl[env]);
+				console.log(extras);
+			}
+		}
 		var airlines = getAppendix(data.appendix.airlines);
 		var airports = getAppendix(data.appendix.airports);
 		$('#ctime').text(airports[airportCode].localTime.slice(0,16));

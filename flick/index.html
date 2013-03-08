@@ -5,9 +5,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<!-- , target-densityDpi=device-dpi -->
   <title>FlightStats Flight Tracker</title>
-  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
-	<!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.ie.css" /><![endif]-->
-  <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" />
+	<!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.ie.css" /><![endif]-->
+
+  <script src="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
   <script type="text/javascript" src="lib/jQueryRotateCompressed.2.2.js"></script>
   <script type="text/javascript" src="src/flick.js"></script>
@@ -220,23 +221,22 @@
 			position: absolute;
 			top: 15px;
 			bottom: 0px;
-			width: 240px;
+			width: 250px;
 			font-size: 13px;
 			line-height: 14px;
 			font-family: Helvetica, Arial, sans-serif;
 			color: #EBEBEB;
-			padding: 0 30px;
+			padding: 0 25px;
 		}
 		#drawer-status {
 			text-align: center;
 			width: 100%;
-			line-height: 15px;
+			line-height: 16px;
 		}
 		div.labelhead {
 			text-align: center;
 			font-size: 1.4em;
 			line-height: 1.5em;
-			margin: 5px 0;
 		}
 		img.labelimg {
 			width: 150px;
@@ -245,7 +245,7 @@
 			border: 2px solid #EBEBEB;
 			border-left: 5px solid #EBEBEB;
 			border-right: 5px solid #EBEBEB;
-			margin-left: 40px;
+			margin-left: 45px;
 		}
 		div.fakelogo {
 			text-align: center;
@@ -257,13 +257,17 @@
 		}
 		#drawerinfo {
 			width: 100%;
-			line-height: 13px;
-			height: 110px;
+			line-height: 12px;
+			height: 109px;
 		}
 		#drawerinfo td.tn {
 			text-align: right;
 			color: #B3B4B6;
 			padding-right: 3px;
+		}
+		#drawerinfo td.dark {
+			font-size: 0.9em;
+			color: #B3B4B6;
 		}
 	</style>
 </head>
@@ -279,7 +283,7 @@
 			<label><input id="layer-path" type="checkbox" /> ACTUAL PATH</label>
 			<label><input id="layer-plan" type="checkbox" /> <span id="layer-plan-name">FLIGHT PLAN</label>
 			<label><input id="layer-arc" type="checkbox" /> GREAT ARC</label>
-			<label><input id="layer-mini" type="checkbox" /> MINI TRACKER</label>
+			<label><input id="layer-mini" type="checkbox" /> TIME TRACKER</label>
 			<label class="sep-bel"><input id="layer-weather" type="checkbox" /> US WEATHER</label>
 			<div class="attribution"><a href="attribution.html" target="_blank">MAP ATTRIBUTIONS</a></div>
 		</form>

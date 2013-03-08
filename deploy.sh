@@ -4,6 +4,11 @@
 # the public parameter determines public read access in the s3 bucket
 # need more comments
 
+if [ $4 ]
+then
+	touch ./{$1}/build/DEPLOY-VERSION-$4
+fi
+
 for f in $(find ./${1}/build)
 do
 	if [[ $f != *"AppleDouble"* && $f != *".git"* ]]

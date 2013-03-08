@@ -14,8 +14,8 @@ deploy-clean:
 	make clean APP=${APP}
 	bash deploy-clean.sh ${APP} ${BUCKET}
 deploy-public:version
-	bash ./deploy.sh ${APP} ${BUCKET} true
+	bash ./deploy.sh ${APP} ${BUCKET} true ${VERSION}
 deploy:version
-	bash ./deploy.sh ${APP} ${BUCKET}
+	bash ./deploy.sh ${APP} ${BUCKET} false ${VERSION}
 version:deploy-setup
 	bash version.sh ${APP} ${VERSION}

@@ -2,7 +2,7 @@
 /*global L:false, jQuery:false */
 
 (function($){
-	"use strict";
+	// "use strict";
 
 	// tuning parameters
 	var updateRate = 30000;	// 30 seconds
@@ -73,14 +73,7 @@
 			zoomControl = 'auto',	// show zoom control (auto = if !touch)
 			autoHide = 'auto',	// auto hide controls (auto = if touch)
 			edgeurl = 'http://edge.flightstats.com/flight/tracker/',	// production
-					// 'http://edge-staging.flightstats.com/flight/tracker/',	// staging
-					// 'http://edge.dev.flightstats.com/flight/tracker/',	// development
-					// 'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
-					// 'http://edge01.cloud-east.staging:3450/flightTracker/',	// staging internal
 			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',	// production
-					// 'http://edge-staging.flightstats.com/flight/mini-tracker/',	// staging
-					// 'http://edge.dev.flightstats.com/flight/mini-tracker/',	// development
-					// 'http://client-dev.cloud-east.dev:3500/tracker/',	// dev internal
 			debug = false;	// debug to console
 
 	function getParams(p) {
@@ -429,6 +422,9 @@
 					}
 
 				} else {	// update
+					if (flightData.flightPlan) {
+						console.log('received a flight plan late!', flightData.flightPlan);
+					}
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					if (!fpos.equals(curpos)) {
 						if (trackcontrol.isTracking()) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
@@ -492,9 +488,8 @@
 						layers.plan = L.polyline(positions, { color: '#362F2D', weight: 8 , opacity: 0.6, clickable: false });
 					} 
 					// create great arc (geodesic) polylines
-					var npoints = Math.max(128 - 14 * map.getZoom(), 4);
-					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', weight: 7, opacity: 0.4, clickable: false }).greatCircle(npoints);
-					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', weight: 4, opacity: 0.6, clickable: false }).greatCircle(npoints);
+					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', weight: 7, opacity: 0.4, clickable: false }).greatArc();
+					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', weight: 4, opacity: 0.6, clickable: false }).greatArc();
 					
 					if (showPlan && layers.plan) {		// show plan
 						layers.planHalo.addTo(map);
@@ -704,23 +699,24 @@
 	};
 
 	// -----------------------------------------------
-	// add great circle to Polyline
+	// add great circle arc to Polyline
 	L.Polyline.include({	// draw a polyline using geodesics
-		greatCircle: function(npoints) {
+		greatArc: function(npoints) {
+			if (npoints === undefined) { npoints = 1 + Math.ceil(Math.abs(dpos.lng - apos.lng)); }
 			var points = [];
 			var start = this._latlngs[0],
 					end = this._latlngs[1];
-			start.lng = (start.lng + 180) % 360 + ((start.lng < -180 || start.lng === 180) ? 180 : -180);
-			end.lng = (end.lng + 180) % 360 + ((end.lng < -180 || end.lng === 180) ? 180 : -180);
+			var startlng = (start.lng + 180) % 360 + ((start.lng < -180 || start.lng === 180) ? 180 : -180);
+			var endlng = (end.lng + 180) % 360 + ((end.lng < -180 || end.lng === 180) ? 180 : -180);
 			if (npoints <= 2) {
-				points.push([start.lat, start.lng]);
-				points.push([end.lat, end.lng]);
+				points.push([start.lat, startlng]);
+				points.push([end.lat, endlng]);
 			} else {
 				var D2R = L.LatLng.DEG_TO_RAD;
 				var R2D = L.LatLng.RAD_TO_DEG;
-				var startx = D2R * start.lng,
+				var startx = D2R * startlng,
 						starty = D2R * start.lat,
-						endx = D2R * end.lng,
+						endx = D2R * endlng,
 						endy = D2R * end.lat;
 				var w = startx - endx,
 						h = starty - endy;
@@ -728,7 +724,7 @@
                 Math.cos(starty) * Math.cos(endy) * Math.pow(Math.sin(w / 2.0), 2)));
 				var isg = 1 / Math.sin(g);
 				var delta = 1.0 / (npoints - 1);
-				var wrap = Math.abs(start.lng - end.lng) > 180; // does route cross anti-meridian
+				var wrap = Math.abs(startlng - endlng) > 180; // does route cross anti-meridian
 				for (var i = 0; i < npoints; i++) {
           var step = delta * i;
 					var A = Math.sin((1 - step) * g) * isg;
@@ -773,17 +769,16 @@
 
 	function airportinfo(wt) {	// true for departing, false for arriving
 		var w = wt ? dport : aport;
+		console.log(w.conditionIcon);
 		return '<div class="labelhead">'+(wt ? 'DEPARTING' : 'ARRIVING')+' - '+w.fsCode+
 			'</div><div style="text-align:center;width:100%">'+
 			formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
-			(w.countryCode === 'US' ? 'USA' : w.countryName)+
-			'</div><br /><table id="drawerinfo" style="line-height:14px"><tr><td rowspan="5"><img src="http://d1bopfe20gjmus.cloudfront.net/airports/0.0.4/images/'+
-			w.conditionIcon+'" style="width:100px;height100px;padding-right:5px" /></td><td class="dark">LOCAL&nbsp;WEATHER</td></tr><tr><td style="font-size:1.15em">'+
+			(w.countryCode === 'US' ? 'USA' : w.countryName)+'</div><br /><table id="drawerinfo" style="line-height:14px"><tr><td rowspan="5">'+
+				(w.conditionIcon ? '<img src="http://d1bopfe20gjmus.cloudfront.net/airports/0.0.4/images/'+w.conditionIcon+
+					'" style="width:100px;height100px;padding-right:5px" />' : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')+
+			'</td><td class="dark">LOCAL&nbsp;WEATHER</td></tr><tr><td style="font-size:1.15em">'+
 			formatWeather(w.conditions)+'</td></tr><tr><td style="font-size:26px;height:30px">'+formatTemperature(w.temperatureCelsius)+
 			'</td></tr><tr><td class="dark">LOCAL&nbsp;TIME</td></tr><tr><td>'+formatTime(w.localTime)+'</td></tr></table>';
-			// '</div><br /><table id="drawerinfo"><tr><td class="tn">Weather</td><td>'+formatWeather(w.conditions)+
-			// '</td></tr><tr><td class="tn">Temperature</td><td>'+formatTemperature(w.tempCelsius)+
-			// '</td></tr><tr><td class="tn">Local time</td><td>'+formatTime(w.localTime)+'</td></tr></table>';
 	}
 
 	// ---------------------------------------------------------
@@ -980,33 +975,31 @@
 
 			// click on actual path
 			L.DomEvent.on(L.DomUtil.get('layer-path'), 'click', function() {
-				if ($('#layer-path:checked').length > 0) {
+				showPath = $('#layer-path:checked').length > 0;
+				this._notify('showPath', showPath.toString());
+				if (this._layers.path === null) { return; }
+				if (showPath) {
 					this._map.addLayer(this._layers.pathHalo).addLayer(this._layers.path);
 					this._layers.pathHalo.bringToFront();
-					this._layers.path.bringToFront();
-					showPath = true;
-					this._notify('showPath','true');
+					this._layers.path.bringToFront();						
 				} else {
 					this._map.removeLayer(this._layers.pathHalo);
 					this._map.removeLayer(this._layers.path);
-					showPath = false;
-					this._notify('showPath','false');
 				}
 			}, this);
 
 			// click on flight plan
 			L.DomEvent.on(L.DomUtil.get('layer-plan'), 'click', function() {
-				if ($('#layer-plan:checked').length > 0) {
+				showPlan = $('#layer-plan:checked').length > 0;
+				this._notify('showPlan', showPlan.toString());
+				if (this._layers.plan === null) { return; }
+				if (showPlan) {
 					this._map.addLayer(this._layers.planHalo).addLayer(this._layers.plan);
 					this._layers.plan.bringToBack();
-					this._layers.planHalo.bringToBack();
-					showPlan = true;
-					this._notify('showPlan','true');
+					this._layers.planHalo.bringToBack();						
 				} else {
 					this._map.removeLayer(this._layers.planHalo);
 					this._map.removeLayer(this._layers.plan);
-					showPlan = false;
-					this._notify('showPlan','false');
 				}
 			}, this);
 

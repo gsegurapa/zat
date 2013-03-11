@@ -422,12 +422,12 @@
 					}
 
 				} else {	// update
-					if (flightData.flightPlan) {
-						console.log('received a flight plan late!', flightData.flightPlan);
-					}
+					// if (flightData.flightPlan) {
+					// 	console.log('received a flight plan late!', flightData.flightPlan);
+					// }
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					if (!fpos.equals(curpos)) {
-						if (trackcontrol.isTracking()) { map.panTo(curpos ? halfway(curpos, fpos) : fpos); }
+						// if (trackcontrol.isTracking()) { map.panTo(curpos ? curpos : fpos); }
 						aniPhats(fpos, newheading, +pos.altitudeFt, timestamp, +pos.speedMph);
 						setFlightPath();
 						drawercontrol.update();
@@ -612,7 +612,8 @@
 						currot += vrot;
 						if (!zooming) {	// don't update position while zooming animation is in progress
 							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
-						// if (tracking) { map.panTo(curpos); }
+							if (trackcontrol.isTracking()) { map.panTo(curpos); }
+							// if (debug) { console.log(map.latLngToContainerPoint(curpos).toString(), map.getSize().toString()); }
 							if (layers.path) {	// draw tail
 								multi[0][0] = curpos;
 								layers.pathHalo.setLatLngs(multi);
@@ -634,6 +635,7 @@
 							frames--;
 						}
 					}	// end step
+
 				}	// end aniPhats
 
 			} // end getFlight
@@ -651,9 +653,9 @@
 
 	// !!! will this work when the two points are on opposite sides of the antimeridian?
 	// I think so, since if wrap then points west of antimeridian are < -180
-	function halfway(p1, p2) {	// return lat/lng halfway between two points
-		return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
-	}
+	// function halfway(p1, p2) {	// return lat/lng halfway between two points
+	// 	return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
+	// }
 
 	// -----------------------------------------------
 	// airplane flight marker
@@ -1184,7 +1186,8 @@
 	function settrackingview(m) {
 		if (fpos) {
 			m.setView(
-					curpos ? halfway(curpos, fpos) : fpos,
+					// curpos ? halfway(curpos, fpos) : fpos,
+					curpos ? curpos : fpos,
 					Math.max(Math.min(maxZoom, 9), m.getZoom())	// don't zoom out
 			);
 		}

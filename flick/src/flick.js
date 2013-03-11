@@ -1253,7 +1253,7 @@
 	}
 
 	// Mini-tracker ----------------------
-	function createMiniTracker(d) {
+	function createMiniTracker(d) {	// d is a set of key/value parameters for the tracker
 		var mini = [ miniurl, '?skin=0&guid=', guid, '&metric=', metric, '&isoClock=', hours24 ];
 		$.each(d, function(k, v) {
 			mini.push('&'+k+'='+v);
@@ -1287,7 +1287,7 @@
 	}
 
 	function formatTemperature(ts) {
-		return ts === undefined || ts === 'Unknown' || isNaN(ts) ? (metric ? '?&deg; C' : '?&deg; F') :
+		return ts === undefined || ts === 'Unknown' || isNaN(ts) ? '&nbsp;' :
 				(metric ? ts.toFixed(1)+'&deg; C' : (32 + (1.8 * ts)).toFixed()+'&deg; F');
 	}
 

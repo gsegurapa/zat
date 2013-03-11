@@ -775,7 +775,7 @@
 			formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
 			(w.countryCode === 'US' ? 'USA' : w.countryName)+'</div><br /><table id="drawerinfo" style="line-height:14px"><tr><td rowspan="5">'+
 				(w.conditionIcon ? '<img src="http://d1bopfe20gjmus.cloudfront.net/airports/0.0.4/images/'+w.conditionIcon+
-					'" style="width:100px;height100px;padding-right:5px" />' : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')+
+					'" style="width:100px;height100px;padding-right:5px" />' : '<div style="width:40px"></div>')+
 			'</td><td class="dark">LOCAL&nbsp;WEATHER</td></tr><tr><td style="font-size:1.15em">'+
 			formatWeather(w.conditions)+'</td></tr><tr><td style="font-size:26px;height:30px">'+formatTemperature(w.temperatureCelsius)+
 			'</td></tr><tr><td class="dark">LOCAL&nbsp;TIME</td></tr><tr><td>'+formatTime(w.localTime)+'</td></tr></table>';
@@ -1287,7 +1287,7 @@
 	}
 
 	function formatTemperature(ts) {
-		return ts === undefined || ts === 'Unknown' || isNaN(ts) ? 'Unknown' :
+		return ts === undefined || ts === 'Unknown' || isNaN(ts) ? (metric ? '?&deg; C' : '?&deg; F') :
 				(metric ? ts.toFixed(1)+'&deg; C' : (32 + (1.8 * ts)).toFixed()+'&deg; F');
 	}
 

@@ -1254,7 +1254,7 @@
 
 	// Mini-tracker ----------------------
 	function createMiniTracker(d) {
-		var mini = [ miniurl, '?skin=0&guid=', guid ];
+		var mini = [ miniurl, '?skin=0&guid=', guid, '&metric=', metric, '&isoClock=', hours24 ];
 		$.each(d, function(k, v) {
 			mini.push('&'+k+'='+v);
 		});

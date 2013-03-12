@@ -75,7 +75,7 @@
 			autoHide = 'auto',	// auto hide controls (auto = if touch)
 			edgeurl = 'http://edge.flightstats.com/flight/tracker/',	// production
 			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',	// production
-			continuous = false,
+			trackingDist = 0.4,	// % plane can get away from center of screen in tracking mode
 			debug = false;	// debug to console
 
 	function getParams(p) {
@@ -98,7 +98,7 @@
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
     if (params.demo) { demo = params.demo === 'true'; }
     if (params.view) { view = params.view.toUpperCase(); }	// 3D or 3d
-    if (params.continuous) { continuous = params.continuous === 'true'; }
+    if (params.trackingDist) { trackingDist = +params.trackingDist / 100; }
     if (params.debug) { debug = params.debug === 'true'; }
     if (params.autoHide) { autoHide = params.autoHide === 'true'; }
     if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
@@ -200,6 +200,7 @@
 				zooming = true;
 			}).
 			on('zoomend', function(/* e */) {
+				if (trackcontrol.isTracking()) { map.panTo(curpos); }
 				zooming = false;
 				if (debug) { console.log('zoom: ', this.getZoom()); }
 				if (dmarker === undefined) { return; }
@@ -620,14 +621,14 @@
 						if (!zooming && !panning) {	// don't update position while zooming or panning animation is in progress
 							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
 							if (trackcontrol.isTracking()) {	// time to scroll?
-								if (continuous) { map.panTo(curpos); }	// continuous tracking
+								if (trackingDist === 0) { map.panTo(curpos); }	// continuous tracking
 								else {	// jump tracking
 									var mapcenter = map.getSize().multiplyBy(0.5);
 									var curpixel = map.latLngToContainerPoint(curpos);
 									// if (debug) { console.log(mapcenter.toString(), curpixel.toString()); }
-									if (curpixel.x < mapcenter.x * 0.6 || curpixel.x > mapcenter.x * 1.4 ||
-											curpixel.y < mapcenter.y * 0.6 || curpixel.y > mapcenter.y * 1.4) {
-										map.panBy([1.95 * (curpixel.x - mapcenter.x), 1.95 * (curpixel.y - mapcenter.y)]);
+									if (curpixel.x < mapcenter.x * (1-trackingDist) || curpixel.x > mapcenter.x * (1+trackingDist) ||
+											curpixel.y < mapcenter.y * (1-trackingDist) || curpixel.y > mapcenter.y * (1+trackingDist)) {
+										map.panBy([1.9 * (curpixel.x - mapcenter.x), 1.9 * (curpixel.y - mapcenter.y)]);
 									}
 								}
 							}

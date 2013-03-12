@@ -46,7 +46,8 @@
 			rotframes,	// frames of rotation animation remaining
 			anitimer;	// animation timer
 	var vlat, vlng, vrot;	// animation parameters
-	var zooming = false;	// true during zoom animation
+	var zooming = false,	// true during zoom animation
+			panning = false;	// true during panning animation
 	var numpos, // debug stuff for simulating a data loss
 			data_off = 0,	// index of where data is off for testing
 			data_on = 0;	// index of where data is back on
@@ -74,6 +75,7 @@
 			autoHide = 'auto',	// auto hide controls (auto = if touch)
 			edgeurl = 'http://edge.flightstats.com/flight/tracker/',	// production
 			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',	// production
+			continuous = false,
 			debug = false;	// debug to console
 
 	function getParams(p) {
@@ -96,6 +98,7 @@
     if (params.showWeather) { showWeather = params.showWeather === 'true'; }
     if (params.demo) { demo = params.demo === 'true'; }
     if (params.view) { view = params.view.toUpperCase(); }	// 3D or 3d
+    if (params.continuous) { continuous = params.continuous === 'true'; }
     if (params.debug) { debug = params.debug === 'true'; }
     if (params.autoHide) { autoHide = params.autoHide === 'true'; }
     if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
@@ -207,6 +210,10 @@
 				var icon = L.icon(opts);
 				dmarker.setIcon(icon);
 				amarker.setIcon(icon);
+			}).on('movestart', function(/* e */) {
+				panning = true;
+			}).on('moveend', function(/* e */) {
+				panning = false;
 			});
 
 		hidecontrols = function() {	// go fullscreen
@@ -610,10 +617,20 @@
 					function step() {	// animation step
 						curpos = createLatLng(curpos.lat + vlat, curpos.lng + vlng, wrap);
 						currot += vrot;
-						if (!zooming) {	// don't update position while zooming animation is in progress
+						if (!zooming && !panning) {	// don't update position while zooming or panning animation is in progress
 							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug
-							if (trackcontrol.isTracking()) { map.panTo(curpos); }
-							// if (debug) { console.log(map.latLngToContainerPoint(curpos).toString(), map.getSize().toString()); }
+							if (trackcontrol.isTracking()) {	// time to scroll?
+								if (continuous) { map.panTo(curpos); }	// continuous tracking
+								else {	// jump tracking
+									var mapcenter = map.getSize().multiplyBy(0.5);
+									var curpixel = map.latLngToContainerPoint(curpos);
+									// if (debug) { console.log(mapcenter.toString(), curpixel.toString()); }
+									if (curpixel.x < mapcenter.x * 0.6 || curpixel.x > mapcenter.x * 1.4 ||
+											curpixel.y < mapcenter.y * 0.6 || curpixel.y > mapcenter.y * 1.4) {
+										map.panBy([1.95 * (curpixel.x - mapcenter.x), 1.95 * (curpixel.y - mapcenter.y)]);
+									}
+								}
+							}
 							if (layers.path) {	// draw tail
 								multi[0][0] = curpos;
 								layers.pathHalo.setLatLngs(multi);

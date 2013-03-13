@@ -1319,7 +1319,7 @@
 
 	var flightStatusMessages = {
 		// A: Active
-		C: 'The flight has been cancelled',
+		C: 'The flight has been canceled',
 		D: 'The flight has been diverted to another airport',
 		DN: 'Tracking data is not available for this flight', // No Data Source
 		I: 'The flight is not being tracked', // Incident

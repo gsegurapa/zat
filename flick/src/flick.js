@@ -740,11 +740,11 @@
 						endy = D2R * end.lat;
 				var w = startx - endx,
 						h = starty - endy;
-				var g = 2.0 * Math.asin(Math.sqrt(Math.pow(Math.sin(h / 2.0), 2) +
-                Math.cos(starty) * Math.cos(endy) * Math.pow(Math.sin(w / 2.0), 2)));
+				var g = 2.0 * Math.asin(Math.sqrt(Math.pow(Math.sin((starty - endy) * 0.5), 2) +
+                Math.cos(starty) * Math.cos(endy) * Math.pow(Math.sin((startx - endx) * 0.5), 2)));
 				var isg = 1 / Math.sin(g);
 				var delta = 1.0 / (npoints - 1);
-				var wrap = Math.abs(startlng - endlng) > 180; // does route cross anti-meridian
+				var wrap = Math.abs(startlng - endlng) > 180; // does route cross anti-meridian?
 				for (var i = 0; i < npoints; i++) {
           var step = delta * i;
 					var A = Math.sin((1 - step) * g) * isg;

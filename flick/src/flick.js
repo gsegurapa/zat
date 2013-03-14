@@ -438,7 +438,7 @@ L.Map.include({
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					// currot = +(data.heading || data.bearing);
 
-					logourl = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/png/150x50/'+
+					logourl = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/png/300x100/'+
 							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+

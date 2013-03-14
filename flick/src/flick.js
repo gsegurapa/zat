@@ -1116,7 +1116,7 @@ L.Map.include({
 				fullscreentimer = setTimeout(hidecontrols, 5000);
 			} else {
 				$('#control-layer-list').show(100,'linear');
-				this._toggle.style.backgroundImage = 'url(img/layers-white.png)';
+				this._toggle.style.backgroundImage = 'url(img/layers-white@2x.png)';
 				this._expanded = true;
 			}
 		},
@@ -1125,7 +1125,7 @@ L.Map.include({
 			unhidecontrols();
 			if (this._expanded) {
 				$('#control-layer-list').hide(100,'linear');
-				this._toggle.style.backgroundImage = 'url(img/layers.png)';				
+				this._toggle.style.backgroundImage = 'url(img/layers@2x.png)';				
 			}
 			this._expanded = false;
 			if (drawerwasopen) {
@@ -1175,7 +1175,7 @@ L.Map.include({
 			if (this._tracking === 2) {
 				this._tracking = 1;
 				this._link.style.backgroundColor = '';
-				this._link.style.backgroundImage = 'url(img/tracking-icon.png)';
+				this._link.style.backgroundImage = 'url(img/tracking-icon@2x.png)';
 			}			
 		},
 
@@ -1188,12 +1188,12 @@ L.Map.include({
 			if (this._tracking === 2) {
 				this._tracking = 0;
 				this._link.style.backgroundColor = '';
-				this._link.style.backgroundImage = 'url(img/tracking-icon.png)';
+				this._link.style.backgroundImage = 'url(img/tracking-icon@2x.png)';
 				setfullview(this._map);
 			} else {
 				this._tracking = 2;
 				this._link.style.backgroundColor = '#306ADB';	// blue
-				this._link.style.backgroundImage = 'url(img/tracking-icon-white.png)';
+				this._link.style.backgroundImage = 'url(img/tracking-icon-white@2x.png)';
 				settrackingview(this._map);
 				setFlightPath();
 			}

@@ -78,9 +78,10 @@
 		}
 		#messagepopup .close {
 			position: absolute;
-			/* border: 1px solid #EBEBEB; */
 			right: 0.4em;
 			top: 0.4em;
+			width: 24px;
+			height: 24px;
 		}
 		#messagetitle {
 			color: #FAA71B;
@@ -112,10 +113,13 @@
 			position: absolute;
 			width: 40px;
 			height: 40px;
-			background-position: 50% 50%;
 			background-repeat: no-repeat;
+			background-position: center center;
 			background-color: rgba(54, 47, 45, 0.75);
-			background-image: url(img/tracking-icon.png);
+			background-image: url(img/tracking-icon@2x.png);
+			-webkit-background-size: 30px  30px;
+			-moz-background-size: 30px  30px;
+			background-size: 30px 30px;
 			margin: 10px 0 0 10px;
 			-webkit-border-radius: 8px;
 			border-radius: 8px;
@@ -132,10 +136,13 @@
 			width: 40px;
 			height: 40px;
 			right: 0;
-			background-position: 50% 50%;
 			background-repeat: no-repeat;
+			background-position: center center;
 			background-color: rgba(54, 47, 45, 0.75);
-			background-image: url(img/layers.png);
+			background-image: url(img/layers@2x.png);
+			-webkit-background-size: 30px  30px;
+			-moz-background-size: 30px  30px;
+			background-size: 30px 30px;
 			margin: 10px 10px 0 0 ;
 			-webkit-border-radius: 8px;
 			border-radius: 8px;
@@ -213,7 +220,10 @@
 			top: 0px;
 			width: 35px;
 			height: 15px;
-			background-image: url(img/grabber.png);
+			background-image: url(img/grabber@2x.png);
+			-webkit-background-size: 35px  15px;
+			-moz-background-size: 35px  15px;
+			background-size: 35px 15px;
 			margin: 0px 135px;
 			cursor: n-resize;
 		}
@@ -295,7 +305,7 @@
 	</div>
 	<div id="messagepopup">
 		<span id="messagetitle">FLIGHT TRACKER NOTE</span>
-		<img class="close" src="img/close-dialog.png" />
+		<img class="close" src="img/close-dialog@2x.png" />
 		<div id="message"></div>
 	</div>
 </body>

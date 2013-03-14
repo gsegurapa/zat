@@ -1,6 +1,35 @@
 // FlightStats flight tracker
 /*global L:false, jQuery:false */
 
+L.Map.include({
+	panInsideBounds: function(bounds) {
+		bounds = L.latLngBounds(bounds);
+
+		var viewBounds = this.getBounds(),
+		    viewSw = this.project(viewBounds.getSouthWest()),
+		    viewNe = this.project(viewBounds.getNorthEast()),
+		    sw = this.project(bounds.getSouthWest()),
+		    ne = this.project(bounds.getNorthEast()),
+		    dx = 0,
+		    dy = 0;
+
+	 	if (viewNe.y < ne.y) { // north
+			dy = ne.y - viewNe.y + Math.max(0, this.latLngToContainerPoint([85.05112878, 0]).y);
+		}
+		if (viewNe.x > ne.x) { // east
+			dx = ne.x - viewNe.x;
+		}
+		if (viewSw.y > sw.y) { // south
+			dy = sw.y - viewSw.y + Math.min(0, this.latLngToContainerPoint([-85.05112878, 0]).y - this.getSize().y);
+		}
+		if (viewSw.x < sw.x) { // west
+			dx = sw.x - viewSw.x;
+		}
+
+		return this.panBy(new L.Point(dx, dy, true));
+	}
+});
+
 (function($){
 	"use strict";
 
@@ -181,6 +210,7 @@
 			zoomAnimation: true,
 			markerZoomAnimation: true,
 			layers: defaultlayers,
+			maxBounds: [[-80,-360],[85, 180]],
 			worldCopyJump: false	// !!! only one copy of markers and polylines, for now
 		});
 		map.addLayer(layercontrol).addLayer(trackcontrol).addLayer(drawercontrol).
@@ -722,12 +752,12 @@
 	// add great circle arc to Polyline
 	L.Polyline.include({	// draw a polyline using geodesics
 		greatArc: function(npoints) {
-			if (npoints === undefined) { npoints = 1 + Math.ceil(Math.abs(dpos.lng - apos.lng)); }
 			var points = [];
 			var start = this._latlngs[0],
 					end = this._latlngs[1];
 			var startlng = (start.lng + 180) % 360 + ((start.lng < -180 || start.lng === 180) ? 180 : -180);
 			var endlng = (end.lng + 180) % 360 + ((end.lng < -180 || end.lng === 180) ? 180 : -180);
+			if (npoints === undefined) { npoints = 1 + Math.ceil(Math.abs(startlng - endlng)); }
 			if (npoints <= 2) {
 				points.push([start.lat, startlng]);
 				points.push([end.lat, endlng]);
@@ -738,8 +768,6 @@
 						starty = D2R * start.lat,
 						endx = D2R * endlng,
 						endy = D2R * end.lat;
-				var w = startx - endx,
-						h = starty - endy;
 				var g = 2.0 * Math.asin(Math.sqrt(Math.pow(Math.sin((starty - endy) * 0.5), 2) +
                 Math.cos(starty) * Math.cos(endy) * Math.pow(Math.sin((startx - endx) * 0.5), 2)));
 				var isg = 1 / Math.sin(g);
@@ -1175,26 +1203,30 @@
 
 	function setfullview(m) { // set map view including both airports and current position of flight
 		var flightBounds;	// area of world to display
-		if (Math.abs(180 - Math.abs(dpos.lng - apos.lng)) < 5) {
-			m.fitWorld();
-			return;
-		}
+
+		// Workaround for EWR to SIN flight
+		// if (Math.abs(180 - Math.abs(dpos.lng - apos.lng)) < 2) {
+		// 	m.fitWorld();
+		// 	return;
+		// }
+
 		// Workaround for Leaflet issue #1481
 		var tempa = createLatLng(apos.lat, apos.lng, false);
 		var tempd = createLatLng(dpos.lat, dpos.lng, false);
 		var tempf = createLatLng(fpos.lat, fpos.lng, false);
-		if (wrap) { // shift by 180 degrees if flight crosses anti-meridian
-			flightBounds = L.latLngBounds([
-					[dpos.lat, dpos.lng+180],
-					[apos.lat, apos.lng+180],
-					[fpos.lat, fpos.lng+180]
-				]).pad(0.06);
-			var c = flightBounds.getCenter();
-			m.setView(L.latLng(c.lat, c.lng - 180), m.getBoundsZoom(flightBounds));
-		} else {
-			flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
-			m.fitBounds(flightBounds);
-		}
+		// if (wrap && false) { // shift by 180 degrees if flight crosses anti-meridian
+		// 	flightBounds = L.latLngBounds([
+		// 			[dpos.lat, dpos.lng+180],
+		// 			[apos.lat, apos.lng+180],
+		// 			[fpos.lat, fpos.lng+180]
+		// 		]).pad(0.06);
+		// 	var c = flightBounds.getCenter();
+		// 	m.setView(L.latLng(c.lat, c.lng - 180), m.getBoundsZoom(flightBounds));
+		// 	console.log('wrap: ', flightBounds, c);
+		// } else {
+		flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
+		m.fitBounds(flightBounds);
+		// }
 		// Workaround for Leaflet issue #1481
 		apos = tempa; amarker.setLatLng(apos);
 		dpos = tempd; dmarker.setLatLng(dpos);

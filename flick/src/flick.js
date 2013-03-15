@@ -3,17 +3,18 @@
 
 L.Map.include({
 	panInsideBounds: function(bounds) {
+		"use strict";
 		bounds = L.latLngBounds(bounds);
 
 		var viewBounds = this.getBounds(),
-		    viewSw = this.project(viewBounds.getSouthWest()),
-		    viewNe = this.project(viewBounds.getNorthEast()),
-		    sw = this.project(bounds.getSouthWest()),
-		    ne = this.project(bounds.getNorthEast()),
-		    dx = 0,
-		    dy = 0;
+				viewSw = this.project(viewBounds.getSouthWest()),
+				viewNe = this.project(viewBounds.getNorthEast()),
+				sw = this.project(bounds.getSouthWest()),
+				ne = this.project(bounds.getNorthEast()),
+				dx = 0,
+				dy = 0;
 
-	 	if (viewNe.y < ne.y) { // north
+		if (viewNe.y < ne.y) { // north
 			dy = ne.y - viewNe.y + Math.max(0, this.latLngToContainerPoint([85.05112878, 0]).y);
 		}
 		if (viewNe.x > ne.x) { // east
@@ -461,7 +462,7 @@ L.Map.include({
 
 				} else {	// update
 					// if (flightData.flightPlan) {
-					// 	console.log('received a flight plan late!', flightData.flightPlan);
+					//	console.log('received a flight plan late!', flightData.flightPlan);
 					// }
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					if (!fpos.equals(curpos)) {
@@ -478,8 +479,8 @@ L.Map.include({
 
 				function showNote(message) {
 					$('#message').html(message+'<div class="ntime">'+
-							(flightData && flightData.responseTime ? new Date(flightData.responseTime*1000) : new Date()).toUTCString()
-							+'</div>');
+							(flightData && flightData.responseTime ? new Date(flightData.responseTime*1000) : new Date().toUTCString())+
+							'</div>');
 					$('#messagepopup').show().on('click', function() { $(this).hide(); });
 				}
 
@@ -702,7 +703,7 @@ L.Map.include({
 	// !!! will this work when the two points are on opposite sides of the antimeridian?
 	// I think so, since if wrap then points west of antimeridian are < -180
 	// function halfway(p1, p2) {	// return lat/lng halfway between two points
-	// 	return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
+	//	return L.latLng(p1.lat + (p2.lat - p1.lat) * 0.5, p1.lng + (p2.lng - p1.lng) * 0.5, true);
 	// }
 
 	// -----------------------------------------------
@@ -817,7 +818,6 @@ L.Map.include({
 
 	function airportinfo(wt) {	// true for departing, false for arriving
 		var w = wt ? dport : aport;
-		console.log(w.conditionIcon);
 		return '<div class="labelhead">'+(wt ? 'DEPARTING' : 'ARRIVING')+' - '+w.fsCode+
 			'</div><div style="text-align:center;width:100%">'+
 			formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
@@ -834,8 +834,8 @@ L.Map.include({
 	var DrawerControl = L.Class.extend({
 
 		initialize: function(dfun) {
-			this._defaultfun = dfun;
 			this._fun = dfun;
+			this._contents = '';
 		},
 
 		onAdd: function(map) {
@@ -870,7 +870,8 @@ L.Map.include({
 		expand: function() {
 			drawerwasopen = false;
 			if ($('#drawer-content').html() === '') {
-				$('#drawer-content').html(this._fun());
+				this._contents = this._fun();
+				$('#drawer-content').html(this._contents);
 			}
 			$('#drawer').animate({bottom: 0}, 200);
 			this._expanded = true;
@@ -903,15 +904,17 @@ L.Map.include({
 
 		content: function(fun) {
 			this._fun = fun;
-			$('#drawer-content').html(fun());
+			this._contents = fun();
+			$('#drawer-content').html(this._contents);
 			if (!this._expanded) { this.expand(); }
 		},
 
 		update: function() {
-			if (this._fun !== this._defaultfun) { return; }
+			if (!this._expanded) { return; }
 			var info = this._fun();
-			if (info !== $('#drawer-content').html()) {
+			if (info !== this._contents) {
 				$('#drawer-content').html(info);
+				this._contents = info;
 			}
 		}
 
@@ -1206,8 +1209,8 @@ L.Map.include({
 
 		// Workaround for EWR to SIN flight
 		// if (Math.abs(180 - Math.abs(dpos.lng - apos.lng)) < 2) {
-		// 	m.fitWorld();
-		// 	return;
+		//	m.fitWorld();
+		//	return;
 		// }
 
 		// Workaround for Leaflet issue #1481
@@ -1215,14 +1218,14 @@ L.Map.include({
 		var tempd = createLatLng(dpos.lat, dpos.lng, false);
 		var tempf = createLatLng(fpos.lat, fpos.lng, false);
 		// if (wrap && false) { // shift by 180 degrees if flight crosses anti-meridian
-		// 	flightBounds = L.latLngBounds([
-		// 			[dpos.lat, dpos.lng+180],
-		// 			[apos.lat, apos.lng+180],
-		// 			[fpos.lat, fpos.lng+180]
-		// 		]).pad(0.06);
-		// 	var c = flightBounds.getCenter();
-		// 	m.setView(L.latLng(c.lat, c.lng - 180), m.getBoundsZoom(flightBounds));
-		// 	console.log('wrap: ', flightBounds, c);
+		//	flightBounds = L.latLngBounds([
+		//			[dpos.lat, dpos.lng+180],
+		//			[apos.lat, apos.lng+180],
+		//			[fpos.lat, fpos.lng+180]
+		//		]).pad(0.06);
+		//	var c = flightBounds.getCenter();
+		//	m.setView(L.latLng(c.lat, c.lng - 180), m.getBoundsZoom(flightBounds));
+		//	console.log('wrap: ', flightBounds, c);
 		// } else {
 		flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
 		m.fitBounds(flightBounds);

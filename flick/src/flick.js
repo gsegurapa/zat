@@ -32,7 +32,7 @@ L.Map.include({
 });
 
 (function($){
-	"use strict";
+	// "use strict";
 
 	// tuning parameters
 	var updateRate = 30000;	// 30 seconds
@@ -818,7 +818,6 @@ L.Map.include({
 
 	function airportinfo(wt) {	// true for departing, false for arriving
 		var w = wt ? dport : aport;
-		console.log(w.conditionIcon);
 		return '<div class="labelhead">'+(wt ? 'DEPARTING' : 'ARRIVING')+' - '+w.fsCode+
 			'</div><div style="text-align:center;width:100%">'+
 			formatAirport(w.name)+'<br />'+w.city+(w.stateCode ? ', '+w.stateCode : '')+', '+
@@ -835,8 +834,8 @@ L.Map.include({
 	var DrawerControl = L.Class.extend({
 
 		initialize: function(dfun) {
-			this._defaultfun = dfun;
 			this._fun = dfun;
+			this._contents = '';
 		},
 
 		onAdd: function(map) {
@@ -871,7 +870,8 @@ L.Map.include({
 		expand: function() {
 			drawerwasopen = false;
 			if ($('#drawer-content').html() === '') {
-				$('#drawer-content').html(this._fun());
+				this._contents = this._fun();
+				$('#drawer-content').html(this._contents);
 			}
 			$('#drawer').animate({bottom: 0}, 200);
 			this._expanded = true;
@@ -904,15 +904,17 @@ L.Map.include({
 
 		content: function(fun) {
 			this._fun = fun;
-			$('#drawer-content').html(fun());
+			this._contents = fun();
+			$('#drawer-content').html(this._contents);
 			if (!this._expanded) { this.expand(); }
 		},
 
 		update: function() {
-			if (this._fun !== this._defaultfun) { return; }
+			if (!this._expanded) { return; }
 			var info = this._fun();
-			if (info !== $('#drawer-content').html()) {
+			if (info !== this._contents) {
 				$('#drawer-content').html(info);
+				this._contents = info;
 			}
 		}
 

@@ -1,38 +1,43 @@
 // FlightStats flight tracker
 /*global L:false, jQuery:false */
 
-L.Map.include({
-	panInsideBounds: function(bounds) {
-		"use strict";
-		bounds = L.latLngBounds(bounds);
-
-		var viewBounds = this.getBounds(),
-				viewSw = this.project(viewBounds.getSouthWest()),
-				viewNe = this.project(viewBounds.getNorthEast()),
-				sw = this.project(bounds.getSouthWest()),
-				ne = this.project(bounds.getNorthEast()),
-				dx = 0,
-				dy = 0;
-
-		if (viewNe.y < ne.y) { // north
-			dy = ne.y - viewNe.y + Math.max(0, this.latLngToContainerPoint([85.05112878, 0]).y);
-		}
-		if (viewNe.x > ne.x) { // east
-			dx = ne.x - viewNe.x;
-		}
-		if (viewSw.y > sw.y) { // south
-			dy = sw.y - viewSw.y + Math.min(0, this.latLngToContainerPoint([-85.05112878, 0]).y - this.getSize().y);
-		}
-		if (viewSw.x < sw.x) { // west
-			dx = sw.x - viewSw.x;
-		}
-
-		return this.panBy(new L.Point(dx, dy, true));
-	}
-});
-
 (function($){
 	"use strict";
+
+	L.Map.include({	// fix for maxBounds bug in Leaflet
+		panInsideBounds: function(bounds) {
+			bounds = L.latLngBounds(bounds);
+
+			var viewBounds = this.getBounds(),
+					viewSw = this.project(viewBounds.getSouthWest()),
+					viewNe = this.project(viewBounds.getNorthEast()),
+					sw = this.project(bounds.getSouthWest()),
+					ne = this.project(bounds.getNorthEast()),
+					dx = 0,
+					dy = 0;
+
+			if (viewNe.y < ne.y) { // north
+				dy = ne.y - viewNe.y + Math.max(0, this.latLngToContainerPoint([85.05112878, 0]).y);
+			}
+			if (viewNe.x > ne.x) { // east
+				dx = ne.x - viewNe.x;
+			}
+			if (viewSw.y > sw.y) { // south
+				dy = sw.y - viewSw.y + Math.min(0, this.latLngToContainerPoint([-85.05112878, 0]).y - this.getSize().y);
+			}
+			if (viewSw.x < sw.x) { // west
+				dx = sw.x - viewSw.x;
+			}
+
+			return this.panBy(new L.Point(dx, dy, true));
+		}
+	});
+
+	window.viewWillDisappear() {
+		clearInterval(maintimer);
+		clearInterval(anitimer);
+		clearTimeout(fullscreentimer);
+	}
 
 	// tuning parameters
 	var updateRate = 30000;	// 30 seconds
@@ -74,7 +79,8 @@ L.Map.include({
 			taxi = false,	// flight is active, but no positions
 			frames = 0,	// frames of animation remaining
 			rotframes,	// frames of rotation animation remaining
-			anitimer;	// animation timer
+			anitimer,	// animation timer
+			maintimer;	// mainloop timer
 	var vlat, vlng, vrot;	// animation parameters
 	var zooming = false,	// true during zoom animation
 			panning = false;	// true during panning animation
@@ -692,7 +698,7 @@ L.Map.include({
 		} // end mainloop
 
 		mainloop();
-		setInterval(mainloop, updateRate); // update every 30 seconds
+		maintimer = setInterval(mainloop, updateRate); // update every 30 seconds
 
 	});	// end document ready
 

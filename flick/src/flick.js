@@ -32,7 +32,7 @@ L.Map.include({
 });
 
 (function($){
-	// "use strict";
+	"use strict";
 
 	// tuning parameters
 	var updateRate = 30000;	// 30 seconds

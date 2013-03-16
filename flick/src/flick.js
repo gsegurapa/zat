@@ -242,14 +242,16 @@
 				if (trackcontrol.isTracking()) { map.panTo(curpos); }
 				zooming = false;
 				if (debug) { console.log('zoom: ', this.getZoom()); }
-				if (dmarker === undefined) { return; }
-				var opts = $.extend({}, towerproto);	// copy
-				var scale = towerscale[Math.min(this.getZoom(), towerscale.length-1)];
-				opts.iconSize = [opts.iconSize[0] * scale, opts.iconSize[1] * scale];
-				opts.iconAnchor = [opts.iconAnchor[0] * scale, opts.iconAnchor[1] * scale];
-				var icon = L.icon(opts);
-				dmarker.setIcon(icon);
-				amarker.setIcon(icon);
+				if (dmarker !== undefined) { 
+					var icon = scaleTowers(this);
+					dmarker.setIcon(icon);
+					amarker.setIcon(icon);
+				}
+				// var opts = $.extend({}, towerproto);	// copy
+				// var scale = towerscale[Math.min(this.getZoom(), towerscale.length-1)];
+				// opts.iconSize = [opts.iconSize[0] * scale, opts.iconSize[1] * scale];
+				// opts.iconAnchor = [opts.iconAnchor[0] * scale, opts.iconAnchor[1] * scale];
+				// var icon = L.icon(opts);
 			}).on('movestart', function(/* e */) {
 				panning = true;
 			}).on('moveend', function(/* e */) {
@@ -500,26 +502,17 @@
 						$('#map_div').addClass('threed');
 					}
 
+					var ticon = scaleTowers(this);
 					// departing airport marker
 					dmarker = L.marker(dpos, {
-							icon: L.icon({	// departing airport icon
-									iconUrl: 'img/tower-large.png',
-									iconRetinaUrl: 'img/tower-large@2x.png',
-									iconSize: [78, 151],
-									iconAnchor: [16, 94]
-							})
+							icon: ticon
 						}).addTo(map).on('click', function() {
 							drawercontrol.content(function() { return airportinfo(true); });
 						});								
 
 					// arriving airport marker
 					amarker = L.marker(apos, {
-							icon: L.icon({	// arriving airport icon
-									iconUrl: 'img/tower-large.png',
-									iconRetinaUrl: 'img/tower-large@2x.png',
-									iconSize: [78, 151],
-									iconAnchor: [16, 94]
-							})
+							icon: ticon
 						}).addTo(map).on('click', function() {
 							drawercontrol.content(function() { return airportinfo(false); });
 						});
@@ -1381,6 +1374,14 @@
 		};
 
 	var towerscale = [ 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1 ];
+
+	function scaleTowers(m) {	// scale tower icon based on zoom of map m
+		var opts = $.extend({}, towerproto);	// copy
+		var scale = towerscale[Math.min(m.getZoom(), towerscale.length-1)];
+		opts.iconSize = [opts.iconSize[0] * scale, opts.iconSize[1] * scale];
+		opts.iconAnchor = [opts.iconAnchor[0] * scale, opts.iconAnchor[1] * scale];
+		return L.icon(opts);
+	}
 
 	// Flightstats weather tiles -----------------------------------------------------------
   L.TileLayer.FSWeather = L.TileLayer.extend({

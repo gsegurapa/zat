@@ -247,11 +247,6 @@
 					dmarker.setIcon(icon);
 					amarker.setIcon(icon);
 				}
-				// var opts = $.extend({}, towerproto);	// copy
-				// var scale = towerscale[Math.min(this.getZoom(), towerscale.length-1)];
-				// opts.iconSize = [opts.iconSize[0] * scale, opts.iconSize[1] * scale];
-				// opts.iconAnchor = [opts.iconAnchor[0] * scale, opts.iconAnchor[1] * scale];
-				// var icon = L.icon(opts);
 			}).on('movestart', function(/* e */) {
 				panning = true;
 			}).on('moveend', function(/* e */) {
@@ -502,7 +497,8 @@
 						$('#map_div').addClass('threed');
 					}
 
-					var ticon = scaleTowers(this);
+					var ticon = scaleTowers(this);	// generate and scale tower icon
+
 					// departing airport marker
 					dmarker = L.marker(dpos, {
 							icon: ticon
@@ -1366,6 +1362,7 @@
 		U: 'Tracking is not enabled for this flight' // Unknown
 	};
 
+	// control tower icon options
 	var towerproto = {
 			iconUrl: 'img/tower-large.png',
 			iconRetinaUrl: 'img/tower-large@2x.png',

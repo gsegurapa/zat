@@ -33,11 +33,13 @@
 		}
 	});
 
-	window.viewWillDisappear() {
+	window.viewWillDisappear = function() {
 		clearInterval(maintimer);
 		clearInterval(anitimer);
 		clearTimeout(fullscreentimer);
-	}
+	};
+
+	$(window).unload(window.viewWillDisappear);
 
 	// tuning parameters
 	var updateRate = 30000;	// 30 seconds

@@ -81,6 +81,7 @@
 			taxi = false,	// flight is active, but no positions
 			frames = 0,	// frames of animation remaining
 			rotframes,	// frames of rotation animation remaining
+			loadtimer,	// first data load timer
 			anitimer,	// animation timer
 			maintimer;	// mainloop timer
 	var vlat, vlng, vrot;	// animation parameters
@@ -313,12 +314,20 @@
 					success: getFlight
 				});
 
+			if (dport === undefined) {
+				var $loading_div = $('#loading_div');
+				$loading_div.text($loading_div.text().length > 0 ? 'Retrying...' : 'Loading...')
+				loadtimer = setTimeout(function() {
+					$('#loading_div').text('Accessing flight tracking data');
+				}, 10000);
+			}
+
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
 				if (debug) { console.log('data:', data, data.positions.length, actualposs.length); }
 
 				if (data.status || data.tracks) {	// error!
-					showNote('Cannot connect to flight tracking server: '+
+					showNote('Cannot access flight position data: '+
 							(data.status ? data.status.message : data.tracks.message));
 					map.fitWorld();
 					return;
@@ -425,6 +434,9 @@
 				} // end have positions
 
 				if (dport === undefined) { // first time called
+
+					clearTimeout(loadtimer);
+					$('#loading_div').text('');	// remove loading message
 
 					dport = data.airports.departure;	// departure airport data
 					aport = data.airports.arrival;	// arrival airport data

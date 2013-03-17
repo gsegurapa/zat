@@ -1205,7 +1205,7 @@
 				setfullview(this._map);
 			} else {
 				this._tracking = 2;
-				this._link.style.backgroundColor = '#306ADB';	// blue
+				this._link.style.backgroundColor = 'rgba(48, 106, 219, 0.75)'; // '#306ADB';	// blue
 				this._link.style.backgroundImage = 'url(img/tracking-icon-white@2x.png)';
 				settrackingview(this._map);
 				setFlightPath();

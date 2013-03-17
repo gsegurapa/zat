@@ -162,6 +162,18 @@
 
 	if (debug) {	// interactive debug mode
 
+		if (!window.console) {	// make sure console functions don't cause an error
+			(function() {
+				var stub = function(){};
+				var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+						"group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+				window.console = {};
+				for (var i = 0; i < names.length; ++i) {
+					window.console[names[i]] = stub;
+				}
+			}());
+		}
+
 		$(document).keydown(function(e) {
 			if (e.which === 83) {	// "s" stop data
 				if (data_off === 0 || data_on !== 0) {	// first time
@@ -178,17 +190,6 @@
 			e.stopPropagation();
 		});
 
-		if (!window.console) {	// make sure console functions don't cause an error
-			(function() {
-				var stub = function(){};
-				var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
-						"group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-				window.console = {};
-				for (var i = 0; i < names.length; ++i) {
-					window.console[names[i]] = stub;
-				}
-			}());
-		}
 	}
 
 	// document ready! ------------------------------------

@@ -220,7 +220,7 @@
 			zoomAnimation: true,
 			markerZoomAnimation: true,
 			layers: defaultlayers,
-			maxBounds: [[-80,-360],[85, 180]],
+			maxBounds: [[-80,-380],[85, 200]],
 			worldCopyJump: false	// !!! only one copy of markers and polylines, for now
 		});
 		map.addLayer(layercontrol).addLayer(trackcontrol).addLayer(drawercontrol).

@@ -102,12 +102,12 @@ Departing airport:
 		airportCode = $('#aircode').val().toUpperCase();
 		env = $('#env').val();
 		var now = new Date();	// current date and time
-		now.setHours(now.getHours() - 2);
+		now.setHours(now.getHours() - 3);
 		$.ajax({  // airport tracks departures
 			url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/' + airportCode + '/dep/' +
 					now.getUTCFullYear() + '/' + (1+now.getUTCMonth()) + '/' + now.getUTCDate() + '/' + now.getUTCHours(),
       // url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
-      data: { appId: appId, appKey: appKey, utc: true, numHours: 3 },
+      data: { appId: appId, appKey: appKey, utc: true, numHours: 4 },
       dataType: 'jsonp',
       success: getDepartures
     });
@@ -148,7 +148,7 @@ Departing airport:
 				});
 		});
 		function comp(a, b) {
-			return a.leaves < b.leaves ? -1 : 1;
+			return a.status === b.status ? (a.leaves < b.leaves ? -1 : 1) : (a.status < b.status ? -1 : 1);
 		}
 		deps.sort(comp);
 

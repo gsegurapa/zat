@@ -33,6 +33,10 @@
 		}
 	});
 
+	window.viewDidAppear = function() {
+		
+	}
+
 	window.viewWillDisappear = function() {
 		clearInterval(maintimer);
 		clearInterval(anitimer);
@@ -315,9 +319,9 @@
 					success: getFlight
 				});
 
-			if (dport === undefined) {
+			if (wrap === undefined) {
 				var $loading_div = $('#loading_div');
-				$loading_div.text($loading_div.text().length > 0 ? 'Retrying...' : 'Loading...')
+				$loading_div.text($loading_div.text().length > 0 ? 'Retrying...' : 'Loading...');
 				loadtimer = setTimeout(function() {
 					$('#loading_div').text('Accessing flight tracking data');
 				}, 10000);
@@ -335,6 +339,8 @@
 				}
 
 				flightData = data;
+				dport = data.airports.departure;	// departure airport data
+				aport = data.airports.arrival;	// arrival airport data
 
 				var newp = data.positions;
 				if (newp.length > 0) {
@@ -434,13 +440,20 @@
 					}
 				} // end have positions
 
-				if (dport === undefined) { // first time called
+				if (wrap === undefined) { // first time called
 
 					clearTimeout(loadtimer);
 					$('#loading_div').text('');	// remove loading message
 
-					dport = data.airports.departure;	// departure airport data
-					aport = data.airports.arrival;	// arrival airport data
+					if (airline === undefined) {	// not supplied by URL parameter
+						airline = flightData.carrierFs;
+					}
+					if (flightnum === undefined) {
+						flightnum = flightData.carrierFlightId;						
+					}
+
+					// dport = data.airports.departure;	// departure airport data
+					// aport = data.airports.arrival;	// arrival airport data
 
 					// load mini-tracker
 					if (showMini) {
@@ -458,7 +471,7 @@
 					// currot = +(data.heading || data.bearing);
 
 					logourl = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/png/300x100/'+
-							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
+							airline.toLowerCase().replace('*', '@')+'-logo.png';
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					// prefetch image
@@ -809,7 +822,7 @@
 		var heading = (+(flightData.heading || flightData.bearing)).toFixed();
 		return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 				'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
-				'<div id="drawer-status">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
+				'<div id="drawer-status">('+airline+') '+airlinename+' '+flightData.carrierFlightId+
 				'<br /><span'+(flightData.statusColor ? ' style="color:'+flightData.statusColor+'">' : '>')+
 				flightData.statusName+(flightData.statusAppend ? ', '+flightData.statusAppend : '')+'</span>'+
 				'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+

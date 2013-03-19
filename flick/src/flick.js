@@ -34,7 +34,7 @@
 	});
 
 	window.viewDidAppear = function() {
-		
+		window.location = the_url;	// restart app
 	}
 
 	window.viewWillDisappear = function() {
@@ -97,6 +97,7 @@
 	var trackcontrol, layercontrol, drawercontrol;	// UI
 	var fullscreentimer, hidecontrols, unhidecontrols, drawerwasopen = false;	// hide buttons and drawer timer
 	var controlshidden = false;
+	var the_url;	// url that initiated the app
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -163,6 +164,8 @@
 	if (flightID === undefined) { // setup tool -- remove for production
 		window.location = 'flight.html?debug='+debug+'&autoHide='+autoHide+'&zoomControl='+zoomControl;
 	} 
+
+	the_url = window.location;	// save the url
 
 	if (debug) {	// interactive debug mode
 
@@ -1333,15 +1336,18 @@
 
 	// Mini-tracker ----------------------
 	function createMiniTracker(d) {	// d is a set of key/value parameters for the tracker
+		$('#mini-tracker-div div.loading').show();
 		var mini = [ miniurl, '?skin=0&guid=', guid, '&metric=', metric, '&isoClock=', hours24 ];
 		$.each(d, function(k, v) {
 			mini.push('&'+k+'='+v);
 		});
-		$('<iframe />', { src: mini.join('') }).appendTo('#mini-tracker-div');
+		$('<iframe />', { src: mini.join('') }).appendTo('#mini-tracker-div').on('load', function() {
+			$('#mini-tracker-div div.loading').hide();
+		});
 	}
 
 	function destroyMiniTracker() {
-		$('#mini-tracker-div').empty();
+		$('#mini-tracker-div iframe').remove();
 	}
 
 	// string formatting routines --------------------------

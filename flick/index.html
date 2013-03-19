@@ -180,16 +180,30 @@
 		}
 		#mini-tracker-div iframe {
 			position: absolute;
+			left: 0px;
+			top: 0px;
+			width: 100%;
+			height: 100%;
+			border: none;
+		}
+		#mini-tracker-div {
+			position: absolute;
 			bottom: 30px;
 			left: 10%;
 			width: 80%;
 			height: 51px;
+			background-color: rgba(70,70,70, 0.95);
 			border: 1px solid rgba(209,209,210, 0.75);
 			-webkit-border-radius: 8px;
 			border-radius: 8px;
-			background-color: rgba(70,70,70, 0.95);
-			/* box-shadow: 0 1px 7px rgba(220,220,220,0.4); */
-			overflow: hidden;
+			/* 
+			 box-shadow: 0 1px 7px rgba(220,220,220,0.4); */
+		}
+		#mini-tracker-div div.loading {
+			margin-top: 5px;
+			color: white;
+			text-align: center;
+			font-family: Helvetica, Arial, sans-serif;
 		}
 		div.attribution {
 			padding: 2px 0 0 0;
@@ -279,10 +293,20 @@
 			font-size: 0.9em;
 			color: #B3B4B6;
 		}
+		#loading_div {
+			font-family: Helvetica, Arial, sans-serif;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 250px;
+			margin-left: -125px;
+			text-align: center;
+		}
 	</style>
 </head>
 <body>
 	<div id="map_div"></div>
+	<div id="loading_div"></div>
 	<div id="control">
 		<div id="control-track" title="Track Flight"></div>
 		<div id="control-layer-toggle" title="Map Layers"></div>
@@ -298,7 +322,7 @@
 			<div class="attribution"><a href="attribution.html" target="_blank">MAP ATTRIBUTIONS</a></div>
 		</form>
 	</div>
-	<div id="mini-tracker-div"></div>
+	<div id="mini-tracker-div"><div class="loading">Loading...</div></div>
 	<div id="drawer">
 		<div id="drawer-pull"></div>
 		<div id="drawer-content"></div>

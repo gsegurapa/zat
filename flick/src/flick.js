@@ -1,38 +1,49 @@
 // FlightStats flight tracker
 /*global L:false, jQuery:false */
 
-L.Map.include({
-	panInsideBounds: function(bounds) {
-		"use strict";
-		bounds = L.latLngBounds(bounds);
-
-		var viewBounds = this.getBounds(),
-				viewSw = this.project(viewBounds.getSouthWest()),
-				viewNe = this.project(viewBounds.getNorthEast()),
-				sw = this.project(bounds.getSouthWest()),
-				ne = this.project(bounds.getNorthEast()),
-				dx = 0,
-				dy = 0;
-
-		if (viewNe.y < ne.y) { // north
-			dy = ne.y - viewNe.y + Math.max(0, this.latLngToContainerPoint([85.05112878, 0]).y);
-		}
-		if (viewNe.x > ne.x) { // east
-			dx = ne.x - viewNe.x;
-		}
-		if (viewSw.y > sw.y) { // south
-			dy = sw.y - viewSw.y + Math.min(0, this.latLngToContainerPoint([-85.05112878, 0]).y - this.getSize().y);
-		}
-		if (viewSw.x < sw.x) { // west
-			dx = sw.x - viewSw.x;
-		}
-
-		return this.panBy(new L.Point(dx, dy, true));
-	}
-});
-
 (function($){
 	"use strict";
+
+	L.Map.include({	// fix for maxBounds bug in Leaflet
+		panInsideBounds: function(bounds) {
+			bounds = L.latLngBounds(bounds);
+
+			var viewBounds = this.getBounds(),
+					viewSw = this.project(viewBounds.getSouthWest()),
+					viewNe = this.project(viewBounds.getNorthEast()),
+					sw = this.project(bounds.getSouthWest()),
+					ne = this.project(bounds.getNorthEast()),
+					dx = 0,
+					dy = 0;
+
+			if (viewNe.y < ne.y) { // north
+				dy = ne.y - viewNe.y + Math.max(0, this.latLngToContainerPoint([85.05112878, 0]).y);
+			}
+			if (viewNe.x > ne.x) { // east
+				dx = ne.x - viewNe.x;
+			}
+			if (viewSw.y > sw.y) { // south
+				dy = sw.y - viewSw.y + Math.min(0, this.latLngToContainerPoint([-85.05112878, 0]).y - this.getSize().y);
+			}
+			if (viewSw.x < sw.x) { // west
+				dx = sw.x - viewSw.x;
+			}
+
+			return this.panBy(new L.Point(dx, dy, true));
+		}
+	});
+
+	window.viewDidAppear = function() {
+		window.location = the_url;	// restart app
+	}
+
+	window.viewWillDisappear = function() {
+		clearInterval(maintimer);
+		clearInterval(anitimer);
+		clearTimeout(fullscreentimer);
+	};
+
+	$(window).unload(window.viewWillDisappear);
 
 	// tuning parameters
 	var updateRate = 30000;	// 30 seconds
@@ -74,7 +85,9 @@ L.Map.include({
 			taxi = false,	// flight is active, but no positions
 			frames = 0,	// frames of animation remaining
 			rotframes,	// frames of rotation animation remaining
-			anitimer;	// animation timer
+			loadtimer,	// first data load timer
+			anitimer,	// animation timer
+			maintimer;	// mainloop timer
 	var vlat, vlng, vrot;	// animation parameters
 	var zooming = false,	// true during zoom animation
 			panning = false;	// true during panning animation
@@ -84,6 +97,7 @@ L.Map.include({
 	var trackcontrol, layercontrol, drawercontrol;	// UI
 	var fullscreentimer, hidecontrols, unhidecontrols, drawerwasopen = false;	// hide buttons and drawer timer
 	var controlshidden = false;
+	var the_url;	// url that initiated the app
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -151,7 +165,21 @@ L.Map.include({
 		window.location = 'flight.html?debug='+debug+'&autoHide='+autoHide+'&zoomControl='+zoomControl;
 	} 
 
+	the_url = window.location;	// save the url
+
 	if (debug) {	// interactive debug mode
+
+		if (!window.console) {	// make sure console functions don't cause an error
+			(function() {
+				var stub = function(){};
+				var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+						"group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+				window.console = {};
+				for (var i = 0; i < names.length; ++i) {
+					window.console[names[i]] = stub;
+				}
+			}());
+		}
 
 		$(document).keydown(function(e) {
 			if (e.which === 83) {	// "s" stop data
@@ -169,17 +197,6 @@ L.Map.include({
 			e.stopPropagation();
 		});
 
-		if (!window.console) {	// make sure console functions don't cause an error
-			(function() {
-				var stub = function(){};
-				var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
-						"group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-				window.console = {};
-				for (var i = 0; i < names.length; ++i) {
-					window.console[names[i]] = stub;
-				}
-			}());
-		}
 	}
 
 	// document ready! ------------------------------------
@@ -211,7 +228,7 @@ L.Map.include({
 			zoomAnimation: true,
 			markerZoomAnimation: true,
 			layers: defaultlayers,
-			maxBounds: [[-80,-360],[85, 180]],
+			maxBounds: [[-80,-380],[85, 200]],
 			worldCopyJump: false	// !!! only one copy of markers and polylines, for now
 		});
 		map.addLayer(layercontrol).addLayer(trackcontrol).addLayer(drawercontrol).
@@ -234,14 +251,11 @@ L.Map.include({
 				if (trackcontrol.isTracking()) { map.panTo(curpos); }
 				zooming = false;
 				if (debug) { console.log('zoom: ', this.getZoom()); }
-				if (dmarker === undefined) { return; }
-				var opts = $.extend({}, towerproto);	// copy
-				var scale = towerscale[Math.min(this.getZoom(), towerscale.length-1)];
-				opts.iconSize = [opts.iconSize[0] * scale, opts.iconSize[1] * scale];
-				opts.iconAnchor = [opts.iconAnchor[0] * scale, opts.iconAnchor[1] * scale];
-				var icon = L.icon(opts);
-				dmarker.setIcon(icon);
-				amarker.setIcon(icon);
+				if (dmarker !== undefined) { 
+					var icon = scaleTowers(this);
+					dmarker.setIcon(icon);
+					amarker.setIcon(icon);
+				}
 			}).on('movestart', function(/* e */) {
 				panning = true;
 			}).on('moveend', function(/* e */) {
@@ -308,18 +322,28 @@ L.Map.include({
 					success: getFlight
 				});
 
+			if (wrap === undefined) {
+				var $loading_div = $('#loading_div');
+				$loading_div.text($loading_div.text().length > 0 ? 'Retrying...' : 'Loading...');
+				loadtimer = setTimeout(function() {
+					$('#loading_div').text('Accessing flight tracking data');
+				}, 10000);
+			}
+
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
 				if (debug) { console.log('data:', data, data.positions.length, actualposs.length); }
 
 				if (data.status || data.tracks) {	// error!
-					showNote('Cannot connect to flight tracking server: '+
+					showNote('Cannot access flight position data: '+
 							(data.status ? data.status.message : data.tracks.message));
 					map.fitWorld();
 					return;
 				}
 
 				flightData = data;
+				dport = data.airports.departure;	// departure airport data
+				aport = data.airports.arrival;	// arrival airport data
 
 				var newp = data.positions;
 				if (newp.length > 0) {
@@ -419,10 +443,20 @@ L.Map.include({
 					}
 				} // end have positions
 
-				if (dport === undefined) { // first time called
+				if (wrap === undefined) { // first time called
 
-					dport = data.airports.departure;	// departure airport data
-					aport = data.airports.arrival;	// arrival airport data
+					clearTimeout(loadtimer);
+					$('#loading_div').text('');	// remove loading message
+
+					if (airline === undefined) {	// not supplied by URL parameter
+						airline = flightData.carrierFs;
+					}
+					if (flightnum === undefined) {
+						flightnum = flightData.carrierFlightId;						
+					}
+
+					// dport = data.airports.departure;	// departure airport data
+					// aport = data.airports.arrival;	// arrival airport data
 
 					// load mini-tracker
 					if (showMini) {
@@ -440,7 +474,7 @@ L.Map.include({
 					// currot = +(data.heading || data.bearing);
 
 					logourl = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/png/300x100/'+
-							data.carrierFs.toLowerCase().replace('*', '@')+'-logo.png';
+							airline.toLowerCase().replace('*', '@')+'-logo.png';
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
 					// prefetch image
@@ -492,26 +526,18 @@ L.Map.include({
 						$('#map_div').addClass('threed');
 					}
 
+					var ticon = scaleTowers(this);	// generate and scale tower icon
+
 					// departing airport marker
 					dmarker = L.marker(dpos, {
-							icon: L.icon({	// departing airport icon
-									iconUrl: 'img/tower-large.png',
-									iconRetinaUrl: 'img/tower-large@2x.png',
-									iconSize: [78, 151],
-									iconAnchor: [16, 94]
-							})
+							icon: ticon
 						}).addTo(map).on('click', function() {
 							drawercontrol.content(function() { return airportinfo(true); });
 						});								
 
 					// arriving airport marker
 					amarker = L.marker(apos, {
-							icon: L.icon({	// arriving airport icon
-									iconUrl: 'img/tower-large.png',
-									iconRetinaUrl: 'img/tower-large@2x.png',
-									iconSize: [78, 151],
-									iconAnchor: [16, 94]
-							})
+							icon: ticon
 						}).addTo(map).on('click', function() {
 							drawercontrol.content(function() { return airportinfo(false); });
 						});
@@ -692,7 +718,7 @@ L.Map.include({
 		} // end mainloop
 
 		mainloop();
-		setInterval(mainloop, updateRate); // update every 30 seconds
+		maintimer = setInterval(mainloop, updateRate); // update every 30 seconds
 
 	});	// end document ready
 
@@ -799,7 +825,7 @@ L.Map.include({
 		var heading = (+(flightData.heading || flightData.bearing)).toFixed();
 		return (logo ? '<img class="labelimg" src="'+logourl+'" /><br />' :
 				'<div class="labelhead fakelogo">'+airlinename+'&nbsp;</div>')+
-				'<div id="drawer-status">('+flightData.carrierFs+') '+airlinename+' '+flightData.carrierFlightId+
+				'<div id="drawer-status">('+airline+') '+airlinename+' '+flightData.carrierFlightId+
 				'<br /><span'+(flightData.statusColor ? ' style="color:'+flightData.statusColor+'">' : '>')+
 				flightData.statusName+(flightData.statusAppend ? ', '+flightData.statusAppend : '')+'</span>'+
 				'</div><table id="drawerinfo"><tr><td class="tn">Route</td><td>'+dport.fsCode+' to '+aport.fsCode+
@@ -1195,7 +1221,7 @@ L.Map.include({
 				setfullview(this._map);
 			} else {
 				this._tracking = 2;
-				this._link.style.backgroundColor = '#306ADB';	// blue
+				this._link.style.backgroundColor = 'rgba(48, 106, 219, 0.75)'; // '#306ADB';	// blue
 				this._link.style.backgroundImage = 'url(img/tracking-icon-white@2x.png)';
 				settrackingview(this._map);
 				setFlightPath();
@@ -1310,15 +1336,18 @@ L.Map.include({
 
 	// Mini-tracker ----------------------
 	function createMiniTracker(d) {	// d is a set of key/value parameters for the tracker
+		$('#mini-tracker-div div.loading').show();
 		var mini = [ miniurl, '?skin=0&guid=', guid, '&metric=', metric, '&isoClock=', hours24 ];
 		$.each(d, function(k, v) {
 			mini.push('&'+k+'='+v);
 		});
-		$('<iframe />', { src: mini.join('') }).appendTo('#mini-tracker-div');
+		$('<iframe />', { src: mini.join('') }).appendTo('#mini-tracker-div').on('load', function() {
+			$('#mini-tracker-div div.loading').hide();
+		});
 	}
 
 	function destroyMiniTracker() {
-		$('#mini-tracker-div').empty();
+		$('#mini-tracker-div iframe').remove();
 	}
 
 	// string formatting routines --------------------------
@@ -1365,6 +1394,7 @@ L.Map.include({
 		U: 'Tracking is not enabled for this flight' // Unknown
 	};
 
+	// control tower icon options
 	var towerproto = {
 			iconUrl: 'img/tower-large.png',
 			iconRetinaUrl: 'img/tower-large@2x.png',
@@ -1373,6 +1403,14 @@ L.Map.include({
 		};
 
 	var towerscale = [ 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1 ];
+
+	function scaleTowers(m) {	// scale tower icon based on zoom of map m
+		var opts = $.extend({}, towerproto);	// copy
+		var scale = towerscale[Math.min(m.getZoom(), towerscale.length-1)];
+		opts.iconSize = [opts.iconSize[0] * scale, opts.iconSize[1] * scale];
+		opts.iconAnchor = [opts.iconAnchor[0] * scale, opts.iconAnchor[1] * scale];
+		return L.icon(opts);
+	}
 
 	// Flightstats weather tiles -----------------------------------------------------------
   L.TileLayer.FSWeather = L.TileLayer.extend({

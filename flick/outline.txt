@@ -7,7 +7,7 @@ Document ready
 	create map
 	hide controls (fullscreen)
 
-mainloop & getFlight
+mainloop & getFlight (on AJAX success)
 	edge service call
 	change of status
 	have positions?
@@ -17,7 +17,7 @@ mainloop & getFlight
 		set map view (fires mapReady)
 	else update position
 
-mapReady
+mapReady (on setView)
 	draw airport markers
 	flight plan
 	great arc

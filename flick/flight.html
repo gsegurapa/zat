@@ -189,7 +189,8 @@ Departing airport: <input id="aircode" type="text" size="4" value="PDX" />
 		});
 
 		$('.alink').on('click', function(e) {
-			var nurl = e.target.href + '&debug='+debug + '&autoHide='+autoHide + '&zoomControl='+zoomControl;
+			var nurl = e.target.href + (debug ? '&debug='+debug : '') +
+					(autoHide===undefined ? '' : '&autoHide='+autoHide) +(zoomControl===undefined ? '' : '&zoomControl='+zoomControl);
 			if (env !== 'prodx') {
 				nurl += '&edgeurl='+encodeURIComponent(urls.edgeurl[env])+'&miniurl='+encodeURIComponent(urls.miniurl[env]);
 			}

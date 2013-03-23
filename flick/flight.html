@@ -148,8 +148,9 @@ Departing airport: <input id="aircode" type="text" size="4" value="PDX" />
 		var deps = [];
 		$.each(data.flightStatuses, function(index, val) {
 			if (val.status==='S' && new Date(val.departureDate.dateLocal).valueOf() - now > 3600000 ||
-				val.status==='L' && utc - new Date(val.operationalTimes.actualRunwayArrival.dateUtc).valueOf() > 3600000 ) {
-					return;
+					val.status==='L' && utc - new Date((val.operationalTimes.actualGateArrival || val.operationalTimes.actualRunwayArrival ||
+					val.operationalTimes.estimatedGateArrival || val.operationalTimes.estimatedRunwayArrival).dateUtc ).valueOf() > 3600000 ) {
+				return;
 			}
 			deps.push({
 					id: val.flightId,
@@ -173,7 +174,7 @@ Departing airport: <input id="aircode" type="text" size="4" value="PDX" />
 		$.each(deps, function(index, val) {
 			if (val.status !== curstatus) {
 				curstatus = val.status;
-				$flights.append('<tr><td span="6"><em>'+flightStatus[curstatus]+'</em></td></tr>');
+				$flights.append('<tr><td colspan="4"><em>'+flightStatus[curstatus]+'</em> --------------------</td></tr>');
 			}
 			var status = 'SAL'.indexOf(val.status) === -1 ? '<span style="color:red">'+val.status+'</span>' : val.status;
 			var fl = '<tr><td>'+val.id+'</td><td>'+val.leaves+'</td><td>'+val.to+' - '+val.city+
@@ -188,7 +189,7 @@ Departing airport: <input id="aircode" type="text" size="4" value="PDX" />
 		});
 
 		$('.alink').on('click', function(e) {
-			var nurl = e.target.href +  (debug ? '&debug='+debug : '') + (autoHide ? '&autoHide='+autoHide : '') + (zoomControl ? '&zoomControl='+zoomControl : '');
+			var nurl = e.target.href + '&debug='+debug + '&autoHide='+autoHide + '&zoomControl='+zoomControl;
 			if (env !== 'prodx') {
 				nurl += '&edgeurl='+encodeURIComponent(urls.edgeurl[env])+'&miniurl='+encodeURIComponent(urls.miniurl[env]);
 			}

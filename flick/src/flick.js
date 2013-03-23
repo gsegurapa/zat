@@ -568,7 +568,7 @@
 					// !!! now that I get current time from API, fix this to go back 1 minute in time to start animation
 					// and display warning if no new data
 
-					if (actualposs.length > 2 && curstatus !== 'L') {
+					if (actualposs.length > 2 && curstatus !== 'L' && curstatus !== 'D') {
 						p = actualposs[2];
 						var a2 = +(p.altitudeFt || alt);
 						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground
@@ -1266,7 +1266,7 @@
 		var positions = [];
 		var last = null, ct, tail;
 		var i = 1;
-		if (all || !curpos || curspeed < 120 || flightData.statusCode === 'L') {	// draw all positions
+		if (all || !curpos || curspeed < 120 || flightData.statusCode === 'L' || flightData.statusCode === 'D') {	// draw all positions
 			tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
 		} else { // find last point in flight path to be displayed
 			var m = Math.min(p.length, 10);

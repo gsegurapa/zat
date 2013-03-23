@@ -51,6 +51,7 @@
 	var rotRate = aniRate / 500;	// 2 degrees per second max
 	var guid = '34b64945a69b9cac:5ae30721:13ca699d305:75ee';
 
+	var the_url = window.location;	// url that initiated the app
 	var map;	// Leaflet map object
 	var dport,	// departure airport data
 			dpos,	// lat/lng position of departure airport
@@ -97,7 +98,6 @@
 	var trackcontrol, layercontrol, drawercontrol;	// UI
 	var fullscreentimer, hidecontrols, unhidecontrols, drawerwasopen = false;	// hide buttons and drawer timer
 	var controlshidden = false;
-	var the_url;	// url that initiated the app
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -151,10 +151,11 @@
 	}
 
 	function setCookie(name, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 365*86400000); // 1 year
-    document.cookie = name+'='+value+'; expires='+date.toGMTString()+'; path='+window.location.pathname;
+    document.cookie = name+'='+value+'; expires='+setCookie.date+'; path='+window.location.pathname;
   }
+  setCookie.date = new Date();
+  setCookie.date.setTime(setCookie.date.getTime() + 365*86400000); // 1 year
+  setCookie.date = setCookie.date.toGMTString();
 
 	getParams('?'+document.cookie); // params from cookies
 	getParams(window.location.href); // read parameters from URL
@@ -164,8 +165,6 @@
 	if (flightID === undefined) { // setup tool -- remove for production
 		window.location = 'flight.html?debug='+debug+'&autoHide='+autoHide+'&zoomControl='+zoomControl;
 	} 
-
-	the_url = window.location;	// save the url
 
 	if (debug) {	// interactive debug mode
 

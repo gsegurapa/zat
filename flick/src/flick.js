@@ -154,8 +154,8 @@
     document.cookie = name+'='+value+'; expires='+setCookie.date+'; path='+window.location.pathname;
   }
   setCookie.date = new Date();
-  setCookie.date.setTime(setCookie.date.getTime() + 365*86400000); // 1 year
-  setCookie.date = setCookie.date.toGMTString();
+  setCookie.date.setFullYear(setCookie.date.getFullYear() + 1); // 1 year
+  setCookie.date = setCookie.date.toUTCString();
 
 	getParams('?'+document.cookie); // params from cookies
 	getParams(window.location.href); // read parameters from URL
@@ -547,19 +547,20 @@
 						}
 						layers.planHalo = L.polyline(positions, { color: '#D1D1D2', weight: 12, opacity: 0.4, clickable: false });
 						layers.plan = L.polyline(positions, { color: '#362F2D', weight: 8 , opacity: 0.6, clickable: false });
-					} 
+						if (showPlan) {	// show plan
+							layers.planHalo.addTo(map);
+							layers.plan.addTo(map);							
+						}
+					} else {	// no plan
+						layercontrol.noPlan();	// disable flight plan button
+					}
+
 					// create great arc (geodesic) polylines
 					layers.arcHalo = L.polyline([dpos, apos], { color: '#828483', weight: 7, opacity: 0.4, clickable: false }).greatArc();
 					layers.arc = L.polyline([dpos, apos], { color: '#D1D1D2', weight: 4, opacity: 0.6, clickable: false }).greatArc();
-					
-					if (showPlan && layers.plan) {		// show plan
-						layers.planHalo.addTo(map);
-						layers.plan.addTo(map);
-					}
-					if (showArc || (showPlan && layers.plan === null)) {	// show arc
+					if (showArc) {	// show arc
 						layers.arcHalo.addTo(map);
 						layers.arc.addTo(map);
-						if (!showArc) { layercontrol.noPlan(); }
 					}
 
 					// flight marker (airplane)
@@ -970,32 +971,58 @@
 			}
 
 			if (mapType === 'sat') {
-				$('#layer-sat').attr('checked', 'checked');
+				// $('#layer-sat').attr('checked', 'checked');
+				document.getElementById('layer-sat').checked = true;
 				$('#layer-overlay-name').text('LABELS');
-				if (showLabels) { $('#layer-overlay').prop('checked', 'checked'); }
-			} else {
-				$('#layer-map').attr('checked', 'checked');
+				if (showLabels) {
+					// $('#layer-overlay').prop('checked', 'checked');
+					document.getElementById('layer-overlay').checked = true;
+				}
+			} else { // street map
+				// $('#layer-map').attr('checked', 'checked');
+				document.getElementById('layer-map').checked = true;
 				$('#layer-overlay-name').text('TERRAIN');				
-				if (showTerrain) { $('#layer-overlay').prop('checked', 'checked'); }
+				if (showTerrain) {
+					// $('#layer-overlay').prop('checked', 'checked');
+					document.getElementById('layer-overlay').checked = true;
+				}
 			}
 
-			if (showPath) { $('#layer-path').prop('checked', 'checked'); }
-			if (showPlan) { $('#layer-plan').prop('checked', 'checked'); }
-			if (showArc) { $('#layer-arc').prop('checked', 'checked'); }
-			if (showMini) { $('#layer-mini').prop('checked', 'checked'); }
-			if (showWeather) { $('#layer-weather').prop('checked', 'checked'); }
+			if (showPath) {
+				// $('#layer-path').prop('checked', 'checked');
+				document.getElementById('layer-path').checked = true;
+			}
+			if (showPlan) {
+				// $('#layer-plan').prop('checked', 'checked');
+				document.getElementById('layer-plan').checked = true;
+			}
+			if (showArc) {
+				// $('#layer-arc').prop('checked', 'checked');
+				document.getElementById('layer-arc').checked = true;
+			}
+			if (showMini) {
+				// $('#layer-mini').prop('checked', 'checked');
+				document.getElementById('layer-mini').checked = true;
+			}
+			if (showWeather) {
+				// $('#layer-weather').prop('checked', 'checked');
+				document.getElementById('layer-weather').checked = true;
+			}
 
 			// click on satellite basemap
 			L.DomEvent.on(L.DomUtil.get('layer-sat'), 'click', function() {
-				// if (this._map.hasLayer(this._layers.map)) {
 				if (mapType === 'map') {
 					this._map.removeLayer(this._layers.map);
-					$('#layer-overlay').removeProp('checked');
-					if (showTerrain) { this._map.removeLayer(this._layers.terrain); }
+					// $('#layer-overlay').removeProp('checked');
+					document.getElementById('layer-overlay').checked = false;
+					if (showTerrain) {
+						this._map.removeLayer(this._layers.terrain);
+					}
 					this._map.addLayer(this._layers.sat, true);
 					$('#layer-overlay-name').text('LABELS');
 					if (showLabels) {
-						$('#layer-overlay').prop('checked', 'checked');
+						// $('#layer-overlay').prop('checked', 'checked');
+						document.getElementById('layer-overlay').checked = true;
 						this._map.addLayer(this._layers.labels);
 					}
 					mapType = 'sat';
@@ -1007,12 +1034,14 @@
 			L.DomEvent.on(L.DomUtil.get('layer-map'), 'click', function() {
 				if (mapType === 'sat') {
 					this._map.removeLayer(this._layers.sat);
-					$('#layer-overlay').removeProp('checked');
+					// $('#layer-overlay').removeProp('checked');
+					document.getElementById('layer-overlay').checked = false;
 					if (showLabels) { this._map.removeLayer(this._layers.labels); }
 					this._map.addLayer(this._layers.map, true);
 					$('#layer-overlay-name').text('TERRAIN');
 					if (showTerrain) {
-						$('#layer-overlay').prop('checked', 'checked');
+						// $('#layer-overlay').prop('checked', 'checked');
+						document.getElementById('layer-overlay').checked = true;
 						this._map.addLayer(this._layers.terrain);
 					}
 					mapType = 'map';
@@ -1022,9 +1051,9 @@
 
 			// click on overlay (labels or terrain)
 			L.DomEvent.on(L.DomUtil.get('layer-overlay'), 'click', function() {
-				var overlay = $('#layer-overlay:checked');
+				var overlay = document.getElementById('layer-overlay').checked; // $('#layer-overlay:checked');
 				if ($('#layer-overlay-name').text() === 'LABELS') {
-					if (overlay.length > 0) {
+					if (overlay) {
 						this._map.addLayer(this._layers.labels);
 						showLabels = true;
 						this._notify('showLabels','true');
@@ -1034,7 +1063,7 @@
 						this._notify('showLabels','false');
 					}
 				} else {
-					if (overlay.length > 0) {
+					if (overlay) {
 						this._map.addLayer(this._layers.terrain);
 						showTerrain = true;
 						this._notify('showTerrain','true');
@@ -1048,7 +1077,7 @@
 
 			// click on actual path
 			L.DomEvent.on(L.DomUtil.get('layer-path'), 'click', function() {
-				showPath = $('#layer-path:checked').length > 0;
+				showPath = document.getElementById('layer-path').checked; // $('#layer-path:checked').length > 0;
 				this._notify('showPath', showPath.toString());
 				if (this._layers.path === null) { return; }
 				if (showPath) {
@@ -1063,7 +1092,7 @@
 
 			// click on flight plan
 			L.DomEvent.on(L.DomUtil.get('layer-plan'), 'click', function() {
-				showPlan = $('#layer-plan:checked').length > 0;
+				showPlan = document.getElementById('layer-plan').checked; // $('#layer-plan:checked').length > 0;
 				this._notify('showPlan', showPlan.toString());
 				if (this._layers.plan === null) { return; }
 				if (showPlan) {
@@ -1076,9 +1105,9 @@
 				}
 			}, this);
 
-			// click on shortest arc (geodesic)
+			// click on great arc (geodesic)
 			L.DomEvent.on(L.DomUtil.get('layer-arc'), 'click', function() {
-				if ($('#layer-arc:checked').length > 0) {
+				if (document.getElementById('layer-arc').checked) {
 					this._map.addLayer(this._layers.arcHalo).addLayer(this._layers.arc);
 					this._layers.arc.bringToBack();
 					this._layers.arcHalo.bringToBack();
@@ -1094,7 +1123,7 @@
 
 			// click on mini-tracker
 			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function() {
-				if ($('#layer-mini:checked').length > 0) {
+				if (document.getElementById('layer-mini').checked) {
 					createMiniTracker(flightData.miniTracker);
 					$('#mini-tracker-div').show();
 					showMini = true;
@@ -1109,7 +1138,7 @@
 
 			// click on weather
 			L.DomEvent.on(L.DomUtil.get('layer-weather'), 'click', function() {
-				if ($('#layer-weather:checked').length > 0) {
+				if (document.getElementById('layer-weather').checked) {
 					this._map.addLayer(this._layers.weather);
 					showWeather = true;
 					this._notify('showWeather','true');
@@ -1160,9 +1189,14 @@
 		},
 
 		noPlan: function() {	// no flight plan available
-			$('input#layer-plan').removeProp('checked').attr('disabled', 'disabled');
+			// $('input#layer-plan').removeProp('checked').attr('disabled', 'disabled');
+			document.getElementById('layer-plan').disabled = true;
 			$('#layer-plan-name').css({color: '#aaa'});
-			$('input#layer-arc').prop('checked','checked');
+			if (showPlan && !showArc) {
+				// $('input#layer-arc').prop('checked','checked');
+				document.getElementById('layer-arc').checked = true;
+				showArc = true;
+			}
 		},
 
 		isMini: function() {

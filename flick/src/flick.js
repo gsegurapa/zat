@@ -51,6 +51,7 @@
 	var rotRate = aniRate / 500;	// 2 degrees per second max
 	var guid = '34b64945a69b9cac:5ae30721:13ca699d305:75ee';
 
+	var the_url = window.location;	// url that initiated the app
 	var map;	// Leaflet map object
 	var dport,	// departure airport data
 			dpos,	// lat/lng position of departure airport
@@ -82,7 +83,7 @@
 			curstatus = null,	// current status
 			estland = true,	// can estimate landing
 			estdep = true,	// can estimate departure
-			taxi = false,	// flight is active, but no positions
+			taxi = false,	// flight is active, but no positions yet
 			frames = 0,	// frames of animation remaining
 			rotframes,	// frames of rotation animation remaining
 			loadtimer,	// first data load timer
@@ -97,7 +98,6 @@
 	var trackcontrol, layercontrol, drawercontrol;	// UI
 	var fullscreentimer, hidecontrols, unhidecontrols, drawerwasopen = false;	// hide buttons and drawer timer
 	var controlshidden = false;
-	var the_url;	// url that initiated the app
 
 	// process URL parameters
 	var flightID, // flightstats flight id
@@ -151,10 +151,11 @@
 	}
 
 	function setCookie(name, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 365*86400000); // 1 year
-    document.cookie = name+'='+value+'; expires='+date.toGMTString()+'; path='+window.location.pathname;
+    document.cookie = name+'='+value+'; expires='+setCookie.date+'; path='+window.location.pathname;
   }
+  setCookie.date = new Date();
+  setCookie.date.setTime(setCookie.date.getTime() + 365*86400000); // 1 year
+  setCookie.date = setCookie.date.toGMTString();
 
 	getParams('?'+document.cookie); // params from cookies
 	getParams(window.location.href); // read parameters from URL
@@ -164,8 +165,6 @@
 	if (flightID === undefined) { // setup tool -- remove for production
 		window.location = 'flight.html?debug='+debug+'&autoHide='+autoHide+'&zoomControl='+zoomControl;
 	} 
-
-	the_url = window.location;	// save the url
 
 	if (debug) {	// interactive debug mode
 
@@ -322,12 +321,12 @@
 					success: getFlight
 				});
 
-			if (wrap === undefined) {
+			if (wrap === undefined) {	// loading message...
 				var $loading_div = $('#loading_div');
 				$loading_div.text($loading_div.text().length > 0 ? 'Retrying...' : 'Loading...');
 				loadtimer = setTimeout(function() {
 					$('#loading_div').text('Accessing flight tracking data');
-				}, 10000);
+				}, Math.round(updateRate/3));
 			}
 
 			// Ajax success handler
@@ -441,7 +440,7 @@
 						showNote('The flight is past its expected take-off time, but is not reporting tracking data yet');
 						estdep = false;	// suppress future Notes
 					}
-				} // end have positions
+				} // end have positions or not
 
 				if (wrap === undefined) { // first time called
 
@@ -455,17 +454,14 @@
 						flightnum = flightData.carrierFlightId;						
 					}
 
-					// dport = data.airports.departure;	// departure airport data
-					// aport = data.airports.arrival;	// arrival airport data
-
 					// load mini-tracker
 					if (showMini) {
 						createMiniTracker(data.miniTracker);
+						$('#mini-tracker-div').show();
 					} else {
 						$('#mini-tracker-div').hide();
 					}
 
-					// See setfullview for hack to fix long Singapore flights
 					wrap = Math.abs(dport.longitude - aport.longitude) > 180; // does route cross anti-meridian?
 
 					dpos = createLatLng(+dport.latitude, +dport.longitude, wrap);
@@ -473,12 +469,12 @@
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					// currot = +(data.heading || data.bearing);
 
+					// airline logo prefetch
 					logourl = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/png/300x100/'+
 							airline.toLowerCase().replace('*', '@')+'-logo.png';
 					// '<object class="labelimg" data="http://dskx8vepkd3ev.cloudfront.net/airline-logos/v2/logos/svg/'+
 					// flightData.carrierFs.toLowerCase().replace('*', '@')+'-logo.svg" type="image/svg+xml"></object>'+
-					// prefetch image
-					logoimg = $('<img/>'); // prefetch logo
+					logoimg = $('<img/>'); // logo image
 					logoimg.error(function(e) {	// if image exists, use it
 						logo = false;
 						e.stopImmediatePropagation();
@@ -572,7 +568,7 @@
 					// !!! now that I get current time from API, fix this to go back 1 minute in time to start animation
 					// and display warning if no new data
 
-					if (actualposs.length > 2) {
+					if (actualposs.length > 2 && curstatus !== 'L' && curstatus !== 'D') {
 						p = actualposs[2];
 						var a2 = +(p.altitudeFt || alt);
 						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground
@@ -918,7 +914,7 @@
 		},
 
 		hide: function() {
-			$('#drawer').animate({bottom: -215}, 500);
+			$('#drawer').animate({bottom: -216}, 500);
 		},
 
 		unhide: function() {
@@ -1135,7 +1131,8 @@
 		},
 
 		expand: function() {
-			if (drawercontrol.expanded() && $('#map_div').height() < 650) {
+			var $md = $('#map_div');
+			if (drawercontrol.expanded() && $md.height() < 650 && $md.width() < 750) {
 				drawerwasopen = true;
 				drawercontrol.collapse();
 			}
@@ -1243,19 +1240,10 @@
 		var tempa = createLatLng(apos.lat, apos.lng, false);
 		var tempd = createLatLng(dpos.lat, dpos.lng, false);
 		var tempf = createLatLng(fpos.lat, fpos.lng, false);
-		// if (wrap && false) { // shift by 180 degrees if flight crosses anti-meridian
-		//	flightBounds = L.latLngBounds([
-		//			[dpos.lat, dpos.lng+180],
-		//			[apos.lat, apos.lng+180],
-		//			[fpos.lat, fpos.lng+180]
-		//		]).pad(0.06);
-		//	var c = flightBounds.getCenter();
-		//	m.setView(L.latLng(c.lat, c.lng - 180), m.getBoundsZoom(flightBounds));
-		//	console.log('wrap: ', flightBounds, c);
-		// } else {
+
 		flightBounds = L.latLngBounds([ dpos, apos, fpos ]).pad(0.05);
 		m.fitBounds(flightBounds);
-		// }
+
 		// Workaround for Leaflet issue #1481
 		apos = tempa; amarker.setLatLng(apos);
 		dpos = tempd; dmarker.setLatLng(dpos);
@@ -1278,7 +1266,7 @@
 		var positions = [];
 		var last = null, ct, tail;
 		var i = 1;
-		if (all || !curpos || curspeed < 120 || flightData.statusCode === 'L') {	// draw all positions
+		if (all || !curpos || curspeed < 120 || flightData.statusCode === 'L' || flightData.statusCode === 'D') {	// draw all positions
 			tail = createLatLng(+p[i].lat, +p[i].lon, wrap);
 		} else { // find last point in flight path to be displayed
 			var m = Math.min(p.length, 10);

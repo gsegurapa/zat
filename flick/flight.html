@@ -13,19 +13,24 @@
 </style>
 </head>
 <body>
-<div id="top">
-Departing airport:
-<input id="aircode" type="text" size="4" value="PDX" />
-<input id="lookup" type="button" value="Lookup" />
-<select id="env">
+<div id="ifdebug">
+Env<select id="env">
 	<option value="prodx">edge.flightstats.com</option>
-	<option value="stagingx">edge-staging.flightstats.com</option>
-	<option value="devx">edge.dev.flightstats.com</option>
-	<option disabled="disabled">-------------------</option>
 	<option value="prod">edge01.cloud-east.prod</option>
+	<option disabled="disabled">-------------------</option>
+	<option value="stagingx">edge-staging.flightstats.com</option>
 	<option value="staging">edge01.cloud-east.staging</option>
+	<option disabled="disabled">-------------------</option>
+	<option value="devx">edge.dev.flightstats.com</option>
 	<option value="dev">client-dev.cloud-east.dev</option>
 </select>
+<label>Auto Hide<input id="autoHide" type="checkbox"></label>
+<label>Zoom Control<input id="zoomControl" type="checkbox"></label>
+</div>
+<div id="top">
+<label>Debug<input id="debug" type="checkbox" /></label>
+Departing airport: <input id="aircode" type="text" size="4" value="PDX" />
+<input id="lookup" type="button" value="Lookup" />
 <span id="ctime"></span>
 </div>
 <div id="out">
@@ -40,24 +45,24 @@ Departing airport:
 
 	var urls = {
 		edgeurl: {
-			prodx: 'http://edge.flightstats.com/flight/tracker/',	// production
-			stagingx: 'http://edge-staging.flightstats.com/flight/tracker/',	// staging
-			devx: 'http://edge.dev.flightstats.com/flight/tracker/',	// development
-			prod: 'http://edge01.cloud-east.prod:3450/flightTracker/',	// production
+			prodx: 'http://edge.flightstats.com/flight/tracker/',	// production external
+			prod: 'http://edge01.cloud-east.prod:3450/flightTracker/',	// production internal
+			stagingx: 'http://edge-staging.flightstats.com/flight/tracker/',	// staging external
 			staging: 'http://edge01.cloud-east.staging:3450/flightTracker/',	// staging internal
+			devx: 'http://edge.dev.flightstats.com/flight/tracker/',	// development external
 			dev: 'http://client-dev.cloud-east.dev:3450/flightTracker/',	// dev internal
 		},
 		miniurl: {
-			prodx: 'http://edge.flightstats.com/flight/mini-tracker/',	// production
-			stagingx: 'http://edge-staging.flightstats.com/flight/mini-tracker/',	// staging
-			devx: 'http://edge.dev.flightstats.com/flight/mini-tracker/',	// development
-			prod: 'http://edge01.cloud-east.prod:3500/tracker/',	// production
-			staging: 'http://edge01.cloud-east.staging:3500/tracker/',	// staging
+			prodx: 'http://edge.flightstats.com/flight/mini-tracker/',	// production external
+			prod: 'http://edge01.cloud-east.prod:3500/tracker/',	// production internal
+			stagingx: 'http://edge-staging.flightstats.com/flight/mini-tracker/',	// staging external
+			staging: 'http://edge01.cloud-east.staging:3500/tracker/',	// staging internal
+			devx: 'http://edge.dev.flightstats.com/flight/mini-tracker/',	// development external
 			dev: 'http://client-dev.cloud-east.dev:3500/tracker/',	// dev internal
 		}
 	};
 
-	$('#aircode').select();
+	$('#aircode').select();	// focus airport code input element
 
 	$('#lookup').on('click', lookup);
 	$('#aircode').on('keydown', lookup);
@@ -78,13 +83,25 @@ Departing airport:
 		}
 
 	getParams(window.location.href); // read parameters from URL
-	var extras = (debug ? '&debug='+debug : '') + (autoHide ? '&autoHide='+autoHide : '') + (zoomControl ? '&zoomControl='+zoomControl : '');
 
-	if (debug) {
-		$('#env').val('dev');
-	} else {
-		$('#env').hide();
-	}
+	document.getElementById('debug').checked = debug;
+	document.getElementById('zoomControl').checked = zoomControl;
+	document.getElementById('autoHide').checked = autoHide;
+	$('#ifdebug').toggle(debug);
+	if (debug) { $('#env').val('dev'); }
+
+  $('#debug').on('click', function(e) {
+  	debug = e.target.checked;
+  	$('#ifdebug').toggle(debug);
+  });
+
+	$('#autoHide').on('click', function(e) {
+		autoHide = e.target.checked;
+	});
+
+	$('#zoomControl').on('click', function(e) {
+		zoomControl = e.target.checked;
+	});
 
 	function getAppendix(data) { // read in data from appendix and convert to dictionary
     ret = {};
@@ -102,12 +119,12 @@ Departing airport:
 		airportCode = $('#aircode').val().toUpperCase();
 		env = $('#env').val();
 		var now = new Date();	// current date and time
-		now.setHours(now.getHours() - 3);
+		now.setHours(now.getHours() - 5);
 		$.ajax({  // airport tracks departures
 			url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/' + airportCode + '/dep/' +
 					now.getUTCFullYear() + '/' + (1+now.getUTCMonth()) + '/' + now.getUTCDate() + '/' + now.getUTCHours(),
       // url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
-      data: { appId: appId, appKey: appKey, utc: true, numHours: 4 },
+      data: { appId: appId, appKey: appKey, utc: true, numHours: 6 },
       dataType: 'jsonp',
       success: getDepartures
     });
@@ -120,20 +137,21 @@ Departing airport:
 			$flights.text('AJAX error: '+data.error.errorMessage)
 			return;
 		}
-		$('#env').hide();
 		if (debug) {
 			console.log('departing flights: ',data);
-			if (env !== 'prodx') {
-				console.log(extras);
-				extras += '&edgeurl='+encodeURIComponent(urls.edgeurl[env])+'&miniurl='+encodeURIComponent(urls.miniurl[env]);
-				console.log(extras);
-			}
 		}
 		var airlines = getAppendix(data.appendix.airlines);
 		var airports = getAppendix(data.appendix.airports);
 		$('#ctime').text(airports[airportCode].localTime.slice(0,16));
+		var now = new Date(airports[airportCode].localTime).valueOf();
+		var utc = new Date().getTime();
 		var deps = [];
 		$.each(data.flightStatuses, function(index, val) {
+			if (val.status==='S' && new Date(val.departureDate.dateLocal).valueOf() - now > 3600000 ||
+					val.status==='L' && utc - new Date((val.operationalTimes.actualGateArrival || val.operationalTimes.actualRunwayArrival ||
+					val.operationalTimes.estimatedGateArrival || val.operationalTimes.estimatedRunwayArrival).dateUtc ).valueOf() > 3600000 ) {
+				return;
+			}
 			deps.push({
 					id: val.flightId,
 					status: val.status,
@@ -148,24 +166,53 @@ Departing airport:
 				});
 		});
 		function comp(a, b) {
-			return a.status === b.status ? (a.leaves < b.leaves ? -1 : 1) : (a.status < b.status ? -1 : 1);
+			return a.status === b.status ? (a.leaves > b.leaves ? -1 : 1) : (a.status < b.status ? -1 : 1);
 		}
 		deps.sort(comp);
-
-		$flights.append('<tr><td>ID</td><td>?</td><td>LEAVES</td><td>TO</td><td>FLIGHT</td><td>CODESHARES</td></tr>');
+		var curstatus = '';
+		$flights.append('<tr><td>ID</td><td>LEAVES</td><td>TO</td><td>FLIGHT</td><td>CODESHARES</td></tr>');
 		$.each(deps, function(index, val) {
+			if (val.status !== curstatus) {
+				curstatus = val.status;
+				$flights.append('<tr><td colspan="4"><em>'+flightStatus[curstatus]+'</em> --------------------</td></tr>');
+			}
 			var status = 'SAL'.indexOf(val.status) === -1 ? '<span style="color:red">'+val.status+'</span>' : val.status;
-			var fl = '<tr><td>'+val.id+'</td><td>'+status+'</td><td>'+val.leaves+'</td><td>'+val.to+' - '+val.city+
-				'</td><td><a href="index.html?id='+val.id+'&airline='+val.airlineCode+'&flight='+val.flight+extras+'" title="'+val.airline+'">'+
+			var fl = '<tr><td>'+val.id+'</td><td>'+val.leaves+'</td><td>'+val.to+' - '+val.city+
+				'</td><td><a class="alink" href="index.html?id='+val.id+'&airline='+val.airlineCode+'&flight='+val.flight+'" title="'+val.airline+'">'+
 				val.airlineCode+' '+val.flight+'</a></td><td>';
 			$.each(val.codeshares, function(i, v) {
-				if (v.relationship === 'S') { console.log('code S'); }
-				fl = fl+v.relationship+': <a href="index.html?id='+val.id+'&airline='+v.fsCode+'&flight='+v.flightNumber+extras+'" title="'+
+				// if (v.relationship === 'S') { console.log('code S'); }
+				fl = fl+v.relationship+': <a href="index.html?id='+val.id+'&airline='+v.fsCode+'&flight='+v.flightNumber+'" title="'+
 						airlines[v.fsCode].name+'">'+v.fsCode+' '+v.flightNumber+'</a> ';
 				});
 			$flights.append(fl+'</td></tr>');
 		});
+
+		$('.alink').on('click', function(e) {
+			var nurl = e.target.href + (debug ? '&debug='+debug : '') +
+					(autoHide===undefined ? '' : '&autoHide='+autoHide) +(zoomControl===undefined ? '' : '&zoomControl='+zoomControl);
+			if (env !== 'prodx') {
+				nurl += '&edgeurl='+encodeURIComponent(urls.edgeurl[env])+'&miniurl='+encodeURIComponent(urls.miniurl[env]);
+			}
+			console.log(nurl);
+			location.href = nurl;
+			return false;
+		});
 	}
+
+	var flightStatus = {
+		A: 'Active',
+		C: 'Canceled',
+		D: 'Diverted',
+		DN: 'No Data Source',
+		I: 'Incident',
+		L: 'Landed',
+		NO: 'Not Operating',
+		R: 'Redirected',
+		S: 'Scheduled', // Scheduled
+		U: 'Unknown' // Unknown
+	};
+
 }(jQuery));
 </script>
 </body>

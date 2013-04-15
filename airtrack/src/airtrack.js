@@ -817,7 +817,7 @@
       $('#airportMarker').val(airportMarker);
       $('#airportMarkerScale').val(airportMarkerScale); // .next().text(airportMarkerScale);
       $('#showLegend').val(showLegend.toString());
-      $('#showOperatorAirlines').val(showOperatorAirlines.toString());
+      // $('#showOperatorAirlines').val(showOperatorAirlines.toString());
       $('#weatherStation').val(weatherStation);
       displayActualStation();
       // $('#weatherRadar option').removeAttr('selected');
@@ -1007,10 +1007,10 @@
         }
         showAirlineLogos = v;
         break;
-       case 'showOperatorAirlines':
-        showOperatorAirlines = $el.val();
-        mainloop();
-        break;
+       // case 'showOperatorAirlines':
+       //  showOperatorAirlines = $el.val();
+       //  mainloop();
+       //  break;
        case 'showOtherAirport':
         v = $el.val() === 'true';
         for (i = 0; i < planes.length; i++) {

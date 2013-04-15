@@ -1465,7 +1465,8 @@
 				minZoom: 0, maxZoom: 11
 		}),
 		map: L.tileLayer(
-			'http://maps{s}.flightstats.com/streets/{z}/{x}/{y}.png',
+			// 'http://maps{s}.flightstats.com/streets/{z}/{x}/{y}.png',
+			'http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.jpg',
 			{ subdomains: '1234',
 				zIndex: 2,
 				minZoom: 0, maxZoom: 11
@@ -1481,7 +1482,8 @@
 		}),
 		labels: L.tileLayer(
 			// 'http://129.206.74.245:8003/tms_h.ashx?x={x}&y={y}&z={z}',
-			'http://maps{s}.flightstats.com/labels/{z}/{x}/{y}.png',
+			// 'http://maps{s}.flightstats.com/labels/{z}/{x}/{y}.png',
+			'http://otile{s}.mqcdn.com/tiles/1.0.0/hyb/{z}/{x}/{y}.png',
 			{ subdomains: '1234',
 			zIndex: 5,
 				minZoom: 0, maxZoom: 11

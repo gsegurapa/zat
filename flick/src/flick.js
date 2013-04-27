@@ -491,12 +491,8 @@
 					}
 
 				} else {	// update
-					// if (flightData.flightPlan) {
-					//	console.log('received a flight plan late!', flightData.flightPlan);
-					// }
 					fpos = createLatLng(+pos.lat, +pos.lon, wrap);
 					if (!fpos.equals(curpos)) {
-						// if (trackcontrol.isTracking()) { map.panTo(curpos ? curpos : fpos); }
 						aniPhats(fpos, newheading, +pos.altitudeFt, timestamp, +pos.speedMph);
 						setFlightPath();
 						drawercontrol.update();
@@ -592,6 +588,7 @@
 
 				// set position of airplane icon
 				function phat(p, h, a, t) {	// position, heading, altitude, time
+					if (curstatus === 'L') { p = apos; }	// land plane
 					curpos = p;
 					currot = h;
 					if (airplane) {
@@ -609,11 +606,10 @@
 				function aniPhats(p, h, a, t, s) {	// position, heading, altitude, time, speed
 					if (!isNaN(a)) { airplane.setShadow(a); }
 					if (typeof curpos !== 'object') {
-						if (debug) { console.log('curpos not object: ', curpos); }
 						phat(p, h, a, t);
 						return;
 					}
-					if (curpos) {	// calculate heading from positions
+					if (curpos && !curpos.equals(p)) {	// calculate heading from positions
 						h = calcHeading(curpos, p);
 					}
 					curheading = h;
@@ -623,7 +619,6 @@
 					// if (dt > 120000 || map.getZoom() < 5) {	// don't animate jumps or low zoom levels
 					if (dt > 240000) {	// don't animate jumps greater than 4 minutes
 						phat(p, h, a, t);
-						// airplane.rotate(h).stamp(t).setLatLng(p);	// can't chain setLatLng because of bug
 						// if (tracking) { map.panTo(p); }
 						return;
 					}
@@ -638,7 +633,7 @@
 
 					// number of frames to move that distance at current speed (s)
 					if (debug) { console.log('curspeed: '+curspeed, 'speedMph: '+pos.speedMph, 'turn: '+turn.toFixed(2)); }
-					frames = $.isNumeric(curspeed) ? Math.floor(curpos.distanceTo(p) * 2236.936292 / (curspeed * aniRate)) : 0;
+					frames = $.isNumeric(curspeed) ? Math.floor(curpos.distanceTo(p) * 2236.936292 / (curspeed * aniRate)) : 0;						
 					if (frames <= 0) {
 						curpos = p;
 						return;
@@ -670,7 +665,12 @@
 					}
 
 					function step() {	// animation step
-						curpos = createLatLng(curpos.lat + vlat, curpos.lng + vlng, wrap);
+						if (curstatus === 'L') {	// land plane
+							curpos = apos;
+							frames = 0;
+						} else {
+							curpos = createLatLng(curpos.lat + vlat, curpos.lng + vlng, wrap);							
+						}
 						currot += vrot;
 						if (!zooming && !panning) {	// don't update position while zooming or panning animation is in progress
 							airplane.rotate(currot).setLatLng(curpos);	// can't chain setLatLng because of bug

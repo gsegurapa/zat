@@ -58,7 +58,7 @@ When in full screen mode the mouse cursor is hidden when over the map (you can s
 
 <h2>Complete List of Parameters</h2>
 <table border="1">
-<tr><th>Name</th><th>Default</th><th>Range</th><th>Description</th></tr>
+<tr><th>Name</th><th>Default</th><th>Values</th><th>Description</th></tr>
 
 <tr><td>appId</td><td></td><td>API ID</td><td>Your FlightStats API application ID.
   See <a href="https://developer.flightstats.com" target="_blank">https://developer.flightstats.com</a>
@@ -80,6 +80,8 @@ Note that flight position information is less reliable in some areas, or for sma
 <tr><td>airportMarker</td><td>classic</td>
   <td>modern, darktower<td>Style of control tower marker</td></tr>
 <tr><td>airportMarkerScale</td><td>55</td><td>10 to 150</td><td>Size of control tower marker</td></tr>
+<tr><td>arrDep</td><td>both</td>
+  <td>arr, dep<td>Show arriving or departing flights, or both</td></tr>
 <tr><td>showLegend</td><td>true</td><td>(Boolean)</td><td>Show legend at bottom of screen</td></tr>
 <tr><td>weatherFrames</td><td>0</td><td>0 to 25</td><td>US only. Number of frames to animate, each frame represents 10 minutes. 0 means no image, 1 means single (non-animated) image of current radar.</td></tr>
 <tr><td>weatherStation</td><td>automatic</td><td>(any US station code)</td><td>Specify weather radar station code - see below (US only)</td></tr>
@@ -167,6 +169,28 @@ For example, flipTime=120 displays each airport for 2 minutes.</p>
 <h4>view=3D</h4>
 <p>Setting view to 3D displays the map in psuedo-3D. Note that this does not work in all browsers.
 It also sets interactive mode to true, so you can drag the map around in 3D.</p>
+<h4>airlines=<em>list</em></h4>
+<p>The airlines parameter specifies a list of airline codes, separated by commas.
+The list is used to determine which flights to display.
+For example, "<code>airlines=AA,DL</code>" specifies that only flights operated by American Airlines and Delta Airlines should be displayed.
+The list can optionally begin with a single minus sign, which reverses the test so that "<code>airlines=-AA,DL</code>"
+specifies that flights from all airlines should be displayed <em>except</em> for American and Delta.</p>
+<p>In addition, each airline code can be followed by a minus sign and another airline code.
+For example, "<code>airlines=AS,QX-AS</code>" specifies that only flights operated by AS (Alaska Airlines),
+or by QX (Horizon Airlines) should be shown, but QX should be displayed as AS.
+Likewise, "<code>airlines=-QX-AS</code>" specifies that all flights should be shown, but to change QX (Horizon) to AS (Alaska).
+This is very useful for flights that are ticketed by one airline, but operated by a different (operating) airline.
+This app normally displays the operating airline, but you can use this option to display the ticketing airline.
+Here are some additional examples:</p>
+<table>
+  <tr><td><code>airlines=UA</code></td><td>Show only flights operated by United</td></tr>
+  <tr><td><code>airlines=-FX,1I</code></td><td>Show all flights except any flights operated by FedEx or Net Jets</td></tr>
+  <tr><td><code style="white-space: nowrap;">airlines=-OO-UA,QX-AS,MQ-AA</code></td><td>Show all flights, but change SkyWest to United, Horizon to Alaska, and American Eagle to American</td></tr>
+  <tr><td><code>airlines=OO-UA,QX-AS,MQ-AA</code></td><td>Show only SkyWest, Horizon, and American Eagle, but change their airline codes to<br />United, Alaska, and American, respectively</td></tr>
+  <tr><td><code>airlines=-JIA-US</code></td><td>Show all flights, but change PSA to US Airways</td></tr>
+  <tr><td><code>airlines=-</code></td><td>Show all flights (the default)</td></tr>
+  <tr><td><code>airlines=</code></td><td>Show no flights (not very useful)</td></tr>
+</table>
 
 <hr />
 <h3><a href="http://flightstats.com" target="_blank">Flightstats Inc.</a></h3>

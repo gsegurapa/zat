@@ -157,8 +157,8 @@
 
   var airportCode, mapType, zoomLevel,
     showLabels, labelSize, showAirlineLogos, showOtherAirport, showOperatorAirlines,
-    flightMarker, flightMarkerScale, airportMarker, airportMarkerScale, showLegend,
-    weatherFrames, weatherStation, weatherRadar, weatherOpacity,
+    flightMarker, flightMarkerScale, airportMarker, airportMarkerScale, arrDep,
+    showLegend, weatherFrames, weatherStation, weatherRadar, weatherOpacity,
     appId, appKey;
 
   function getParams(p) {
@@ -179,12 +179,14 @@
     if ($.isNumeric(params.flightMarkerScale)) { flightMarkerScale = +params.flightMarkerScale; }
     if (params.airportMarker) { airportMarker = params.airportMarker; }
     if ($.isNumeric(params.airportMarkerScale)) { airportMarkerScale = +params.airportMarkerScale; }
+    if (params.arrDep) { arrDep = params.arrDep; }
     if (params.showLegend) { showLegend = params.showLegend==='true'; }
     if ($.isNumeric(params.weatherFrames)) { weatherFrames = +params.weatherFrames; }
     if (params.weatherStation) { weatherStation = (params.weatherStation&&params.weatherStation !== 'automatic')?params.weatherStation.toUpperCase():'automatic'; }
     if (params.weatherRadar) { weatherRadar = params.weatherRadar.toUpperCase(); }
     if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
     // not savable
+    if (params.airlines !== undefined) { airlines = params.airlines; }
     if (params.interactive) { interactive = params.interactive==='true'; }
     if (params.view) { view = params.view.toUpperCase(); }
     if (params.flip) { flip = params.flip; }
@@ -208,6 +210,7 @@
     flightMarkerScale = 70;
     airportMarker = 'classic';
     airportMarkerScale = 55;
+    arrDep = 'both';
     showLegend = true;
     weatherFrames = 0; // number of frames
     weatherStation = 'automatic';
@@ -235,6 +238,7 @@
     setCookie('flightMarkerScale', flightMarkerScale);
     setCookie('airportMarker', airportMarker);
     setCookie('airportMarkerScale', airportMarkerScale);
+    setCookie('arrDep', arrDep);
     setCookie('showLegend', showLegend.toString());
     setCookie('weatherFrames', weatherFrames);
     setCookie('weatherStation', weatherStation);
@@ -250,6 +254,7 @@
 
   var view = null; // 2D or 3D
   var interactive = false; // set true to allow map scrolling
+  var airlines = '-'; // which airlines to show
   var thumb = false; // show as thumbnail
   var jump = false; // no animation of planes or labels
   var flip = false; // flip through different cities
@@ -280,6 +285,31 @@
   // var flightLabelScale = params.flightLabelScale/100 || 1.0;
   if (view === '3D') { interactive = true; }
   if (jump) { showLabels = false; }
+
+  var allAirlines = true; // show all airlines
+  var exceptions = {};  // exception airlines
+  var al = airlines;
+  if (airlines.length > 0) {
+    if (airlines.charAt(0) !== '-') {
+      allAirlines = false;
+    } else {
+      al = airlines.slice(1);
+    }
+    if (al.length > 0) {
+      $.each(al.split(','), function(k, v) {
+        if (v.match(/^\w{2,3}(-\w{2,3})?/) !== null) {
+          var el = v.split('-');
+          exceptions[el[0]] = el.length === 1 ? null : el[1];
+        } else {
+          alert('invalid airlines parameter: '+airlines);
+          return false;
+        }
+      });
+    }
+  } else {
+    allAirlines = false;  // show nothing
+  }
+
   
   var map; // Leaflet map object
   var bounds;  // only draw planes inside this boundary
@@ -383,22 +413,26 @@
 
     function mainloop() { // get position info for airplanes
       if (appId.length === 0 || appKey.length === 0) { return; }
-      $.ajax({
-        url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
-        data: { maxPositions: 2, appId: appId, appKey: appKey, includeFlightPlan: false },
-        dataType: 'jsonp',
-        success: getDepartures,
-        // timeout: 20000, // catch timeout after 20 seconds
-        error: badajax
-      });
-      $.ajax({
-        url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/arr',
-        data: { maxPositions: 2, appId: appId, appKey: appKey, includeFlightPlan: false },
-        dataType: 'jsonp',
-        success: getArrivals,
-        // timeout: 20000, // catch timeout after 20 seconds
-        error: badajax
-      });
+      if (arrDep !== 'arr') { // dep or both
+        $.ajax({
+          url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
+          data: { maxPositions: 2, appId: appId, appKey: appKey, includeFlightPlan: false },
+          dataType: 'jsonp',
+          success: getDepartures,
+          // timeout: 20000, // catch timeout after 20 seconds
+          error: badajax
+        });
+      }
+      if (arrDep !== 'dep') { // arr or both
+        $.ajax({
+          url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/arr',
+          data: { maxPositions: 2, appId: appId, appKey: appKey, includeFlightPlan: false },
+          dataType: 'jsonp',
+          success: getArrivals,
+          // timeout: 20000, // catch timeout after 20 seconds
+          error: badajax
+        });
+      }
     } // end mainloop()
 
     function badajax(jqXHR, textStatus, errorThrown) {
@@ -421,15 +455,20 @@
 
     function getDepartures(data, status, xhr) {
       if (!data || data.error) {
+        if (data && data.error && data.error.errorCode === 'AUTH_FAILURE') {
+          alert('Invalid or Expired AppId and AppKey');
+          clearInterval(maintimer);
+        }
         if (console && console.log) {
-          console.log('departures error', data);
+          console.log('departures error', data ? data : ' - no response');
         } else {
           if (data.error) { alert(data.error.errorMessage); }
         }
         return;
       }
+      if (arrDep === 'arr') { return; }
       var airports = getAppendix(data.appendix.airports);
-      var airlines = getAppendix(data.appendix.airlines);
+      var carriers = getAppendix(data.appendix.airlines);
       var ap = airports[data.request.airport.fsCode]; // home airport
       if (!airportLoc || resetAirport) {
         setAirportLoc(ap); // set location of airport
@@ -440,6 +479,13 @@
       if (bounds) {
         // avgerr = 0; avgcnt = 0, maxerr = 0; // DEBUG
         $.each(tracks, function(key, v) {
+          var alex = exceptions[v.carrierFsCode];
+          if (alex === null ? allAirlines : !allAirlines) { // XOR
+            return; // do not display flight
+          }
+          if (alex === null || alex === undefined) { alex = v.carrierFsCode; }
+          var alname = carriers[carriers[alex] ? alex : v.carrierFsCode].name;
+
           var positions = v.positions;
           var curpos = positions[0];
           var pos = L.latLng(+curpos.lat, +curpos.lon);
@@ -461,7 +507,7 @@
             var alt = curpos.altitudeFt ? curpos.altitudeFt : airportalt;
             var ts = Date.parse(curpos.date); // timestamp
             var delay = +(v.delayMinutes || 0);
-            var flight = v.carrierFsCode + ' ' + v.flightNumber;
+            var flight = alex + ' ' + v.flightNumber;
             if (fx !== null) { // plane found, update position
               // if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
               //   if (!debug[flight] || (debug[flight] && positions[0].date !== debug[flight])) {
@@ -498,7 +544,7 @@
                 if (alt > 5000) { alt = airportalt; } // fix data error
                 if (a && a > 5000) { a = airportalt; }
               }
-              var np = new Plane({ id: +v.flightId, fno: flight, airline: airlines[v.carrierFsCode].name, 
+              var np = new Plane({ id: +v.flightId, fno: flight, airline: alname, 
                   airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt),
                   heading: (v.heading ? +v.heading : +v.bearing),
                   delay: delay, scale: flightMarkerScale * 0.01, depart: true, stamp: dstamp, time: (t ? t : ts) });
@@ -532,15 +578,20 @@
 
     function getArrivals(data, status, xhr) {
       if (!data || data.error) {
+        if (data && data.error && data.error.errorCode === 'AUTH_FAILURE') {
+          alert('Invalid or Expired AppId and AppKey');
+          clearInterval(maintimer);
+        }
         if (console.log) {
-          console.log('arrivals error', data);
+          console.log('arrivals error', data ? data : ' - no response');
         } else {
           if (data.error) { alert(data.error.errorMessage); }
         }
         return;
       }
+      if (arrDep === 'dep') { return; }
       var airports = getAppendix(data.appendix.airports);
-      var airlines = getAppendix(data.appendix.airlines);
+      var carriers = getAppendix(data.appendix.airlines);
       var ap = airports[data.request.airport.fsCode]; // home airport
       if (!airportLoc || resetAirport) {
         setAirportLoc(ap); // set location of airport
@@ -550,6 +601,13 @@
       if (bounds) {
         // avgerr = 0; avgcnt = 0, maxerr = 0; // DEBUG
         $.each(tracks, function(key, v) {
+          var alex = exceptions[v.carrierFsCode];
+          if (alex === null ? allAirlines : !allAirlines) { // XOR
+            return; // do not display flight
+          }
+          if (alex === null || alex === undefined) { alex = v.carrierFsCode; }
+          var alname = carriers[carriers[alex] ? alex : v.carrierFsCode].name;
+
           var positions = v.positions;
           var curpos = positions[0];
           var pos = L.latLng(+curpos.lat, +curpos.lon);
@@ -569,7 +627,7 @@
             var alt = curpos.altitudeFt ? curpos.altitudeFt : +ap.elevationFeet;
             var ts = Date.parse(curpos.date); // timestamp
             var delay = +(v.delayMinutes || 0);
-            var flight = v.carrierFsCode + ' ' + v.flightNumber;
+            var flight = alex + ' ' + v.flightNumber;
             if (fx !== null) { // plane found, update position
               // if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
               //   if (!debug[flight] || (debug[flight] && positions[0].date !== debug[flight])) {
@@ -599,7 +657,7 @@
                 // console.log(flight+' distance in meters: '+pos.distanceTo(p));
                 p = undefined; a = undefined; t = undefined;
               }
-              var np = new Plane({ id: +v.flightId, fno: flight, airline: airlines[v.carrierFsCode].name, 
+              var np = new Plane({ id: +v.flightId, fno: flight, airline: alname, 
                   airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt), 
                   heading: (v.heading ? +v.heading : +v.bearing),
                   delay: delay, scale: flightMarkerScale * 0.01, depart: false, stamp: astamp, time: (t ? t : ts) });
@@ -798,33 +856,24 @@
     function fillDialog() {
       if (!BigScreen.enabled) { $('#cbutton input[value="Full"]').hide(); }
       $('#airportCode').val(airportCode);
-      // $('#mapType option').removeAttr('selected');
-      // $('#mapType option[value="'+mapType+'"]').attr('selected','selected');
       $('#mapType').val(mapType);
       $('#zoomLevel').val(zoomLevel);
       $('#showLabels').val(showLabels.toString());
-      // $('#labelSize option').removeAttr('selected');
-      // $('#labelSize option[value="'+labelSize+'"]').attr('selected','selected');
       $('#labelSize').val(labelSize);
       $('#showAirlineLogos').val(showAirlineLogos.toString());
       $('#showOtherAirport').val(showOtherAirport.toString());
-      // $('#flightMarker option').removeAttr('selected');
-      // $('#flightMarker option[value="'+flightMarker+'"]').attr('selected','true');
       $('#flightMarker').val(flightMarker);
-      $('#flightMarkerScale').val(flightMarkerScale); // .next().text(flightMarkerScale);
-      // $('#airportMarker option').removeAttr('selected');
-      // $('#airportMarker option[value="'+airportMarker+'"]').attr('selected','true');
+      $('#flightMarkerScale').val(flightMarkerScale);
       $('#airportMarker').val(airportMarker);
-      $('#airportMarkerScale').val(airportMarkerScale); // .next().text(airportMarkerScale);
+      $('#airportMarkerScale').val(airportMarkerScale);
+      $('#arrDep').val(arrDep);
       $('#showLegend').val(showLegend.toString());
       // $('#showOperatorAirlines').val(showOperatorAirlines.toString());
       $('#weatherStation').val(weatherStation);
       displayActualStation();
-      // $('#weatherRadar option').removeAttr('selected');
-      // $('#weatherRadar option[value="'+weatherRadar+'"]').attr('selected','true');
       $('#weatherRadar').val(weatherRadar);
       $('#weatherFrames').val(weatherFrames);
-      $('#weatherOpacity').val(weatherOpacity); // .next().text(weatherOpacity);
+      $('#weatherOpacity').val(weatherOpacity);
     }
 
     function configurator(e) {
@@ -1051,6 +1100,15 @@
           alert('bad value: '+v);
           $('#airportMarkerScale').val(airportMarkerScale);
         }
+        break;
+       case 'arrDep':
+        v = $el.val();
+        arrDep = v;
+        for (i = 0; i < planes.length; i++) {
+          planes[i].remove();
+        }
+        planes = [];
+        mainloop();
         break;
        case 'showLegend':
         v = $el.val() === 'true';

@@ -100,6 +100,7 @@ div#brand {
 img#fsimg {
   margin-left: 12px;
   padding-top: 4px;
+  cursor: default;
 }
 div#delayed {
   position: absolute;
@@ -321,6 +322,12 @@ output, #actualStation {
     <tr><td>airportMarkerScale</td>
       <td><input id="airportMarkerScale" type="range" size="4" value="55" min="10" max="150" step="1" /></td>
       <td>55</td><td>size of control tower (10-150)</td></tr>
+
+    <tr><td>arrDep</td><td><select id="arrDep">
+      <option value="both" selected="true">both</option>
+      <option value="arr">arriving</option>
+      <option value="dep">departing</option>
+    </select></td><td>both</td><td>show arriving or departing flights</td></tr>
 
     <tr><td>showLegend</td><td><input id="showLegend" class="bool" type="button" value="true" /></td>
       <td>true</td><td>show legend at bottom</td></tr>

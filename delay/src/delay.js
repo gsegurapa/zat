@@ -710,7 +710,7 @@
                 left: (pixpos.x - offset)+'px',
                 top: (pixpos.y - offset)+'px',
                 width: size+'px', height: size+'px',
-                'border-radius': '50%',
+                'border-radius': '50%'
             }});
             $heat.css(transform_prop ? {
               'background-image': prefix+'radial-gradient(closest-side, '+cp+(0.5+(cv/1020))+'), '+cp+'0) 100%)'

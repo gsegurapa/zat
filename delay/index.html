@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>FlightStats Delay Map</title>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.ie.css" /><![endif]-->
+<style type="text/css">
+html, body, #map_div { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; }
+#map_div.three {
+  transform-style: preserve-3d;
+  transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -webkit-transform-style: preserve-3d;
+  -webkit-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -moz-transform-style: preserve-3d;
+  -moz-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -ms-transform-style: preserve-3d;
+  -ms-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -o-transform-style: preserve-3d;
+  -o-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+}
+div.lineseg {
+  position: absolute;
+  border-top-style: solid;
+  border-top-width: 1px;
+  opacity: 0.2;
+}
+#airportdelay div, #airportdelay img {
+  position: absolute;
+}
+img#fsimg {
+  position: absolute;
+  padding: 6px;
+  background-color: #44a;
+  background-color: rgba(48, 48, 168, 0.7);
+  left: 10px;
+  bottom: 10px;
+  z-index: 1000;
+}
+div#datetime {
+  display: none;
+  position: absolute;
+  background-color: #44a;
+  background-color: rgba(48, 48, 168, 0.7);
+  left: 230px;
+  bottom: 10px;
+  padding: 1px 6px;
+  font-family: "Andale Mono", monospace;
+  font-size: 41px;
+  color: white;
+  text-shadow: 1px 1px 3px #000;
+  z-index: 1000;
+}
+#legend {
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  position: absolute;
+  padding: 2px;
+  background-color: white;
+  background-color: rgba(220, 220, 220, 0.75);
+  right: 10px;
+  bottom: 6px;
+  z-index: 1000;
+  white-space: nowrap;
+}
+#config {
+  display: none;
+  z-index: 55000;
+  position: absolute;
+  background-color: rgba(255,255,255,0.75);
+  bottom: 60px;
+  left: 10px;
+  font-family: Helvetica, Arial, sans-serif;
+  border: solid black 1px;
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.75);
+  cursor: default;
+}
+#configurl {
+  padding: 3px;
+  word-wrap: break-word;
+}
+#config td {
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+#ctitle {
+  font-size: 1.5em;
+  padding: 0.1em 0.4em;
+  cursor: move;
+}
+#cbutton {
+  position: absolute;
+  right: 5px;
+  top: 1px;
+  cursor: default;
+}
+#inczoom, #deczoom {
+  border: 1px solid gray;
+  background-color: white;
+  padding: 5px;
+  vertical-align: middle;
+  border-radius: 3px;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+  -ms-border-radius:3px;
+  -o-border-radius:3px;
+}
+output {
+  font-size: 13px;
+}
+/* slider root element */
+.slider {
+    background-color: #ddd;
+    height:3px;
+    position:relative;
+    cursor:pointer;
+    border:1px solid #444;
+    width:175px;
+    float:left;
+    clear:right;
+    margin-top:8px;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+}
+
+/* drag handle */
+.handle {
+    background-color: #eee;
+    height:16px;
+    width:16px;
+    top:-9px;
+    position:absolute;
+    display:block;
+    margin-top:1px;
+    border:1px solid #000;
+    cursor:move;
+    -moz-box-shadow:0 0 3px #000;
+    -webkit-box-shadow:0 0 3px #000;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+
+}
+
+/* the input field */
+.range {
+    border:1px inset #ddd;
+    float:left;
+    font-size:11px;
+    margin:0 0 0 5px;
+    padding:2px 0;
+    text-align:center;
+    width:30px;
+}
+</style>
+<!--[if lte IE 8]>
+<style type="text/css">
+#config {
+  background-color: rgb(255,255,255);  
+}
+</style>
+<![endif]-->
+<script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.js"></script>
+<script type="text/javascript" src="http://cdn.jquerytools.org/1.2.7/full/jquery.tools.min.js"></script>
+<script type="text/javascript" src="lib/bigscreen-min.js"></script>
+<script type="text/javascript" src="lib/date.js"></script>
+<script type="text/javascript" src="src/delay.js"></script>
+</head>
+<body>
+<div id="map_div"></div>
+<img id="fsimg" src="http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/img/flightstats_logo_dk_bkgd.png" />
+<div id="datetime"></div>
+<table id="legend">
+  <tr><td>Delay Index</td><td></td></tr>
+  <tr><td><img src="http://dem5xqcn61lj8.cloudfront.net/GoogleMapTools/airport_unknown_8.png" />Unavailable</td>
+  <td><img src="http://dem5xqcn61lj8.cloudfront.net/GoogleMapTools/delay_factor_3c_9x9.png" />Moderate</td></tr>
+  <tr><td><img id="ontime" src="http://dem5xqcn61lj8.cloudfront.net/GoogleMapTools/delay_factor_1_9x9.png" />Very Low</td>
+  <td><img src="http://dem5xqcn61lj8.cloudfront.net/GoogleMapTools/delay_factor_4_9x9.png" />Significant</td></tr>
+  <tr><td><img src="http://dem5xqcn61lj8.cloudfront.net/GoogleMapTools/delay_factor_2a_9x9.png" />Low</td>
+  <td><img src="http://dem5xqcn61lj8.cloudfront.net/GoogleMapTools/delay_factor_5c_9x9.png" />Excessive</td></tr>
+</table>
+<div id="config">
+  <div id="ctitle">&nbsp;Delay Map Configuration<span id="cbutton">
+    <input type="button" value="Hide" title="close dialog" />
+    <input type="button" value="Save" title="store preferences in cookie" />
+    <input type="button" value="Reset" title="reset preferences to defaults" />
+    <input type="button" value="Help" title="show documentation" />
+    <input type="button" value="Full" title="toggle full screen" />
+  </span></div>
+  <div id="configurl"></div>
+  <table border="1">
+    <tr><th>parameter</th><th>value</th><th>default</th><th>description</th></tr>
+    <tr><td>airportSize</td><td><select id="airportSize">
+      <option value="5">5 - all</option>
+      <option value="4">4 - small+</option>
+      <option value="3" selected="true">3 - medium+</option>
+      <option value="2">2 - large+</option>
+      <option value="1">1 - primary</option>
+      </select></td><td>3</td><td>minimum airport size</td></tr>
+    <tr><td>minDelay</td>
+      <td><input id="minDelay" type="range" size="4" value="0" min="0" max="5" step="1" /></td>
+      <td>0</td><td>only show delays &ge; than</td></tr>
+    <tr><td>zoomLevel</td><td><img id="deczoom" src="img/zoom-out.png" title="-" alt="-" />
+      <input id="zoomLevel" type="text" size="2" value="9" style="text-align: center" />
+      <img id="inczoom" src="img/zoom-in.png" title="+" alt="+" />
+      </td><td><i>auto</i></td><td>0-12 (depends on map)</td></tr>
+    <tr><td>mapType</td><td><select id="mapType">
+      <option value="mapboxterrain" selected="true">terrain</option>
+      <option value="satellite">satellite</option>
+      <option value="road">road</option>
+      <option value="acetate">acetate</option>
+      <option value="blue" selected="true">blue</option>
+      <option value="terrain">terrain (US only)</option>
+      <option value="terrainbg">terrainbg (US only)</option>
+      </select></td><td>blue</td><td>style of map</td></tr>
+    <tr><td>showHeat</td><td><input id="showHeat" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show airport delay heatmap</td></tr>
+    <tr><td>showIcons</td><td><input id="showIcons" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show airport delay icons</td></tr>
+    <tr><td>ontimeIcon</td><td><input id="ontimeIcon" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show icon for ontime</td></tr>
+    <tr><td>showLegend</td><td><input id="showLegend" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show airport delay legend</td></tr>
+    <tr><td>showWeather</td><td><input id="showWeather" class="bool" type="button" value="false" /></td>
+      <td>false</td><td>show US weather</td></tr>
+    <tr><td>weatherOpacity</td>
+      <td><input id="weatherOpacity" type="range" size="4" value="35" min="1" max="100" step="1" /></td>
+      <td>35</td><td>100 is opaque</td></tr>
+    <tr><td>timestamp</td><td><input id="timestamp" class="bool" type="button" value="false" /></td>
+      <td>false</td><td>show date and time</td></tr>
+    <tr><td>timeFormat</td><td><input id="timeFormat" type="text" size="25" /></td>
+      <td><em>none</em></td><td><a href="http://code.google.com/p/datejs/wiki/FormatSpecifiers" target="_blank">date format string</a></td></tr>
+    <tr><td>timeOffset</td>
+      <td><input id="timeOffset" type="range" size="4" value="0" min="-12" max="12" step="1" /></td>
+      <td>0</td><td>adjust time in hours</td></tr>
+
+  </table>
+</div>
+
+</body>
+</html>

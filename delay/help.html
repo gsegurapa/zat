@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Delay Map Documentation</title>
+<style type="text/css">
+h1, h2, h3 {
+  font-family: Helvetica, Arial, sans-serif;
+  margin: 1.5em 0 .5em 0;
+}
+h3 {
+  font-size: 0.9em;
+  margin: 1em 0 0 0;
+}
+table {
+  border-collapse:collapse;
+}
+table td {
+  padding: 1px 3px;
+}
+.footer {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 2em;
+  font-weight: bold;
+  width: 100%;
+  background-color: #eee;
+  padding: 10px 10px;
+  margin: 0 0;
+}
+</style>
+</head>
+<body>
+<h1>Delay Map Documentation</h1>
+<p>To display this help page: <a class="link" href="?help" target="_blank"><span class="url"></span>?help</a>
+or press the "Help" button in the configuration tool.</p>
+<p>To open the app in a new window: <a class="link" href="" target="_blank"><span class="url"></span></a></p>
+<p>The delay map app is used to show world-wide delays by airport.
+It can also show weather (US only). There are two map layers that show delays.
+These layers (along with the US weather layer) can be turned on and off individually.
+</p>
+<ul><li>The Icons layer shows icons at each airport indicating the delay index for that airport.
+You can choose between showing an airport with a very low delay index using a green circle or as a small plus sign.
+You can also turn the legend for the icons on and off.</li>
+<li>The Heat layer is a heat map. For each airport a fuzzy red-colored blob is drawn.
+The size of the blob is the total number of flights for that airport (not just the number of delayed flights),
+while the intensity of the color is percentage of flights that are delayed.</li>
+</ul>
+<h2>Configuration</h2>
+<p>The app can be configured using the interactive configuration tool.
+Open the configuration tool by clicking on the Flightstats logo at the bottom of the map.
+When open, you can drag the configuration tool around the map.
+You can change any configuration parameter and see the results immediately.</p>
+<p>Once you have configured the app, you can save your configuration by clicking on the "Save" button.
+Once saved, the app will always start up with your configuration.
+You can also reset the app back to the default configuration using the "Reset" button.
+Configurations are saved using a cookie on your local machine, so they are specific to that machine and browser.</p>
+<p>Once you click the "Save" button and save the configuration, a URL is displayed.
+This URL can be used to start the app with the same configuration on a different computer or browser.
+Note that the appKey and appId are not saved as part of the configuration, and must be added to the startup URL.</p>
+<p>The "Help" button brings up this help page in a new window.</p>
+<p>The "Full" button puts the app into full screen mode, and if pushed again, back to windowed mode. Full screen mode is not supported on all browsers, so this button may not appear.</p>
+
+<h2>Complete List of Parameters</h2>
+<table border="1">
+<tr><th>Name</th><th>Default</th><th>Range</th><th>Description</th></tr>
+<tr><td>region</td><td>North-America</td><td></td><td>See regions table</td></tr>
+<tr><td>airportSize</td><td>3</td><td>1-5</td><td>Minimum size of airports to show</td></tr>
+<tr><td>minDelay</td><td>0</td><td>0-5</td><td>Only show airports with at least this much delay</td></tr>
+<tr><td>autoZoom</td><td>true</td><td>(Boolean)</td><td>Zoom map to show current region</td></tr>
+<tr><td>zoomLevel</td><td>4</td><td>0 to 12</td><td>See map types table</td></tr>
+<tr><td>mapType</td><td>blue</td><td></td><td>See map types table</td></tr>
+<tr><td>showHeat</td><td>true</td><td>(Boolean)</td><td>Show airport delays as heat map</td></tr>
+<tr><td>showIcons</td><td>true</td><td>(Boolean)</td><td>Show airport delays as icons</td></tr>
+<tr><td>ontimeIcon</td><td>true</td><td>(Boolean)</td><td>Use green icon instead of + for ontime</td></tr>
+<tr><td>showLegend</td><td>true</td><td>(Boolean)</td><td>Show icon legend at bottom of screen</td></tr>
+<tr><td>showWeather</td><td>false</td><td>(Boolean)</td><td>Show US weather</td></tr>
+<tr><td>weatherOpacity</td><td>35</td><td>1 to 100</td><td>Opacity of weather overlay (100 is opaque)</td></tr>
+<tr><td>timestamp</td><td>false</td><td>(Boolean)0</td><td>Show timestamp</td></tr>
+<tr><td>timeFormat</td><td>(empty)</td><td>(string)0</td><td>Format string for timestamp</td></tr>
+<tr><td>timeOffset</td><td>0</td><td>-12 to 120</td><td>Adjust timestamp hours</td></tr>
+<!-- <tr><td>interactive</td><td>false</td><td>true</td><td>Interactive mode (scrolling enabled)</td></tr> -->
+<!-- <tr><td>view</td><td></td><td>3D</td><td>fake 3D mode</td></tr> -->
+</table>
+
+<h2>Regions</h2>
+<p>Airports are displayed from the selected regions. You can pick one or more regions to display. 
+To select multiple regions, Control-click on Windows or Command-click on Mac. Click on "World" to display them all.
+If autoZoom is on, then changing the region will scroll and zoom the map to display the current regions.</p>
+<p>Note that the number of airports displayed is also affected by the airportSize and minDelay parameters.</p>
+<table border="1">
+<tr><th>Name</th><th>Comments</th></tr>
+<tr><td>Africa</td><td></td></tr>
+<tr><td>Antarctica</td><td>you'll only see them if you set airportSize to "5 - all"</td></tr>
+<tr><td>Asia</td><td>includes Indonesia, the Philippines, and nearby islands</td></tr>
+<tr><td>Caribbean</td><td></td></tr>
+<tr><td>Central-America</td><td></td></tr>
+<tr><td>Europe</td><td>includes Iceland and all of Russia</td></tr>
+<tr><td>Middle-East</td><td></td></tr>
+<tr><td>North-America</td><td>Canada, USA, Mexico, Greenland</td></tr>
+<tr><td>Oceania</td><td>Australia, New Zealand, and Pacific islands</td></tr>
+<tr><td>South-America</td><td></td></tr>
+</table>
+
+<h2>Map Types</h2>
+<p>The "Zoom" value in the table indicates which zoom levels are available for this map.
+<table border="1">
+<tr><th>Name</th><th>Zoom</th><th>Description</th></tr>
+<tr><td>terrain</td><td>4-12</td><td>Terrain with roads, boundaries, and labels (US only)</td></tr>
+<tr><td>terrainbg</td><td>4-11</td><td>Terrain background (US only)</td></tr>
+<tr><td>satellite</td><td>0-11</td><td>Satellite (zoomLevel 0 to 7) / Aerial (zoomLevel 8 to 11)</td></tr>
+<tr><td>road</td><td>0-11</td><td>Normal Road map</td></tr>
+<tr><td>acetate</td><td>0-10</td><td>Low contrast Terrain map</td></tr>
+<tr><td>blue</td><td>2-6</td><td>Simple map with political boundaries</td></tr>
+<tr><td>newblue</td><td>1-7</td><td>Alternative blue map (in development)</td></tr>
+<tr><td>mapboxterrain</td><td>0-18</td><td>Terrain map from MapBox (trial only)</td></tr>
+</table>
+
+<h2>Weather Options</h2>
+<p>The app can optionally show ground-based weather radar from the US National Weather Service (US only).
+To show the current weather radar, set showWeather to true. You can also adjust the opacity of the weather layer.</p>
+
+<h2>Timestamp</h2>
+<p>The app can optionally show a timestamp by setting timestamp to true.
+This is very useful for creating animations.
+By default, the timestamp shows the current date and time in UTC/GMT.
+You can adjust the format of the timestamp using timeFormat.
+When a timeFormat string is specified, then the timestamp displays local time.
+The timeFormat string can contain the following codes:</p>
+
+<table border="1">
+<tr><td>s</td><td>The seconds of the minute between 0-59.</td><td>&quot;0&quot; to &quot;59&quot;</td></tr>
+<tr><td>ss</td><td>The seconds of the minute with leading zero if required.</td><td>&quot;00&quot; to &quot;59&quot;</td></tr>
+
+<tr><td>m</td><td>The minute of the hour between 0-59.</td><td>&quot;0&quot; to &quot;59&quot;</td></tr>
+<tr><td>mm</td><td>The minute of the hour with leading zero if required.</td><td>&quot;00&quot; to &quot;59&quot;</td></tr>
+
+<tr><td>h</td><td>The hour of the day between 1-12.</td><td>&quot;1&quot; to &quot;12&quot;</td></tr>
+<tr><td>hh</td><td>The hour of the day with leading zero if required.</td><td>&quot;01&quot; to &quot;12&quot;</td></tr>
+
+<tr><td>H</td><td>The hour of the day between 0-23.</td><td>&quot;0&quot; to &quot;23&quot;</td></tr>
+<tr><td>HH</td><td>The hour of the day with leading zero if required.</td><td>&quot;00&quot; to &quot;23&quot;</td></tr>
+
+<tr><td>d</td><td>The day of the month between 1 and 31.</td><td>&quot;1&quot; to &quot;31&quot;</td></tr>
+<tr><td>dd</td><td>The day of the month with leading zero if required.</td><td>&quot;01&quot; to &quot;31&quot;</td></tr>
+<tr><td>ddd</td><td>Abbreviated day name.</td><td>&quot;Mon&quot; to &quot;Sun&quot; </td></tr>
+<tr><td>dddd</td><td>The full day name.</td><td>&quot;Monday&quot; to &quot;Sunday&quot;</td></tr>
+
+<tr><td>M</td><td>The month of the year between 1-12.</td><td>&quot;1&quot; to &quot;12&quot;</td></tr>
+<tr><td>MM</td><td>The month of the year with leading zero if required.</td><td>&quot;01&quot; to &quot;12&quot;</td></tr>
+<tr><td>MMM</td><td>Abbreviated month name.</td><td>&quot;Jan&quot; to &quot;Dec&quot;</td></tr>
+<tr><td>MMMM</td><td>The full month name.</td><td>&quot;January&quot; to &quot;December&quot;</td></tr>
+
+<tr><td>yy</td><td>The year as a two-digit number.</td><td>&quot;99&quot; or &quot;08&quot;</td></tr>
+<tr><td>yyyy</td><td>The full four digit year.</td><td>&quot;1999&quot; or &quot;2008&quot;</td></tr>
+
+<tr><td>t</td><td>Displays the first character of the A.M./P.M. designator.</td><td>&quot;A&quot; or &quot;P&quot;</td></tr>
+<tr><td>tt</td><td>Displays the A.M./P.M. designator.</td><td>&quot;AM&quot; or &quot;PM&quot;</td></tr>
+</table>
+<p>Any other characters in the timeFormat string are passed through unmodified.
+For example, the timeFormat string <code>"hh:mmtt PST dddd"</code>
+displays the current time and the day of the week like "3:34PM PST Friday".
+Note that if you try to use something like "MST" in the timeFormat, the "M" in MST will be replaced by the number of the month.
+To get around this problem, you can use HTML entity syntax to insert any character into the timeFormat string
+by specifying its decimal numeric (ASCII or unicode) value.
+For example, to insert the letter M, instead use <code>&amp;77;</code> (77 is the decimal unicode value of M).
+This works directly in the configuration tool,
+but if you want to specify timeFormat as a URL parameter you need to encode both the ampersand (&amp;) and the semicolon (;)
+as <code>%26</code> and <code>%3B</code>, respectively.
+So inserting the letter M in the URL would look like <code>timeFormat=%2677%3B</code>.
+A bit ugly, but it works, and it allows you to insert any unicode character into the timestamp.</p>
+<p>The timeOffset lets you adjust the time displayed in the timestamp.
+For example, if your computer is on Eastern time and you want to display the timestamp in Pacific time, set timeOffset to &minus;3.
+Or if you want to use a timeFormat string but display time in UTC/GMT, you can use timeOffset to adjust the time.
+For example, if your computer is on Eastern Standard time, set timeOffset to 5.
+This is not adjusted for Daylight Savings Time.</p>
+
+<h2>Advanced and Experimental Options</h2>
+<p>Advanced options are not available in the interactive configuration tool.
+They must be specified using URL parameters.</p> 
+<h3>interactive</h3>
+<p>The app is normally in interactive mode, which allows you to scroll and zoom the map using the mouse and keyboard (see below).
+Setting interactive=false turns off interactive mode.
+When interactive is false and you put the app into full screen mode, the mouse cursor is hidden when over the map.</p>
+<h3>view</h3>
+<p>Setting view=3D puts the app into 3D mode. This does not work on all browsers.</p>
+
+<h2>Interactive mode</h2>
+<p>When interactive=true (currently the default) you can drag the map using your mouse pointer and to zoom in by double clicking.
+It also enables the following keyboard shortcuts:</p>
+<table border="1">
+  <tr><td>+ <em>or</em> =</td><td>zoom in</td></tr>
+  <tr><td>&ndash; <em>or</em> _</td><td>zoom out</td></tr>
+  <tr><td><em>arrow keys</em></td><td>scroll the map by 100 pixels</td></tr>
+  <tr><td><em>space bar</em></td><td>scroll and zoom to display the current regions (as with autoScroll)</td></tr>
+  <tr><td><em>return key</em></td><td>return to original scroll and zoom</td></tr>
+  <tr><td>C</td><td>open/close the configuration tool</td></tr>
+  <tr><td>F</td><td>enter/exit full screen (if supported by the browser)</td></tr>
+</table>
+
+<h2>Browser Compatibility</h2>
+<p>The app has been tested on recent versions of Chrome, Safari, and Firefox. If you encounter any problems, please let us know.</p>
+
+<hr />
+<div class="footer"><a href="http://flightstats.com" target="_blank">Flightstats Inc.</a></div>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript">
+  var url = window.location.href;
+  url =  url.replace('help.html', (url.slice(0,5) === 'file:') ? 'index.html' : '');
+  $('.url').text(url);
+  $('.link').attr('href', function(i, olda) { return url+olda; });
+  // var baseloc = window.location.href.replace(/^.*\//,'');
+  // var baseloc = "http://www.flightstats.com/go/Signage/airportTrackerSignage.do";
+</script>
+</body>
+</html>

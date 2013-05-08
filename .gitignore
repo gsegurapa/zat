@@ -1,4 +1,4 @@
 ios/FSHTMLSampleApp/FSHTMLSampleApp.xcodeproj/project.xcworkspace/
 *.DS_Store
 *.AppleDouble
-
+build

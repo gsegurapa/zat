@@ -229,7 +229,7 @@
       fadeAnimation: false,
       zoomAnimation: false,
       keyboard: false,
-      worldCopyJump: true
+      worldCopyJump: false
     }).on({load: mapReady});
     map.setView(mapCenter, zoomLevel);
 
@@ -312,11 +312,11 @@
     }  // end if (interactive)
 
     function recenter(e) {
-      console.log('recenter:', e, mapCenter, zoomLevel, map);
       bounds = map.getBounds();
       zoomLevel = map.getZoom();
       $('#zoomLevel').val(zoomLevel);
       mapCenter = map.getCenter();
+      console.log('recenter:', e, mapCenter, zoomLevel, bounds);
       mainloop();
     } // end recenter()
 
@@ -683,17 +683,16 @@
     onAdd: function(map) {
       this.div_ = $('<div>', { id: 'airportdelay', css: { position: 'absolute', opacity: this.opacity_ }});
       this.div_.appendTo(map.getPanes().overlayPane);
-      // map.on('viewreset', AirportDelay.redraw).on('moveend', AirportDelay.redraw);
     },
     onRemove: function(map) {
       map.getPanes().overlayPane.removeChild(this.div_[0]);
       this.div_ = null;
-      // map.off('viewreset', AirportDelay.redraw).off('moveend', AirportDelay.redraw);
     },
     update: function(data) {
       var $d = $('<div>', { id: 'airportdelay', css: { position: 'absolute', opacity: this.opacity_ }});
       var scale = 0.025*Math.pow(2,zoomLevel);
       if (data.delayIndexes) $.each(data.delayIndexes, function(i, v) {
+        console.log(i, v);
         var airport = airports[v.airportFsCode];
         var pos = L.latLng(+airport.latitude, +airport.longitude);
         if (bounds.contains(pos)) {
@@ -736,7 +735,7 @@
           }
         }
       });
-      this.div_.replaceWith($d);
+      this.div_.empty().append($d);
     },
     empty: function() {
       this.div_.empty();

@@ -77,8 +77,8 @@
   // process URL parameters --------------------------------------------------------------
 
   var airportSize, minDelay, mapType, zoomLevel, mapCenter,
-      showHeat, showIcons, showLegend, ontimeIcon, showWeather, weatherOpacity, updateRate,
-      timestamp, timeFormat, timeOffset,
+      showHeat, showIcons, showRoutes, showLegend, ontimeIcon, showWeather, weatherOpacity,
+      updateRate, timestamp, timeFormat, timeOffset,
       capture;  // requires node server to be running
   var appId, appKey;
 
@@ -98,6 +98,7 @@
     }
     if (params.showHeat) { showHeat = params.showHeat==='true'; }
     if (params.showIcons) { showIcons = params.showIcons==='true'; }
+    if (params.showRoutes) { showRoutes = params.showRoutes==='true'; }
     if (params.showLegend) { showLegend = params.showLegend==='true'; }
     if (params.ontimeIcon) { ontimeIcon = params.ontimeIcon==='true'; } // use green circle instead of plus sign
     if (params.showWeather) { showWeather = params.showWeather==='true'; }
@@ -123,6 +124,7 @@
     mapCenter = L.latLng(38, -98); // North America
     showHeat = true;
     showIcons = true;
+    showRoutes = true;
     showLegend = true;
     ontimeIcon = true;
     showWeather = false;
@@ -149,6 +151,7 @@
     setCookie('mapCenter', mapCenter.lat+','+mapCenter.lng);
     setCookie('showHeat', showHeat);
     setCookie('showIcons', showIcons);
+    setCookie('showRoutes', showRoutes);
     setCookie('showLegend', showLegend);
     setCookie('ontimeIcon', ontimeIcon);
     setCookie('showWeather', showWeather);
@@ -229,6 +232,7 @@
       fadeAnimation: false,
       zoomAnimation: false,
       keyboard: false,
+      maxBounds: [[-85,-360],[85, 180]],  // west -380?
       worldCopyJump: false
     }).on({load: mapReady});
     map.setView(mapCenter, zoomLevel);
@@ -261,7 +265,7 @@
     // if (showRoutes) { map.addLayer(fdl); }
 
     var airportdelay = new AirportDelay();
-    if (showHeat || showIcons) { map.addLayer(airportdelay); }
+    if (showHeat || showIcons || showRoutes) { map.addLayer(airportdelay); }
     var fsweather = new L.TileLayer.FSWeather({ opacity: weatherOpacity/100,
         attribution: "Weather data © 2012 IEM Nexrad" });
     if (showWeather) {
@@ -316,7 +320,6 @@
       zoomLevel = map.getZoom();
       $('#zoomLevel').val(zoomLevel);
       mapCenter = map.getCenter();
-      console.log('recenter:', e, mapCenter, zoomLevel, bounds);
       mainloop();
     } // end recenter()
 
@@ -328,11 +331,14 @@
       if (appId.length === 0 || appKey.length === 0) { return; }
       if (!bounds) {
         bounds = L.latLngBounds([[-80, -180],[80, 180]]);
-        console.log(bounds);
       }
+      var west = Math.min(Math.max(bounds.getSouthWest().lng, -180), 180);
+      var east = Math.min(Math.max(bounds.getNorthEast().lng, -180), 180);
+      console.log('west:', west, 'east:', east);
+
       $.ajax({
         url: 'https://api.flightstats.com/flex/delayindex/rest/v2/jsonp/within/'+
-        bounds.getSouthWest().lat+'/'+bounds.getSouthWest().lng+'/'+bounds.getNorthEast().lat+'/'+bounds.getNorthEast().lng,
+        bounds.getSouthWest().lat+'/'+west+'/'+bounds.getNorthEast().lat+'/'+east,
         data: { appId: appId, appKey: appKey, classification: airportSize, score: minDelay  },
         dataType: 'jsonp',
         success: getDelays,
@@ -370,7 +376,7 @@
       }
       console.log('data:', data);
       airports = getAppendix(data.appendix.airports);
-      if (showHeat || showIcons) { airportdelay.update(data); }
+      if (showHeat || showIcons || showRoutes) { airportdelay.update(data); }
     }
 
     // configurator ------------------------------------------------------------
@@ -406,6 +412,7 @@
       $('#zoomLevel').val(zoomLevel);
       $('#showHeat').val(showHeat.toString());
       $('#showIcons').val(showIcons.toString());
+      $('#showRoutes').val(showRoutes.toString());
       $('#showLegend').val(showLegend.toString());
       $('#ontimeIcon').val(ontimeIcon.toString());
       $('#showWeather').val(showWeather.toString());
@@ -570,10 +577,10 @@
         break;
        case 'showHeat':
         showHeat = $el.val() === 'true';
-        if (showHeat || showIcons) {
+        if (showHeat || showIcons || showRoutes) {
           if (!map.hasLayer(airportdelay)) {
             map.addLayer(airportdelay);
-            maintimer = setInterval(mainloop, updateRate * (60 * 1000));
+            maintimer = setInterval(mainloop, updateRate * (60000));
           }
           mainloop();
         } else {
@@ -585,10 +592,10 @@
         break;
        case 'showIcons':
         showIcons = $el.val() === 'true';
-        if (showIcons || showHeat) {
+        if (showIcons || showHeat || showRoutes) {
           if (!map.hasLayer(airportdelay)) {
             map.addLayer(airportdelay);
-            maintimer = setInterval(mainloop, updateRate * (60 * 1000));
+            maintimer = setInterval(mainloop, updateRate * (60000));
           }
           mainloop();
           if (showLegend) { $('#legend').show(); }
@@ -598,6 +605,21 @@
             clearInterval(maintimer);
           }
           if (showLegend) { $('#legend').hide(); }
+        }
+        break;
+       case 'showRoutes':
+        showRoutes = $el.val() === 'true';
+        if (showHeat || showIcons || showRoutes) {
+          if (!map.hasLayer(airportdelay)) {
+            map.addLayer(airportdelay);
+            maintimer = setInterval(mainloop, updateRate * (60000));
+          }
+          mainloop();
+        } else {
+          if (map.hasLayer(airportdelay)) {
+            map.removeLayer(airportdelay);
+            clearInterval(maintimer);
+          }
         }
         break;
        case 'ontimeIcon':
@@ -692,7 +714,6 @@
       var $d = $('<div>', { id: 'airportdelay', css: { position: 'absolute', opacity: this.opacity_ }});
       var scale = 0.025*Math.pow(2,zoomLevel);
       if (data.delayIndexes) $.each(data.delayIndexes, function(i, v) {
-        console.log(i, v);
         var airport = airports[v.airportFsCode];
         var pos = L.latLng(+airport.latitude, +airport.longitude);
         if (bounds.contains(pos)) {
@@ -719,22 +740,40 @@
               'background-color': 'rgb(255,'+(255-cv)+','+(255-cv)+')',
               'filter': 'progid:DXImageTransform.Microsoft.Alpha(opacity=100, finishopacity=0, style=2)'
             });
-            $heat.appendTo($d);
+            $d.append($heat);
             // console.log('gradient: ', $heat, size, flights, cv);
+          }
+          if (showRoutes) {
+            var pixpos = map.latLngToLayerPoint(pos);
+            var routes = v.routeDelays;
+            for (var j = 0; j < routes.length; j++) {
+              var route = routes[j];
+              var ofl = +route.flights;
+              if (ofl > 1) {
+                var rs = +route.normalizedScore;
+                if (rs >= 1) {
+                  var color = 'rgba(255,0,0,'+(rs*0.2)+')';
+                  var other = airports[route.destinationAirportFsCode];
+                  if (other === undefined) { console.log('no airport', route.destinationAirportFsCode); }
+                  var opixpos = map.latLngToLayerPoint(L.latLng(+other.latitude, +other.longitude));
+                  $d.append(drawline(pixpos, opixpos, color, ofl * 0.75));
+                }
+              }
+            }
           }
           if (showIcons) { // draw delay icons
             var url = 'http://dem5xqcn61lj8.cloudfront.net/GoogleMapTools/' +
               (+v.observations === 0 ? 'airport_unknown_8.png' : (!ontimeIcon && v.normalizedScore < 1.01 ? 'airport_unknown_7.png' :
               'delay_factor_'+AirportDelay.icons[Math.floor(v.normalizedScore + 0.76)]+'_9x9.png'));
-            var $img = $('<img>', { src: url, title: title,
+            $d.append($('<img>', { src: url, title: title,
               css: {
                 left: (pixpos.x - 4)+'px',
                 top: (pixpos.y - 4)+'px',
                 'z-index': 2+Math.round(v.normalizedScore*4)
-            }}).appendTo($d);
+            }}));
           }
         }
-      });
+      }); // end each
       this.div_.empty().append($d);
     },
     empty: function() {
@@ -810,37 +849,38 @@
   };
 
   // misc functions ----------------------------------------------------------------------
-  // function drawline(parent, p1, p2, color, swidth) { // draw a line using a rotated div
-  //   var $div = $('<div>', { 'class': 'lineseg' });
-  //   $div.appendTo(parent);
-  //   // map.getPanes().overlayPane.appendChild($div[0]);
-  //   if (color) { $div.css('border-top-color', color); } // line color
-  //   if (swidth) { $div.css('border-top-width', swidth+'px'); } // stroke width
+  function drawline(p1, p2, color, swidth) { // draw a line using a rotated div
+    var $div = $('<div>', { 'class': 'lineseg' });
+    // $div.appendTo(parent);
+    // map.getPanes().overlayPane.appendChild($div[0]);
+    if (color) { $div.css('border-top-color', color); } // line color
+    if (swidth) { $div.css('border-top-width', swidth+'px'); } // stroke width
   
-  //   var temp;
-  //   if (p2.x < p1.x) {
-  //     temp = p1;
-  //     p1 = p2;
-  //     p2 = temp;
-  //   }
-  //   var dx = p2.x - p1.x;
-  //   var dy = p2.y - p1.y;
-  //   var length = Math.sqrt(dx*dx + dy*dy);
-  //   $div.css('width', length);
-  //   if (transform_prop) {
-  //     var angle = Math.atan2(dy,dx);
-  //     $div.css({
-  //         top: p1.y + 0.5*length*Math.sin(angle),
-  //         left: p1.x - 0.5*length*(1 - Math.cos(angle)) }).
-  //         css(transform_prop, 'rotate('+angle+'rad)');
-  //   } else {
-  //     $div.css({ top: Math.min(p1.y, p2.y), left: x1 });
-  //     var nCos = dx/length;
-  //     var nSin = dy/length;
-  //     $div.css('filter', "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=" +
-  //         nCos + ", M12=" + -1*nSin + ", M21=" + nSin + ", M22=" + nCos + ")");
-  //   }
-  // }
+    var temp;
+    if (p2.x < p1.x) {
+      temp = p1;
+      p1 = p2;
+      p2 = temp;
+    }
+    var dx = p2.x - p1.x;
+    var dy = p2.y - p1.y;
+    var length = Math.sqrt(dx*dx + dy*dy);
+    $div.css('width', length);
+    if (transform_prop) {
+      var angle = Math.atan2(dy,dx);
+      $div.css({
+          top: p1.y + 0.5*length*Math.sin(angle),
+          left: p1.x - 0.5*length*(1 - Math.cos(angle)) }).
+          css(transform_prop, 'rotate('+angle+'rad)');
+    } else {
+      $div.css({ top: Math.min(p1.y, p2.y), left: x1 });
+      var nCos = dx/length;
+      var nSin = dy/length;
+      $div.css('filter', "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=" +
+          nCos + ", M12=" + -1*nSin + ", M21=" + nSin + ", M22=" + nCos + ")");
+    }
+    return $div;
+  }
 
   function testStyleProperty(propName, element) {
     var browser_prefixes = ['Webkit', 'Moz', 'Ms', 'O', 'Khtml'];

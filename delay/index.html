@@ -197,7 +197,7 @@ output {
       <option value="1">1 - primary</option>
       </select></td><td>3</td><td>minimum airport size</td></tr>
     <tr><td>minDelay</td>
-      <td><input id="minDelay" type="range" size="4" value="0" min="0" max="5" step="1" /></td>
+      <td><input id="minDelay" type="range" size="4" value="0" min="0" max="5" step="0.25" /></td>
       <td>0</td><td>only show delays &ge; than</td></tr>
     <tr><td>zoomLevel</td><td><img id="deczoom" src="img/zoom-out.png" title="-" alt="-" />
       <input id="zoomLevel" type="text" size="2" value="9" style="text-align: center" />
@@ -216,6 +216,8 @@ output {
       <td>true</td><td>show airport delay heatmap</td></tr>
     <tr><td>showIcons</td><td><input id="showIcons" class="bool" type="button" value="true" /></td>
       <td>true</td><td>show airport delay icons</td></tr>
+    <tr><td>showRoutes</td><td><input id="showRoutes" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show route delay paths</td></tr>
     <tr><td>ontimeIcon</td><td><input id="ontimeIcon" class="bool" type="button" value="true" /></td>
       <td>true</td><td>show icon for ontime</td></tr>
     <tr><td>showLegend</td><td><input id="showLegend" class="bool" type="button" value="true" /></td>

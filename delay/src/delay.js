@@ -122,8 +122,8 @@
     airportSize = 3;
     minDelay = 0; // minimum delay to show
     mapType = 'blue'; // keys from tilesinfo
-    zoomLevel = 4;
-    mapCenter = L.latLng(38, -98); // North America
+    zoomLevel = 3;
+    mapCenter = L.latLng(20, 0); // World
     showHeat = true;
     showIcons = true;
     showRoutes = true;
@@ -320,11 +320,12 @@
     // map has changed --------------------------------------
     function reload(e) {
       bounds = map.getBounds();
-      console.log('bounds:',bounds);
       zoomLevel = map.getZoom();
       $('#zoomLevel').val(zoomLevel);
       mapCenter = map.getCenter();
       mainloop();
+      setCookie('zoomLevel', zoomLevel);
+      setCookie('mapCenter', mapCenter.lat+','+mapCenter.lng);
     } // end reload()
 
     // mainloop();
@@ -522,8 +523,8 @@
         $(document.activeElement).blur();
         break;
        case 'Save':
-        zoomLevel = map.getZoom();
-        mapCenter = map.getCenter();
+        // zoomLevel = map.getZoom();
+        // mapCenter = map.getCenter();
         saveCookies();
         // $('#config').slideUp();
         $(document.activeElement).blur();

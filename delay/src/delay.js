@@ -393,7 +393,7 @@
         }
         return;
       }
-      console.log('data:', data);
+      // console.log('data:', data);
       airports = getAppendix(data.appendix.airports);
       if (showHeat || showIcons || showRoutes) { airportdelay.update(data); }
     }
@@ -784,7 +784,7 @@
                   var color = 'rgba(255,0,0,'+(rs*0.2)+')';
                   var other = airports[route.destinationAirportFsCode];
                   if (other === undefined) {
-                    console.log('no airport', route.destinationAirportFsCode);
+                    if (console && console.log) { console.log('no airport', route.destinationAirportFsCode); }
                   } else {
                     var olat = +other.latitude, olng = +other.longitude;
                     if (olng - lng > 180) {

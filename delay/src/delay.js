@@ -3,6 +3,7 @@
 // See help.html for documentation
 
 (function($){
+  "use strict";
 
   var default_appId='23d80adf', default_appKey='ebc0894e85d4ef2435d40914a285f956';
 
@@ -77,7 +78,8 @@
   // process URL parameters --------------------------------------------------------------
 
   var airportSize, minDelay, mapType, zoomLevel, mapCenter,
-      showHeat, showIcons, showRoutes, showLegend, ontimeIcon, showWeather, weatherOpacity,
+      showHeat, showIcons, showRoutes, showLegend, ontimeIcon,
+      showWeather, weatherOpacity, showWunder,
       updateRate, timestamp, timeFormat, timeOffset,
       capture;  // requires node server to be running
   var appId, appKey;
@@ -120,8 +122,8 @@
     airportSize = 3;
     minDelay = 0; // minimum delay to show
     mapType = 'blue'; // keys from tilesinfo
-    zoomLevel = 4;
-    mapCenter = L.latLng(38, -98); // North America
+    zoomLevel = 3;
+    mapCenter = L.latLng(20, 0); // World
     showHeat = true;
     showIcons = true;
     showRoutes = true;
@@ -214,7 +216,7 @@
     if (view === '3D') {
       $('#map_div').addClass('three');
     }
-    $(window).resize(recenter);
+    // $(window).resize(reload);
 
     if (timestamp) {
       formatDate(timeFormat);
@@ -238,8 +240,8 @@
     map.setView(mapCenter, zoomLevel);
 
     function mapReady() {
-      recenter();
-      map.on({ zoomend: recenter, moveend: recenter });
+      reload();
+      map.on({ zoomend: reload, moveend: reload });
     }
 
     // bounds = map.getBounds();
@@ -315,26 +317,43 @@
         BigScreen.onexit = function() { $('#map_div').css('cursor', ''); }      
     }  // end if (interactive)
 
-    function recenter(e) {
+    // map has changed --------------------------------------
+    function reload(e) {
       bounds = map.getBounds();
       zoomLevel = map.getZoom();
       $('#zoomLevel').val(zoomLevel);
       mapCenter = map.getCenter();
       mainloop();
-    } // end recenter()
+      setCookie('zoomLevel', zoomLevel);
+      setCookie('mapCenter', mapCenter.lat+','+mapCenter.lng);
+    } // end reload()
 
     // mainloop();
 
-    maintimer = setInterval(mainloop, updateRate * (60 * 1000));
+    maintimer = setInterval(mainloop, updateRate * (60000));  // every minute
 
     function mainloop() {
       if (appId.length === 0 || appKey.length === 0) { return; }
       if (!bounds) {
-        bounds = L.latLngBounds([[-80, -180],[80, 180]]);
+        bounds = L.latLngBounds([[-85, -180],[85, 180]]);
       }
-      var west = Math.min(Math.max(bounds.getSouthWest().lng, -180), 180);
-      var east = Math.min(Math.max(bounds.getNorthEast().lng, -180), 180);
-      console.log('west:', west, 'east:', east);
+      // maximum size of request is size of world. North and South are limited by map.maxBounds
+      var west = bounds.getSouthWest().lng;
+      var east = bounds.getNorthEast().lng;
+      if (east - west > 360) {
+        west = -180;
+        east = 180;
+      } else {
+        if (west < -180) {
+          west += 360;
+        }
+        if (east > 180) {
+          east = 180;
+        } else if (east < -180) {
+          east += 360;
+        }
+      }
+      // console.log('west:', west, 'east:', east);
 
       $.ajax({
         url: 'https://api.flightstats.com/flex/delayindex/rest/v2/jsonp/within/'+
@@ -374,7 +393,7 @@
         }
         return;
       }
-      console.log('data:', data);
+      // console.log('data:', data);
       airports = getAppendix(data.appendix.airports);
       if (showHeat || showIcons || showRoutes) { airportdelay.update(data); }
     }
@@ -504,8 +523,8 @@
         $(document.activeElement).blur();
         break;
        case 'Save':
-        zoomLevel = map.getZoom();
-        mapCenter = map.getCenter();
+        // zoomLevel = map.getZoom();
+        // mapCenter = map.getCenter();
         saveCookies();
         // $('#config').slideUp();
         $(document.activeElement).blur();
@@ -685,7 +704,7 @@
   }); // end document ready
 
   function getAppendix(data) { // read in data from appendix and convert to dictionary
-    ret = {};
+    var ret = {};
     if (data) {
       for (var i = 0; i<data.length; i++) {
         var v = data[i];
@@ -715,9 +734,17 @@
       var scale = 0.025*Math.pow(2,zoomLevel);
       if (data.delayIndexes) $.each(data.delayIndexes, function(i, v) {
         var airport = airports[v.airportFsCode];
-        var pos = L.latLng(+airport.latitude, +airport.longitude);
-        if (bounds.contains(pos)) {
-          var pixpos = map.latLngToLayerPoint(pos); // convert position to pixels
+        var lat = +airport.latitude, lng = +airport.longitude;
+        var pos = L.latLng(lat, lng);
+        var pixpos = map.latLngToLayerPoint(pos); // convert position to pixels
+        var pib = bounds.contains(pos);
+        var pos2, pixpos2, pib2 = false;
+        if (lng > 0) {
+          pos2 = L.latLng(lat, lng-360);
+          pixpos2 = map.latLngToLayerPoint(pos2);
+          pib2 = bounds.contains(pos2);
+        }
+        if (pib || pib2) {  // one or the other is inside bounds
           var flights = +v.flights;
           var title = airport.fs+' ('+airport.city+', '+airport.countryCode+') delay: '+v.normalizedScore+' flights: '+flights;
           if (showHeat && flights*scale >= 10) { // draw delay heat
@@ -740,11 +767,13 @@
               'background-color': 'rgb(255,'+(255-cv)+','+(255-cv)+')',
               'filter': 'progid:DXImageTransform.Microsoft.Alpha(opacity=100, finishopacity=0, style=2)'
             });
-            $d.append($heat);
+            if (pib) { $heat.appendTo($d); }
+            if (pib2) {
+              $heat.clone().css('left', (pixpos2.x - offset)+'px').appendTo($d);
+            }
             // console.log('gradient: ', $heat, size, flights, cv);
           }
-          if (showRoutes) {
-            var pixpos = map.latLngToLayerPoint(pos);
+          if (showRoutes) { // draw route delay lines
             var routes = v.routeDelays;
             for (var j = 0; j < routes.length; j++) {
               var route = routes[j];
@@ -754,9 +783,24 @@
                 if (rs >= 1) {
                   var color = 'rgba(255,0,0,'+(rs*0.2)+')';
                   var other = airports[route.destinationAirportFsCode];
-                  if (other === undefined) { console.log('no airport', route.destinationAirportFsCode); }
-                  var opixpos = map.latLngToLayerPoint(L.latLng(+other.latitude, +other.longitude));
-                  $d.append(drawline(pixpos, opixpos, color, ofl * 0.75));
+                  if (other === undefined) {
+                    if (console && console.log) { console.log('no airport', route.destinationAirportFsCode); }
+                  } else {
+                    var olat = +other.latitude, olng = +other.longitude;
+                    if (olng - lng > 180) {
+                      olng -= 360;
+                    } else if (olng - lng < -180) {
+                      olng += 360;
+                    }
+                    if (pib) {
+                      $d.append(drawline(pixpos, map.latLngToLayerPoint(L.latLng(olat, olng)), color, ofl * 0.75));
+                    }
+                    if (pib2) {
+                      $d.append(drawline(pixpos2, map.latLngToLayerPoint(L.latLng(olat, olng-360)), color, ofl * 0.75));
+                    }
+                  }
+                  // var opixpos = map.latLngToLayerPoint(L.latLng(olat, olng));
+                  // $d.append(drawline(pixpos, opixpos, color, ofl * 0.75));
                 }
               }
             }
@@ -765,12 +809,16 @@
             var url = 'http://dem5xqcn61lj8.cloudfront.net/GoogleMapTools/' +
               (+v.observations === 0 ? 'airport_unknown_8.png' : (!ontimeIcon && v.normalizedScore < 1.01 ? 'airport_unknown_7.png' :
               'delay_factor_'+AirportDelay.icons[Math.floor(v.normalizedScore + 0.76)]+'_9x9.png'));
-            $d.append($('<img>', { src: url, title: title,
+            var $icon = $('<img>', { src: url, title: title,
               css: {
                 left: (pixpos.x - 4)+'px',
                 top: (pixpos.y - 4)+'px',
                 'z-index': 2+Math.round(v.normalizedScore*4)
-            }}));
+            }});
+            if (pib) { $icon.appendTo($d); }
+            if (pib2) {
+              $icon.clone().css('left', (pixpos2.x - 4)+'px').appendTo($d);
+            }
           }
         }
       }); // end each
@@ -919,5 +967,34 @@
   function unidecode(s) {
     return s.replace(/&(\d+);/g, function(m, p1) { return String.fromCharCode(+p1); });
   }
+
+  L.Map.include({ // fix for maxBounds bug in Leaflet
+    panInsideBounds: function(bounds) {
+      bounds = L.latLngBounds(bounds);
+
+      var viewBounds = this.getBounds(),
+          viewSw = this.project(viewBounds.getSouthWest()),
+          viewNe = this.project(viewBounds.getNorthEast()),
+          sw = this.project(bounds.getSouthWest()),
+          ne = this.project(bounds.getNorthEast()),
+          dx = 0,
+          dy = 0;
+
+      if (viewNe.y < ne.y) { // north
+        dy = ne.y - viewNe.y + Math.max(0, this.latLngToContainerPoint([85.05112878, 0]).y);
+      }
+      if (viewNe.x > ne.x) { // east
+        dx = ne.x - viewNe.x;
+      }
+      if (viewSw.y > sw.y) { // south
+        dy = sw.y - viewSw.y + Math.min(0, this.latLngToContainerPoint([-85.05112878, 0]).y - this.getSize().y);
+      }
+      if (viewSw.x < sw.x) { // west
+        dx = sw.x - viewSw.x;
+      }
+
+      return this.panBy(new L.Point(dx, dy, true));
+    }
+  });
 
 }(jQuery));

@@ -194,7 +194,7 @@
   if (view === '3D') { interactive = true; }
   
   var map; // Leaflet map object
-  var bounds;  // only draw inside this boundary
+  var bounds = null;  // only request airports inside this boundary
   var airports;
 
   var maintimer, weathertimer;
@@ -241,7 +241,7 @@
 
     function mapReady() {
       reload();
-      map.on({ zoomend: reload, moveend: reload });
+      map.on({ moveend: reload });
     }
 
     // bounds = map.getBounds();
@@ -274,7 +274,7 @@
       map.addLayer(fsweather);
       weathertimer = setInterval(function() {
         fsweather.redraw();
-      }, updateRate * (60 * 1000));
+      }, updateRate * 60000);
     }
 
     if (interactive) {
@@ -321,23 +321,20 @@
     function reload(e) {
       bounds = map.getBounds();
       zoomLevel = map.getZoom();
-      $('#zoomLevel').val(zoomLevel);
       mapCenter = map.getCenter();
-      mainloop();
-      setCookie('zoomLevel', zoomLevel);
       setCookie('mapCenter', mapCenter.lat+','+mapCenter.lng);
+      setCookie('zoomLevel', zoomLevel);
+      $('#zoomLevel').val(zoomLevel);
+      mainloop();
     } // end reload()
 
     // mainloop();
 
-    maintimer = setInterval(mainloop, updateRate * (60000));  // every minute
+    maintimer = setInterval(mainloop, updateRate * 60000);
 
     function mainloop() {
       if (appId.length === 0 || appKey.length === 0) { return; }
-      if (!bounds) {
-        bounds = L.latLngBounds([[-85, -180],[85, 180]]);
-      }
-      // maximum size of request is size of world. North and South are limited by map.maxBounds
+      // maximum size of longitude request is size of world. North and South are limited by map.maxBounds
       var west = bounds.getSouthWest().lng;
       var east = bounds.getNorthEast().lng;
       if (east - west > 360) {
@@ -599,7 +596,7 @@
         if (showHeat || showIcons || showRoutes) {
           if (!map.hasLayer(airportdelay)) {
             map.addLayer(airportdelay);
-            maintimer = setInterval(mainloop, updateRate * (60000));
+            maintimer = setInterval(mainloop, updateRate * 60000);
           }
           mainloop();
         } else {
@@ -614,7 +611,7 @@
         if (showIcons || showHeat || showRoutes) {
           if (!map.hasLayer(airportdelay)) {
             map.addLayer(airportdelay);
-            maintimer = setInterval(mainloop, updateRate * (60000));
+            maintimer = setInterval(mainloop, updateRate * 60000);
           }
           mainloop();
           if (showLegend) { $('#legend').show(); }
@@ -631,7 +628,7 @@
         if (showHeat || showIcons || showRoutes) {
           if (!map.hasLayer(airportdelay)) {
             map.addLayer(airportdelay);
-            maintimer = setInterval(mainloop, updateRate * (60000));
+            maintimer = setInterval(mainloop, updateRate * 60000);
           }
           mainloop();
         } else {
@@ -664,7 +661,7 @@
           map.addLayer(fsweather);
           weathertimer = setInterval(function() {
             fsweather.redraw();
-          }, updateRate * (60 * 1000));
+          }, updateRate * (300000));  // 5 minutes
         } else {
           map.removeLayer(fsweather);
           clearInterval(weathertimer);
@@ -722,7 +719,7 @@
       this.opacity_ = args.opacity || 1;
     },
     onAdd: function(map) {
-      this.div_ = $('<div>', { id: 'airportdelay', css: { position: 'absolute', opacity: this.opacity_ }});
+      this.div_ = $('<div>', { id: 'airportdelay', 'class': 'leaflet-zoom-hide', css: { position: 'absolute', opacity: this.opacity_ }});
       this.div_.appendTo(map.getPanes().overlayPane);
     },
     onRemove: function(map) {
@@ -730,6 +727,7 @@
       this.div_ = null;
     },
     update: function(data) {
+      // console.log('airportdelay update');
       var $d = $('<div>', { id: 'airportdelay', css: { position: 'absolute', opacity: this.opacity_ }});
       var scale = 0.025*Math.pow(2,zoomLevel);
       if (data.delayIndexes) $.each(data.delayIndexes, function(i, v) {

@@ -22,7 +22,7 @@
 			height: 100%;
 		  /* width: 100%; */
 		  overflow: hidden;
-  		  position:relative;
+  		position: relative;
 		}
 		#control {
 			width: 100%;
@@ -304,6 +304,46 @@
 			margin-left: -125px;
 			text-align: center;
 		}
+		input[type="checkbox"] {
+			display: none;
+		}
+		input[type="checkbox"] + label {
+			color:#f2f2f2;
+			font-family:Arial, sans-serif;
+			font-size:14px;
+		}
+		input[type="checkbox"] + label span.uie {
+			display:inline-block;
+			width:19px;
+			height:19px;
+			margin:-1px 4px 0 0;
+			vertical-align:middle;
+			background:url(img/check_radio_sheet.png) left top no-repeat;
+			cursor:pointer;
+		}
+		input[type="checkbox"]:checked + label span.uie {
+			background:url(img/check_radio_sheet.png) -19px top no-repeat;
+		}
+		input[type="radio"] {
+			display:none;
+		}
+		input[type="radio"] + label {
+			color:#f2f2f2;
+			font-family:Arial, sans-serif;
+			font-size:14px;
+		}
+		input[type="radio"] + label span.uie {
+			display:inline-block;
+			width:19px;
+			height:19px;
+			margin:-1px 4px 0 0;
+			vertical-align:middle;
+			background:url(img/check_radio_sheet.png) -38px top no-repeat;
+			cursor:pointer;
+		}
+		input[type="radio"]:checked + label span.uie {
+			background:url(img/check_radio_sheet.png) -57px top no-repeat;
+		}
 	</style>
 </head>
 <body>
@@ -313,14 +353,22 @@
 		<div id="control-track" title="Track Flight"></div>
 		<div id="control-layer-toggle" title="Map Layers"></div>
 		<form id="control-layer-list">
-			<label><input id="layer-sat" type="radio" name="layers-base" /> SATELLITE</label>
-			<label class="sep-bel"><input id="layer-map" type="radio" name="layers-base" /> MAP</label>
-			<label><input id="layer-overlay" type="checkbox" /> <span id="layer-overlay-name"></span></label>
-			<label><input id="layer-path" type="checkbox" /> ACTUAL PATH</label>
-			<label><input id="layer-plan" type="checkbox" /> <span id="layer-plan-name">FLIGHT PLAN</label>
-			<label><input id="layer-arc" type="checkbox" /> GREAT ARC</label>
-			<label><input id="layer-mini" type="checkbox" /> TIME TRACKER</label>
-			<label class="sep-bel"><input id="layer-weather" type="checkbox" /> US WEATHER</label>
+			<input id="layer-sat" type="radio" name="layers-base" />
+			<label for="layer-sat"><span class="uie"></span>SATELLITE</label>
+			<input id="layer-map" type="radio" name="layers-base" />
+			<label for="layer-map" class="sep-bel"><span class="uie"></span>MAP</label>
+			<input id="layer-overlay" type="checkbox" />
+			<label for="layer-overlay"><span class="uie"></span><span id="layer-overlay-name"></span></label>
+			<input id="layer-path" type="checkbox" />
+			<label for="layer-path"><span class="uie"></span>ACTUAL PATH</label>
+			<input id="layer-plan" type="checkbox" />
+			<label for="layer-plan"><span class="uie"></span><span id="layer-plan-name">FLIGHT PLAN</label>
+			<input id="layer-arc" type="checkbox" />
+			<label for="layer-arc"><span class="uie"></span>GREAT ARC</label>
+			<input id="layer-mini" type="checkbox" />
+			<label for="layer-mini"><span class="uie"></span>TIME TRACKER</label>
+			<input id="layer-weather" type="checkbox" />
+			<label for="layer-weather" class="sep-bel"><span class="uie"></span>US WEATHER</label>
 			<div class="attribution"><a href="attribution.html" target="_blank">MAP ATTRIBUTIONS</a></div>
 		</form>
 	</div>

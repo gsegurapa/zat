@@ -331,13 +331,15 @@
 
 			// Ajax success handler
 			function getFlight(data /*, status, xhr */) { // callback
-				if (debug) { console.log('data:', data, data.positions.length, actualposs.length); }
+				if (debug) { console.log('data:', data); }
 
 				if (data.status || data.tracks) {	// error!
 					showNote('Cannot access flight position data: '+
 							(data.status ? data.status.message : data.tracks.message));
 					map.fitWorld();
-					return;
+					clearTimeout(loadtimer);
+					$('#loading_div').hide();	// remove loading message
+					return;	// give up
 				}
 
 				flightData = data;
@@ -445,7 +447,7 @@
 				if (wrap === undefined) { // first time called
 
 					clearTimeout(loadtimer);
-					$('#loading_div').text('');	// remove loading message
+					$('#loading_div').hide();	// remove loading message
 
 					if (airline === undefined) {	// not supplied by URL parameter
 						airline = flightData.carrierFs;
@@ -1124,7 +1126,7 @@
 			// click on mini-tracker
 			L.DomEvent.on(L.DomUtil.get('layer-mini'), 'click', function() {
 				if (document.getElementById('layer-mini').checked) {
-					createMiniTracker(flightData.miniTracker);
+					createMiniTracker(flightData?flightData.miniTracker:{});
 					$('#mini-tracker-div').show();
 					showMini = true;
 					this._notify('showMini','true');

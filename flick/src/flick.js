@@ -120,7 +120,8 @@
 			edgeurl = 'http://edge.flightstats.com/flight/tracker/',	// production
 			miniurl = 'http://edge.flightstats.com/flight/mini-tracker/',	// production
 			trackingDist = 0.4,	// % plane can get away from center of screen in tracking mode
-			debug = false;	// debug to console
+			debug = false,	// debug to console
+			fslogo = false;	// mobile web
 
 	function getParams(p) {
     var params = {}; // parameters
@@ -148,6 +149,7 @@
     if (params.zoomControl) { zoomControl = params.zoomControl === 'true'; }
     if (params.edgeurl) { edgeurl = decodeURIComponent(params.edgeurl); }
     if (params.miniurl) { miniurl = decodeURIComponent(params.miniurl); }
+    if (params.fslogo) { fslogo = params.fslogo === 'true'; }
 	}
 
 	function setCookie(name, value) {
@@ -200,6 +202,11 @@
 
 	// document ready! ------------------------------------
 	$(document).ready(function() {
+
+		if (fslogo) {	// mobile web, display logo at top
+			$('#tracker_div').css('top', 56);
+			$('#top_logo_container').css('display', 'block');
+		}
 
 		var defaultlayers = [basemaps[mapType]];	// default map layers
 		if (showLabels && mapType === 'sat') {
@@ -445,7 +452,7 @@
 				if (wrap === undefined) { // first time called
 
 					clearTimeout(loadtimer);
-					$('#loading_div').text('');	// remove loading message
+					$('#loading_div').hide();	// remove loading message
 
 					if (airline === undefined) {	// not supplied by URL parameter
 						airline = flightData.carrierFs;

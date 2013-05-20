@@ -20,9 +20,35 @@
 		}
 		html, body, #map_div {
 			height: 100%;
-		  /* width: 100%; */
+		  width: 100%;
 		  overflow: hidden;
   		position: relative;
+		}
+		#tracker_div {
+			top: 0;
+			bottom: 0;
+			width: 100%;
+			overflow: hidden;
+			position: absolute;
+		}
+		#top_logo_container {
+			display: none;
+			height: 56px;
+			width: 100%;
+			position: absolute;
+			z-index: 10000;
+			background: #293041;
+	    background: -webkit-gradient(linear, left bottom, left top, color-stop(0, #293041), color-stop(1, #6d6d6d)); /* Saf4+, Chrome */
+	    background: -webkit-linear-gradient(bottom, #293041 0%, #6d6d6d 100%); /* Chrome 10+, Saf5.1+ */
+	    background: -moz-linear-gradient(bottom, #293041 0%, #6d6d6d 100%); /* FF3.6+ */
+	    background: -ms-linear-gradient(bottom, #293041 0%, #6d6d6d 100%); /* IE10 */
+	    background: -o-linear-gradient(bottom, #293041 0%, #6d6d6d 100%); /* Opera 11.10+ */
+	    background: linear-gradient(to top, #293041 0%, #6d6d6d 100%); /* W3C */
+		}
+		#top_logo {
+			border: none;
+			display: block;
+			margin: 10px auto;
 		}
 		#control {
 			width: 100%;
@@ -347,40 +373,45 @@
 	</style>
 </head>
 <body>
-	<div id="map_div"></div>
-	<div id="loading_div"></div>
-	<div id="control">
-		<div id="control-track" title="Track Flight"></div>
-		<div id="control-layer-toggle" title="Map Layers"></div>
-		<form id="control-layer-list">
-			<input id="layer-sat" type="radio" name="layers-base" />
-			<label for="layer-sat"><span class="uie"></span>SATELLITE</label>
-			<input id="layer-map" type="radio" name="layers-base" />
-			<label for="layer-map" class="sep-bel"><span class="uie"></span>MAP</label>
-			<input id="layer-overlay" type="checkbox" />
-			<label for="layer-overlay"><span class="uie"></span><span id="layer-overlay-name"></span></label>
-			<input id="layer-path" type="checkbox" />
-			<label for="layer-path"><span class="uie"></span>ACTUAL PATH</label>
-			<input id="layer-plan" type="checkbox" />
-			<label for="layer-plan"><span class="uie"></span><span id="layer-plan-name">FLIGHT PLAN</label>
-			<input id="layer-arc" type="checkbox" />
-			<label for="layer-arc"><span class="uie"></span>GREAT ARC</label>
-			<input id="layer-mini" type="checkbox" />
-			<label for="layer-mini"><span class="uie"></span>TIME TRACKER</label>
-			<input id="layer-weather" type="checkbox" />
-			<label for="layer-weather" class="sep-bel"><span class="uie"></span>US WEATHER</label>
-			<div class="attribution"><a href="attribution.html" target="_blank">MAP ATTRIBUTIONS</a></div>
-		</form>
-	</div>
-	<div id="mini-tracker-div"><div class="loading">Loading...</div></div>
-	<div id="drawer">
-		<div id="drawer-pull"></div>
-		<div id="drawer-content"></div>
-	</div>
-	<div id="messagepopup">
-		<span id="messagetitle">FLIGHT TRACKER NOTE</span>
-		<img class="close" src="img/close-dialog@2x.png" />
-		<div id="message"></div>
+	<a id="top_logo_container" href="http://www.flightstats.com/go/Mobile/home.do" target="_parent">
+		<img id="top_logo" src="http://dem5xqcn61lj8.cloudfront.net/Mobile/logo.png" />
+	</a>
+	<div id="tracker_div">
+		<div id="map_div"></div>
+		<div id="loading_div"></div>
+		<div id="control">
+			<div id="control-track" title="Track Flight"></div>
+			<div id="control-layer-toggle" title="Map Layers"></div>
+			<form id="control-layer-list">
+				<input id="layer-sat" type="radio" name="layers-base" />
+				<label for="layer-sat"><span class="uie"></span>SATELLITE</label>
+				<input id="layer-map" type="radio" name="layers-base" />
+				<label for="layer-map" class="sep-bel"><span class="uie"></span>MAP</label>
+				<input id="layer-overlay" type="checkbox" />
+				<label for="layer-overlay"><span class="uie"></span><span id="layer-overlay-name"></span></label>
+				<input id="layer-path" type="checkbox" />
+				<label for="layer-path"><span class="uie"></span>ACTUAL PATH</label>
+				<input id="layer-plan" type="checkbox" />
+				<label for="layer-plan"><span class="uie"></span><span id="layer-plan-name">FLIGHT PLAN</label>
+				<input id="layer-arc" type="checkbox" />
+				<label for="layer-arc"><span class="uie"></span>GREAT ARC</label>
+				<input id="layer-mini" type="checkbox" />
+				<label for="layer-mini"><span class="uie"></span>TIME TRACKER</label>
+				<input id="layer-weather" type="checkbox" />
+				<label for="layer-weather" class="sep-bel"><span class="uie"></span>US WEATHER</label>
+				<div class="attribution"><a href="attribution.html" target="_blank">MAP ATTRIBUTIONS</a></div>
+			</form>
+		</div>
+		<div id="mini-tracker-div"><div class="loading">Loading...</div></div>
+		<div id="drawer">
+			<div id="drawer-pull"></div>
+			<div id="drawer-content"></div>
+		</div>
+		<div id="messagepopup">
+			<span id="messagetitle">FLIGHT TRACKER NOTE</span>
+			<img class="close" src="img/close-dialog@2x.png" />
+			<div id="message"></div>
+		</div>
 	</div>
 </body>
 </html>

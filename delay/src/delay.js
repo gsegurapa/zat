@@ -50,6 +50,13 @@
       attribution: '&copy; Flightstats Inc.',
       minZoom: 0, maxZoom: 8
     },
+    dark: {
+      name: 'Flightstats Dark',
+      url: 'http://maptiles-{s}.flightstats-ops.com/dark/{z}/{x}/{y}.png',
+      subdomains: 'abcd',
+      attribution: '&copy; Flightstats Inc.',
+      minZoom: 0, maxZoom: 8
+    },
     mapboxterrain: {
       name: 'Mapbox Terrain',
       url: 'http://maptiles-{s}.flightstats-ops.com/mapboxterrain/{z}/{x}/{y}.png',

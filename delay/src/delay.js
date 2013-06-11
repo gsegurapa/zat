@@ -92,7 +92,7 @@
   // process URL parameters --------------------------------------------------------------
 
   var airportSize, minDelay, mapType, zoomLevel, mapCenter,
-      showHeat, showIcons, showRoutes, showLegend, ontimeIcon,
+      showHeat, showIcons, showRoutes, color, showLegend, ontimeIcon,
       showWeather, weatherOpacity, showWunder,
       updateRate, timestamp, timeFormat, timeOffset,
       capture;  // requires node server to be running
@@ -115,6 +115,7 @@
     if (params.showHeat) { showHeat = params.showHeat==='true'; }
     if (params.showIcons) { showIcons = params.showIcons==='true'; }
     if (params.showRoutes) { showRoutes = params.showRoutes==='true'; }
+    if (params.color) { color = params.color; }
     if (params.showLegend) { showLegend = params.showLegend==='true'; }
     if (params.ontimeIcon) { ontimeIcon = params.ontimeIcon==='true'; } // use green circle instead of plus sign
     if (params.showWeather) { showWeather = params.showWeather==='true'; }
@@ -141,6 +142,7 @@
     showHeat = true;
     showIcons = true;
     showRoutes = true;
+    color = '255,10,10';
     showLegend = true;
     ontimeIcon = true;
     showWeather = false;
@@ -168,6 +170,7 @@
     setCookie('showHeat', showHeat);
     setCookie('showIcons', showIcons);
     setCookie('showRoutes', showRoutes);
+    setCookie('color', color);
     setCookie('showLegend', showLegend);
     setCookie('ontimeIcon', ontimeIcon);
     setCookie('showWeather', showWeather);
@@ -775,11 +778,11 @@
             }});
             $heat.css(transform_prop ? {
               // 'background-image': prefix+'radial-gradient(closest-side, '+cp+(0.5+(cv/1020))+'), '+cp+'0) 100%)'
-              'background-image': prefix+'radial-gradient(closest-side, rgba(255, 10, 10, '+cv+'), rgba(255, 10, 10, 0) 100%)'
+              'background-image': prefix+'radial-gradient(closest-side, rgba('+color+', '+cv+'), rgba(255, 10, 10, 0) 100%)'
             } : {
               // 'background-color': 'rgb(255,'+(255-cv)+','+(255-cv)+')',
               // 'filter': 'progid:DXImageTransform.Microsoft.Alpha(opacity=100, finishopacity=0, style=2)'
-              'background-color': 'rgb(255,255,255)',
+              'background-color': 'rgb('+color+')',
               'filter': 'progid:DXImageTransform.Microsoft.Alpha(opacity='+(cv*100)+', finishopacity=0, style=2)'
             });
             if (pib) { $heat.appendTo($d); }
@@ -796,7 +799,7 @@
               if (ofl > 1) {
                 var rs = +route.normalizedScore;
                 if (rs >= 1) {
-                  var color = 'rgba(255,0,0,'+(rs*0.2)+')';
+                  var rcolor = 'rgba('+color+','+(rs*0.2)+')';
                   var other = airports[route.destinationAirportFsCode];
                   if (other === undefined) {
                     if (console && console.log) { console.log('no airport', route.destinationAirportFsCode); }
@@ -808,10 +811,10 @@
                       olng += 360;
                     }
                     if (pib) {
-                      $d.append(drawline(pixpos, map.latLngToLayerPoint(L.latLng(olat, olng)), color, ofl * 0.75));
+                      $d.append(drawline(pixpos, map.latLngToLayerPoint(L.latLng(olat, olng)), rcolor, ofl * 0.75));
                     }
                     if (pib2) {
-                      $d.append(drawline(pixpos2, map.latLngToLayerPoint(L.latLng(olat, olng-360)), color, ofl * 0.75));
+                      $d.append(drawline(pixpos2, map.latLngToLayerPoint(L.latLng(olat, olng-360)), rcolor, ofl * 0.75));
                     }
                   }
                   // var opixpos = map.latLngToLayerPoint(L.latLng(olat, olng));

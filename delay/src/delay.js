@@ -8,14 +8,14 @@
   var default_appId='23d80adf', default_appKey='ebc0894e85d4ef2435d40914a285f956';
 
   var tilesinfo = {
-    terrain: {
+    usterrain: {
       name: 'Flightstats Terrain US',
       url: 'http://maptiles-{s}.flightstats-ops.com/terrain/{z}/{x}/{y}.jpg',
       subdomains: 'abcd',
       attribution: 'Map data <a href="http://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a> <a href="http://stamen.com/">Stamen Design</a>, <a href="http://www.openstreetmap.org/">OpenStreetMap</a>',
       minZoom: 4, maxZoom: 12
     },
-    terrainbg: {
+    usterrainbg: {
       name: 'Flightstats Terrain US Background',
       url: 'http://maptiles-{s}.flightstats-ops.com/terrainbg/{z}/{x}/{y}.jpg',
       subdomains: 'abcd',
@@ -57,11 +57,18 @@
       attribution: '&copy; Flightstats Inc.',
       minZoom: 0, maxZoom: 8
     },
-    mapboxterrain: {
+    mapquestopen: {
+      name: 'MapQuest Open',
+      url: 'http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.jpg',
+      subdomains: '1234',
+      attribution: '&copy; MapQuest, OSM contributors',
+      minZoom: 0, maxZoom: 11
+    },
+    terrain: {
       name: 'Mapbox Terrain',
       url: 'http://maptiles-{s}.flightstats-ops.com/mapboxterrain/{z}/{x}/{y}.png',
       subdomains: 'abcd',
-      attribution: 'Mapbox',
+      attribution: '&copy; Mapbox, ISM contributors',
       minZoom: 0, maxZoom: 11
     }
     // mapboxterrain: {  // http://mapbox.com/tour/#maps
@@ -755,8 +762,10 @@
           if (showHeat && flights*scale >= 10) { // draw delay heat
             var size = Math.round(flights*scale);
             var offset = Math.round(size / 2);
-            var cv = Math.round(51 * +v.normalizedScore); // 0 - 255
-            var cp = 'rgba(255,'+(255-cv)+','+(255-cv)+','; // 1)';
+            // var cv = Math.round(51 * +v.normalizedScore); // 0 - 255
+            // var cv = 0.1 + +v.normalizedScore * 0.18;  // 0.1 - 1.0
+            var cv = +v.normalizedScore * 0.15;  // 0 - 0.75
+            // var cp = 'rgba(255,'+(255-cv)+','+(255-cv)+','; // 1)';
             var $heat = $('<div>', { title: title, // airport.fs+' cv: '+cv+' size: '+size,
               css: {
                 left: (pixpos.x - offset)+'px',
@@ -765,12 +774,13 @@
                 'border-radius': '50%'
             }});
             $heat.css(transform_prop ? {
-              'background-image': prefix+'radial-gradient(closest-side, '+cp+(0.5+(cv/1020))+'), '+cp+'0) 100%)'
+              // 'background-image': prefix+'radial-gradient(closest-side, '+cp+(0.5+(cv/1020))+'), '+cp+'0) 100%)'
+              'background-image': prefix+'radial-gradient(closest-side, rgba(255, 10, 10, '+cv+'), rgba(255, 10, 10, 0) 100%)'
             } : {
-              // opacity: (0.5+(cv/1020)).toString(),
-              // 'background-color': cp+(0.5+(cv/1020))+')',
-              'background-color': 'rgb(255,'+(255-cv)+','+(255-cv)+')',
-              'filter': 'progid:DXImageTransform.Microsoft.Alpha(opacity=100, finishopacity=0, style=2)'
+              // 'background-color': 'rgb(255,'+(255-cv)+','+(255-cv)+')',
+              // 'filter': 'progid:DXImageTransform.Microsoft.Alpha(opacity=100, finishopacity=0, style=2)'
+              'background-color': 'rgb(255,255,255)',
+              'filter': 'progid:DXImageTransform.Microsoft.Alpha(opacity='+(cv*100)+', finishopacity=0, style=2)'
             });
             if (pib) { $heat.appendTo($d); }
             if (pib2) {

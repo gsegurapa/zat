@@ -12,14 +12,14 @@
   var default_appKey = '03072013'; // default app key
 
   var tilesinfo = {
-    terrain: {
+    usterrain: {
       name: 'Flightstats Terrain US',
       url: 'http://maptiles-{s}.flightstats-ops.com/terrain/{z}/{x}/{y}.jpg',
       subdomains: 'abcd',
       attribution: 'Map data <a href="http://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a> <a href="http://stamen.com/">Stamen Design</a>, <a href="http://www.openstreetmap.org/">OpenStreetMap</a>',
       minZoom: 4, maxZoom: 12
     },
-    terrainbg: {
+    usterrainbg: {
       name: 'Flightstats Terrain US Background',
       url: 'http://maptiles-{s}.flightstats-ops.com/terrainbg/{z}/{x}/{y}.jpg',
       subdomains: 'abcd',
@@ -54,11 +54,25 @@
       attribution: '&copy; Flightstats Inc.',
       minZoom: 0, maxZoom: 8
     },
-    mapboxterrain: {
+    dark: {
+      name: 'Flightstats Dark',
+      url: 'http://maptiles-{s}.flightstats-ops.com/dark/{z}/{x}/{y}.png',
+      subdomains: 'abcd',
+      attribution: '&copy; Flightstats Inc.',
+      minZoom: 0, maxZoom: 8
+    },
+    mapquestopen: {
+      name: 'MapQuest Open',
+      url: 'http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.jpg',
+      subdomains: '1234',
+      attribution: '&copy; MapQuest, OSM contributors',
+      minZoom: 0, maxZoom: 11
+    },
+    terrain: {
       name: 'Mapbox Terrain',
       url: 'http://maptiles-{s}.flightstats-ops.com/mapboxterrain/{z}/{x}/{y}.png',
       subdomains: 'abcd',
-      attribution: '<a href="http://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a> <a href="http://mapbox.com">Mapbox</a>, <a href="http://www.openstreetmap.org/">OpenStreetMap</a>',
+      attribution: '&copy; Mapbox, ISM contributors',
       minZoom: 0, maxZoom: 11
     }
     // mapboxterrain: {  // http://mapbox.com/tour/#maps
@@ -721,7 +735,7 @@
         mapType = 'automatic';
       }
       actualMapType =  mapType === 'automatic' ? // terrain is US only, use mapboxterrain map outside US
-        (USbounds.contains(airportLoc) ? 'terrain' : 'mapboxterrain') : mapType;
+        (USbounds.contains(airportLoc) ? 'usterrain' : 'terrain') : mapType;
       if (zoomLevel > tilesinfo[actualMapType].maxZoom) {
         var maxz = tilesinfo[actualMapType].maxZoom
         alert('maximum zoom for '+actualMapType+' mapType is '+maxz);

@@ -939,7 +939,7 @@
           left: p1.x - 0.5*length*(1 - Math.cos(angle)) }).
           css(transform_prop, 'rotate('+angle+'rad)');
     } else {
-      $div.css({ top: Math.min(p1.y, p2.y), left: x1 });
+      $div.css({ top: Math.min(p1.y, p2.y), left: p1.x });
       var nCos = dx/length;
       var nSin = dy/length;
       $div.css('filter', "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=" +

@@ -778,7 +778,7 @@
             }});
             $heat.css(transform_prop ? {
               // 'background-image': prefix+'radial-gradient(closest-side, '+cp+(0.5+(cv/1020))+'), '+cp+'0) 100%)'
-              'background-image': prefix+'radial-gradient(closest-side, rgba('+color+', '+cv+'), rgba(255, 10, 10, 0) 100%)'
+              'background-image': prefix+'radial-gradient(closest-side, rgba('+color+', '+cv+'), rgba('+color+', 0) 100%)'
             } : {
               // 'background-color': 'rgb(255,'+(255-cv)+','+(255-cv)+')',
               // 'filter': 'progid:DXImageTransform.Microsoft.Alpha(opacity=100, finishopacity=0, style=2)'

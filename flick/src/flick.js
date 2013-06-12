@@ -574,7 +574,7 @@
 					// !!! now that I get current time from API, fix this to go back 1 minute in time to start animation
 					// and display warning if no new data
 
-					if (actualposs.length > 2 && curstatus !== 'L' && curstatus !== 'D') {
+					if (actualposs.length > 2 && curstatus !== 'L' && curstatus !== 'D' && !nodata) {
 						p = actualposs[2];
 						var a2 = +(p.altitudeFt || alt);
 						if (a2 > 40000) { a2 = alt; }	// fix bad data for airplanes on ground

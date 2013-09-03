@@ -3,6 +3,7 @@
 // See help.html for documentation
 
 (function($){
+  "use strict";
 
   if (window.location.search === '?help') {
     window.location.href = 'help.html';
@@ -170,7 +171,7 @@
   // process URL parameters --------------------------------------------------------------
 
   var airportCode, mapType, zoomLevel,
-    showLabels, labelSize, showAirlineLogos, showOtherAirport, showOperatorAirlines,
+    showLabels, labelSize, showAirlineLogos, showOtherAirport, showDelays, // showOperatorAirlines,
     flightMarker, flightMarkerScale, airportMarker, airportMarkerScale, arrDep,
     showLegend, weatherFrames, weatherStation, weatherRadar, weatherOpacity,
     appId, appKey;
@@ -188,7 +189,8 @@
     if ($.isNumeric(params.labelSize) && labelmargin[+params.labelSize]) { labelSize = +params.labelSize; }
     if (params.showAirlineLogos) { showAirlineLogos = params.showAirlineLogos==='true'; }
     if (params.showOtherAirport) { showOtherAirport = params.showOtherAirport==='true'; }
-    if (params.showOperatorAirlines) { showOperatorAirlines = params.showOperatorAirlines==='true'; }
+    if (params.showDelays) { showDelays = params.showDelays==='true'; }
+    // if (params.showOperatorAirlines) { showOperatorAirlines = params.showOperatorAirlines==='true'; }
     if (params.flightMarker) { flightMarker = params.flightMarker; }
     if ($.isNumeric(params.flightMarkerScale)) { flightMarkerScale = +params.flightMarkerScale; }
     if (params.airportMarker) { airportMarker = params.airportMarker; }
@@ -205,7 +207,6 @@
     if (params.view) { view = params.view.toUpperCase(); }
     if (params.flip) { flip = params.flip; }
     if ($.isNumeric(params.flipTime)) { flipTime = +params.flipTime; }
-    if (params.thumb) { thumb = params.thumb==='true'; }
     if (params.jump) { jump = params.jump==='true'; }
     if (params.appId) { appId = params.appId; }
     if (params.appKey) { appKey = params.appKey; }
@@ -219,7 +220,8 @@
     labelSize = 24;
     showAirlineLogos = true;
     showOtherAirport = true;
-    showOperatorAirlines = 'false';
+    showDelays = true;
+    // showOperatorAirlines = 'false';
     flightMarker = 'smooth';
     flightMarkerScale = 70;
     airportMarker = 'classic';
@@ -247,7 +249,8 @@
     setCookie('showLabels', showLabels.toString());
     setCookie('showAirlineLogos', showAirlineLogos.toString());
     setCookie('showOtherAirport', showOtherAirport.toString());
-    setCookie('showOperatorAirlines', showOperatorAirlines.toString());
+    setCookie('showDelays', showDelays.toString());
+    // setCookie('showOperatorAirlines', showOperatorAirlines.toString());
     setCookie('flightMarker', flightMarker);
     setCookie('flightMarkerScale', flightMarkerScale);
     setCookie('airportMarker', airportMarker);
@@ -269,7 +272,7 @@
   var view = null; // 2D or 3D
   var interactive = false; // set true to allow map scrolling
   var airlines = '-'; // which airlines to show
-  var thumb = false; // show as thumbnail
+  // var thumb = false; // show as thumbnail
   var jump = false; // no animation of planes or labels
   var flip = false; // flip through different cities
   var flipTime = 60; // seconds between flips
@@ -282,7 +285,7 @@
   if (appId.length === 0 || appKey.length === 0) {
     appId = default_appId;
     appKey = default_appKey;
-    alert('appId and appKey required, app will run for 15 minutes');
+    // alert('appId and appKey required, app will run for 15 minutes');
     setTimeout(function() {
       appId = '';
       appKey = '';
@@ -359,17 +362,23 @@
 
 
   $(document).ready(function() {
+
+    $('#demo').delay(2000).fadeOut(3000).hide(1);
     
     transform_prop = testStyleProperty('transform'); // test for transform CSS property
-    if (!showLegend) {
-      $('#legend, #delayed').hide();
-    }
     if (view === '3D') {
       // $('#map_div, #overlay_div').addClass('three');
       $('#map_div').addClass('three');
     }
-    $('#map_div').height($(window).height() - (thumb ? 0 : $('#brand').height())); 
+    $('#map_div').height($(window).height() - (showLegend ? $('#brand').height() : 0));
     $(window).resize(recenter);
+    $('#brand').click(configurator);
+    if (!showLegend) { $('#brand').hide(); }
+    if (!showDelays) {
+      $('#delayed').hide();
+      $('#legend').css('right', '10px');
+
+    }
 
     map = L.map('map_div', { // create map
       dragging: interactive,
@@ -457,7 +466,7 @@
     }
 
     function getAppendix(data) { // read in data from appendix and convert to dictionary
-      ret = {};
+      var ret = {};
       if (data) {
         for (var i = 0; i<data.length; i++) {
           var v = data[i];
@@ -818,7 +827,7 @@
     } // end mapready()
     
     function recenter() {
-      $('#map_div').height($(window).height() - (thumb ? 0 : $('#brand').height()));
+      $('#map_div').height($(window).height() - (showLegend ? $('#brand').height() : 0));
       setbounds();
       mainloop();
       var newz = map.getZoom();
@@ -876,6 +885,7 @@
       $('#labelSize').val(labelSize);
       $('#showAirlineLogos').val(showAirlineLogos.toString());
       $('#showOtherAirport').val(showOtherAirport.toString());
+      $('#showDelays').val(showDelays.toString());
       $('#flightMarker').val(flightMarker);
       $('#flightMarkerScale').val(flightMarkerScale);
       $('#airportMarker').val(airportMarker);
@@ -904,12 +914,6 @@
 
     var $body = $(document);
     var $config = $('#config');
-
-    if (thumb) {
-      $('#brand').hide();
-    } else {
-      $('#brand').click(configurator);
-    }
 
     // drag configurator
     $('#ctitle', $config).mousedown(function(e) {
@@ -1006,7 +1010,7 @@
        case 'mapType':
         map.removeLayer(basemaps[tilesinfo[actualMapType].name]);
         mapType = $el.val();
-        actualMapType = mapType === 'automatic' ? (USbounds.contains(airportLoc) ? 'terrain' : 'mapboxterrain') : mapType;
+        actualMapType = mapType === 'automatic' ? (USbounds.contains(airportLoc) ? 'usterrain' : 'terrain') : mapType;
         tinfo = tilesinfo[actualMapType];
         $('#dattribution').html(tinfo.attribution);
         newz = zoomLevel;
@@ -1081,6 +1085,20 @@
         }
         showOtherAirport = v;
         break;
+       case 'showDelays':
+        v = $el.val() === 'true';
+        if (v) {
+          $('#delayed').show();
+          $('#legend').css('right', '150px');
+        } else {
+          $('#delayed').hide();
+          $('#legend').css('right', '10px');
+        }
+        for (i = 0; i < planes.length; i++) {
+          planes[i].setDelay(v);
+        }
+        showDelays = v;
+        break;
        case 'flightMarker':
         v = $el.val();
         for (i = 0; i < planes.length; i++) {
@@ -1127,10 +1145,12 @@
        case 'showLegend':
         v = $el.val() === 'true';
         if (v) {
-          $('#legend, #delayed').show();
+          $('#brand').show();
         } else {
-          $('#legend, #delayed').hide();
+          $('#brand').hide();
         }
+        showLegend = v;
+        recenter();
         break;
        case 'weatherFrames':
         v = $el.val();
@@ -1427,12 +1447,7 @@
         this.fidiv_.css({ 'z-index': 700+curalt,
             left: Math.round(this.info_.x - this.fidiv_.outerWidth() * 0.5),
             top: Math.round(this.info_.y - this.fidiv_.outerHeight() * 0.5) });
-        if (this.delay_ >= 15) {
-          this.fidiv_.find('.delay').text(this.delay_).css({'background-color': 'yellow',
-              color: 'rgb('+Math.min(this.delay_ - 15, 255)+',0,0)'});
-        } else {
-          this.fidiv_.find('.delay').text('');          
-        }
+        this.setDelay(showDelays);
         // draw line from info to plane icon
         if (transform_prop) {
           this.line_.draw(this.info_, this.curpos_);
@@ -1742,6 +1757,14 @@
     },
     setOtherAirport: function(b) {
       this.fidiv_.find('.fnotext').html(this.fno_ + (b ? (this.depart_ ? '&raquo;' : '&laquo;')+this.airport_ : ''));
+    },
+    setDelay: function(b) {
+      if (this.delay_ >= 15 && b) {
+        this.fidiv_.find('.delay').text(this.delay_).css({'background-color': 'yellow',
+            color: 'rgb('+Math.min(this.delay_ - 15, 255)+',0,0)'});
+      } else {
+        this.fidiv_.find('.delay').text('').css('background-color', 'transparent');          
+      }
     },
     setFlightMarker: function(name) {
       flightMarker = name;

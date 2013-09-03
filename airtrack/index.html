@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Flightstats Airport Tracker</title>
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
-<!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.ie.css" /><![endif]-->
+<title>Zat Airport Tracker</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+<!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" /><![endif]-->
 <style type="text/css">
 #map_div.three {
   transform-style: preserve-3d;
@@ -117,7 +117,7 @@ div#delayed {
 }
 div#legend {
   position: absolute;
-  left: 215px;
+  left: 10px;
   right: 150px;
   bottom: 10px;
   height: 34px;
@@ -127,7 +127,7 @@ div#legend {
   width: 100%;
 }
 #legend table td {
-  text-align: center;
+  text-align: left;
 }
 #brand #dattribution {
   position: absolute;
@@ -230,6 +230,18 @@ output, #actualStation {
     text-align:center;
     width:30px;
 }
+#demo {
+  position: fixed;
+  text-align: center;
+  width: 500px;
+  height: 100px;
+  left: 50%;
+  top: 50%;
+  margin: -50px 0 0 -250px;
+  font-size: 28px;
+  background-color: white;
+  font-family: helvetica, sans-serif;
+}
 </style>
 <!--[if lte IE 8]>
 <style type="text/css">
@@ -238,8 +250,8 @@ output, #actualStation {
 }
 </style>
 <![endif]-->
-<script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script type="text/javascript" src="lib/jquery.tools.min.js"></script>
 <script type="text/javascript" src="lib/raphael-min.js"></script>
 <script type="text/javascript" src="lib/bigscreen-min.js"></script>
@@ -248,10 +260,9 @@ output, #actualStation {
 <body>
 <div id="map_div"></div>
 <div id="brand">
-  <img id="fsimg" src="http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/img/flightstats_logo_dk_bkgd.png" />
   <div id="legend">
     <table>
-      <tr><td><span style="color:#FAA71A">Landed:</span><span id="landing"></span></td>
+      <tr><td><span style="color:#FAA71A;align:left">Landed:</span><span id="landing"></span></td>
       <td><span style="color:#94C1E7">Taking Off:</span><span id="takeoff"></span></td></tr>
     </table>
   </div>
@@ -299,6 +310,8 @@ output, #actualStation {
       <td>true</td><td>show airline logos in labels</td></tr>
     <tr><td>showOtherAirport</td><td><input id="showOtherAirport" class="bool" type="button" value="true" /></td>
       <td>true</td><td>show other airport in labels</td></tr>
+    <tr><td>showDelays</td><td><input id="showDelays" class="bool" type="button" value="true" /></td>
+      <td>true</td><td>show flight delays</td></tr>
     <!-- <tr><td>showOperatorAirlines</td><td><input id="showOperatorAirlines" class="bool" type="button" value="false" /></td>
       <td>false</td><td>show actual flight operator</td></tr> -->
 
@@ -351,6 +364,11 @@ output, #actualStation {
       <td><input id="weatherOpacity" type="range" size="4" value="30" min="1" max="100" step="1" /></td>
         <td>30</td><td>100 is opaque</td></tr>
   </table>
+</div>
+<div id="demo">
+DEMO<br />
+application key required<br />
+app will run for 15 minutes
 </div>
 </body>
 </html>

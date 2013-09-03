@@ -41,7 +41,8 @@ The smallest airplanes are taking off (blue) or landing (orange).</p>
 <h2>Configuration</h2>
 <p>The app can be configured using the interactive configuration tool.
 You can change any configuration parameter and see the results immediately.</p>
-<p>Open the configuration tool by clicking on the Flightstats logo below the map.
+<p>Open the configuration tool by clicking on the legend below the map.
+In interactive mode, you can also open the configuration tool by pressing C on your keyboard.
 When open, you can drag the configuration tool around the map by dragging its title bar.
 To close the configuration tool, click on the "Hide" button, or click the Flightstats logo again.</p>
 <p>Once you have configured the app, you can save your configuration by clicking on the "Save" button.
@@ -67,26 +68,27 @@ When in full screen mode the mouse cursor is hidden when over the map (you can s
 <tr><td>airportCode</td><td>PDX</td><td>(any airport code)</td><td>Three letter airport code.
 Note that flight position information is less reliable in some areas, or for smaller airports or airplanes.</td></tr>
 <tr><td>mapType</td><td>automatic</td>
-  <td>see table below for all map types</td><td>"automatic" uses the "stamen terrain" map in the continental US, and the "terrain" map elsewhere</td></tr>
+  <td>see table below for all map types</td><td>"automatic" uses the "US terrain" map in the continental US, and the "terrain" map elsewhere</td></tr>
 <tr><td>zoomLevel</td><td>9</td><td>0 to 12</td><td>Lower numbers show a larger area. Different maps have different zoomLevel ranges (see "Map Types" below).</td></tr>
-<tr><td>showLabels</td><td>true</td><td>(Boolean)</td><td>Label each airplane with flight info (carrier, flight number, delay)</td></tr>
+<tr><td>showLabels</td><td>true</td><td>true, false</td><td>Label each airplane with flight info (carrier, flight number, delay)</td></tr>
 <tr><td>labelSize</td><td>24</td><td>12, 16, 24, 32</td><td>Height of the labels in pixels</td></tr>
-<tr><td>showAirlineLogos</td><td>true</td><td>(Boolean)</td><td>Show airline logos in labels</td></tr>
-<tr><td>showOtherAirport</td><td>true</td><td>(Boolean)</td><td>Show code of other airport in labels</td></tr>
-<!-- <tr><td>showOperatorAirlines</td><td>false</td><td>(Boolean)</td><td>If true show operator for flight, otherwise show main (ticketing) carrier</td></tr> -->
-<tr><td>flightMarker</a></td><td>smooth</td><td>shadow, stripe, icon</td><td>Style of airplane marker (append '-lights' for navigation lights)</td></tr>
+<tr><td>showAirlineLogos</td><td>true</td><td>true, false</td><td>Show airline logos in labels</td></tr>
+<tr><td>showOtherAirport</td><td>true</td><td>true, false</td><td>Show code of other airport in labels</td></tr>
+<tr><td>showDelays</td><td>true</td><td>true, false</td><td>Show flight delays in minutes</td></tr>
+<!-- <tr><td>showOperatorAirlines</td><td>false</td><td>true, false</td><td>If true show operator for flight, otherwise show main (ticketing) carrier</td></tr> -->
+<tr><td>flightMarker</a></td><td>smooth</td><td>smooth, shadow, stripe, icon</td><td>Style of airplane marker (append '-lights' for navigation lights)</td></tr>
 <tr><td>flightMarkerScale</td><td>70</td><td>8 to 100</td><td>Size of airplane marker</td></tr>
 <!-- <tr><td>flightLabelScale</td><td>100</td><td>1-100</td><td>(not implemented) Size of label</td></tr> -->
 <tr><td>airportMarker</td><td>classic</td>
-  <td>modern, darktower<td>Style of control tower marker</td></tr>
+  <td>classic, modern, darktower<td>Style of control tower marker</td></tr>
 <tr><td>airportMarkerScale</td><td>55</td><td>10 to 150</td><td>Size of control tower marker</td></tr>
 <tr><td>arrDep</td><td>both</td>
-  <td>arr, dep<td>Show arriving or departing flights, or both</td></tr>
-<tr><td>showLegend</td><td>true</td><td>(Boolean)</td><td>Show legend at bottom of screen</td></tr>
+  <td>arr, dep, both<td>Show arriving or departing flights, or both</td></tr>
+<tr><td>showLegend</td><td>true</td><td>true, false</td><td>Show legend at bottom of screen</td></tr>
 <tr><td>weatherFrames</td><td>0</td><td>0 to 25</td><td>US only. Number of frames to animate, each frame represents 10 minutes. 0 means no image, 1 means single (non-animated) image of current radar.</td></tr>
 <tr><td>weatherStation</td><td>automatic</td><td>(any US station code)</td><td>Specify weather radar station code - see below (US only)</td></tr>
 <tr><td>weatherRadar</a></td><td>NCR</td>
-  <td>N0R, N0Z, NTP, N1P, N0S, N0V</td><td>NWS weather radar product - see below (US only)</td></tr>
+  <td>NCR, N0R, N0Z, NTP, N1P, N0S, N0V</td><td>NWS weather radar product - see below (US only)</td></tr>
 <tr><td>weatherOpacity</td><td>30</td><td>1 to 100</td><td>Opacity of weather overlay (100 is opaque)</td></tr>
 <!-- <tr><td>interactive</td><td>false</td><td>true</td><td>Interactive mode (scrolling enabled)</td></tr> -->
 <!-- <tr><td>view</td><td></td><td>3D</td><td>fake 3D mode</td></tr> -->
@@ -154,14 +156,9 @@ It also enables the following keyboard shortcuts:
 </table>
 When interactive is true, the mouse cursor does not hide when in full screen mode.
 </p>
-<h4>thumb=true</h4>
-<p>Setting thumb to true puts the map into thumbnail mode.
-This is used to draw small maps (thumbnails).
-The main difference is that this option removes the legend from the bottom of the map.</p>
 <h4>jump=true</h4>
 <p>Setting jump to true eliminates smooth airplane animation so that the map uses far fewer processor resources.
-The airplanes jump from one position to another, and the labels are turned off.
-This option is often used with thumb=true.</p>
+The airplanes jump from one position to another, and the labels are turned off.</p>
 <h4>flip=true</h4>
 <p>Setting flip to true changes the airport every minute.
 Airports are displayed from west to east, around the world.

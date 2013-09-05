@@ -20,7 +20,7 @@
 	// http://sketchup.google.com/3dwarehouse/details?mid=d9570d4f12723e194c3a35cee92bb95b
 	// var MODEL_URL = 'http://sketchup.google.com/3dwarehouse/download?mid=d9570d4f12723e194c3a35cee92bb95b&rtyp=zip&fn=airplane&ctyp=airplane';
 
-	var MODEL_URL = 'http://zat.com/apps/flick3D/zairplane.kmz';
+	var MODEL_URL = 'http://zat.com/apps/three/zairplane.kmz';
 
 	$(document).ready(init);
 

@@ -15,15 +15,12 @@
       setCookie('id', id);
     }
   }
-  console.log(id, id.length, typeof id);
 
   var firebasedb = new Firebase('https://jrslims.firebaseIO.com/');
 
   firebasedb.on('child_added', function(snapshot) {
     var message = snapshot.val();
     var d = new Date(message.stamp);
-    var now = new Date();
-    // $('<div/>').text(message.text).prepend($('<strong/>').html('<hr />'+message.name+' '+deltaTime(new Date()-d)+' ago<br/>')).prependTo($('#messagesDiv'));
     $('<div/>').append('<hr/>').
       append($('<strong/>').text(message.name)).
       append($('<span/>', {'class': 'mtime'}).data('mts', d)).
@@ -31,10 +28,7 @@
       prependTo($('#messagesDiv')).
       css('background-color', '#ffc').
       animate({'background-color': '#fff'}, 10000);
-      $('.mtime').each(function() {
-        var el = $(this);
-        el.text(' - '+deltaTime(now-el.data('mts'))+' ago');
-      });
+    uptime();
   });
 
   $(document).ready(function() {
@@ -42,7 +36,10 @@
   	$('#kibbitz').click( function(e) {
       var name = $('#nameInput').text();
       var mess = $('#messageInput').val();
-      if (name.length === 0 || mess.length === 0) { return; }
+      if (name.length === 0 || mess.length === 0) {
+        uptime();
+        return;
+      }
       firebasedb.push({
         name: name,
         text: mess,
@@ -50,14 +47,6 @@
       });
       $('#messageInput').val('');
     });
-
-    // setInterval(function() {  // update times
-    //   var now = new Date();
-    //   $('.mtime').each(function() {
-    //     var el = $(this);
-    //     el.text(' - '+deltaTime(now-el.data('mts'))+' ago');
-    //   });
-    // }, 1000);
 
   });
 
@@ -83,6 +72,14 @@
     var tenth = Math.floor((d%1)*10);
     var hund = Math.floor(((d*10)%1)*10);
     return second+((second<10)?("."+tenth+(second==0?hund:"")):"")+" seconds";
+  }
+
+  function uptime() {  // update times
+    var now = new Date();
+    $('.mtime').each(function() {
+      var el = $(this);
+      el.text(' - '+deltaTime(now-el.data('mts'))+' ago');
+    });
   }
 
   function getParams(p) {

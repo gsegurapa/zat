@@ -4,6 +4,7 @@
 	"use strict";
 
   var id;
+  var loaded = false;
 
   getParams('?'+document.cookie); // params from cookies
   getParams(window.location.href); // params from URL override
@@ -21,14 +22,20 @@
   firebasedb.on('child_added', function(snapshot) {
     var message = snapshot.val();
     var d = new Date(message.stamp);
-    $('<div/>').append('<hr/>').
+    var newdiv = $('<div/>').append('<hr/>').
       append($('<strong/>').text(message.name)).
       append($('<span/>', {'class': 'mtime'}).data('mts', d)).
       append($('<div/>').text(message.text)).
-      prependTo($('#messagesDiv')).
-      css('background-color', '#ffc').
-      animate({'background-color': '#fff'}, 10000);
-    uptime();
+      prependTo($('#messagesDiv'));
+    if (loaded) {
+      newdiv.css('background-color', '#ffc').
+      delay(10000).animate({'background-color': '#fff'}, 2000);
+      uptime();
+    }
+  });
+
+  firebasedb.once('value', function() {
+    loaded = true;
   });
 
   $(document).ready(function() {

@@ -16,6 +16,7 @@
   var online = true;  // am I connected to Firebase?
   var messages = [];  // message names
   var files = []; // uploaded files for a message
+  var shift = false;  // is shift key down?
 
   getParams('?'+document.cookie); // params from cookies
   getParams(window.location.href); // params from URL override
@@ -100,7 +101,16 @@
     $('#nameInput').text(id);
 
     // grow textarea automatically
-    $('#messageInput').on('keyup', function(e) {
+    $('#messageInput').on('keyup keydown', function(e) {
+      if (e.which === 16) { // SHIFT
+        shift = (e.type === 'keydown');
+        return;
+      }
+      if (e.which === 13) { // RETURN
+        if (shift && e.type === 'keyup') {
+          $('#kibbitz').click();
+        }
+      }
       var el = e.delegateTarget;
       if (el.scrollHeight > el.clientHeight) { el.style.height = el.scrollHeight+'px'; }
     });
@@ -110,7 +120,6 @@
       var name = $('#nameInput').text();
       var mess = $('#messageInput').val();
       if (name.length === 0 || mess.length === 0) {
-        uptime();
         return;
       }
       msgdb.push({
@@ -139,6 +148,7 @@
           }
         });
       }
+      uptime();
     });
 
     // formatting buttons

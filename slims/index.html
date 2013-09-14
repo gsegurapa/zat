@@ -6,8 +6,9 @@
 
 <script type="text/javascript" src="https://cdn.firebase.com/v0/firebase.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
-<script type="text/javascript" src="jquery.color.min.js"></script>
+<script type="text/javascript" src="all.fineuploader-3.8.2.min.js"></script>
 <script type="text/javascript" src="slims.js"></script>
+<link href="fineuploader-3.8.2.min.css" rel="stylesheet">
 <style type="text/css">
 body {
 	background: white url('img/back.gif');
@@ -21,18 +22,71 @@ a:visited { color: #400040;}
 	height: 70px;
 	margin: 0 auto;
 }
+#others {
+	float: right;
+}
 #messageInput {
 	display: block;
 	width: 100%;
 	clear: both;
+	margin-bottom: 3px;
+}
+.msgdiv {
+	border-top: solid gray 1px;
+	padding: 0.2em 2px;
+}
+#status {
+	color: red;
+}
+#formatbuttons {
+	float: right;
+}
+span.button {
+	display: inline-block;
+	border: solid black 1px;
+	border-radius: 3px;
+	padding: 0px 4px;
+	text-align: center;
+	cursor: pointer;
+	height: 18px;
+	vertical-align: top;
+}
+span.small {
+	width: 12px;
+}
+span.button[title="Kibbitz"] { font-family: sans-serif; font-weight: bold; line-height: 18px; }
+.qq-upload-button-hover{background:white; }
+span.button[title="File Upload"] { font-family: sans-serif; font-size: 13px; line-height: 18px; }
+span.button[title="Link"] { text-decoration:underline; font-family: sans-serif; font-size: 13px; line-height: 18px; }
+span.button[title="Image"] { font-family: sans-serif; font-size: 13px; line-height: 18px; }
+span.button[title="Bold"] { font-weight: bold; }
+span.button[title="Italic"] { font-style: italic; }
+span.button[title="Color"] { color: red; font-family: sans-serif; }
+span.button[title="Size"] { font-family: sans-serif; }
+span.button[title="Block Quote"] { font-weight: bold; }
+.userimg {
+	max-width: 95%;
 }
 </style>
 </head>
 <body>
 	<img id="logo" src="img/title.gif" title="Jack Rabbit Slim's" />
-	<strong id="nameInput">?</strong>
-	<textarea id="messageInput" placeholder="Message" rows="7"></textarea>
-	<input id="kibbitz" type="button" value="Kibbitz" />
+	<strong id="nameInput">?</strong> <span id="others"></span>
+	<textarea id="messageInput" placeholder="Message" rows="3"></textarea>
+	<span id="kibbitz" class="button small" title="Kibbitz">+</span>
+	<span id="status"></span>
+	<span id="formatbuttons">
+		<span id="fileup" class="button" title="File Upload">File</span>
+		<span class="button" title="Link">link</span>
+		<span class="button" title="Image">img</span>
+		<span class="button small" title="Bold">b</span>
+		<span class="button small" title="Italic">i</span>
+		<span class="button small" title="Color">c</span>
+		<span class="button small" title="Size">S</span>
+		<span class="button small" title="Block Quote">"</span>
+	</span>
+	<div style="height: 3px"></div>
+	<div id="fine-uploader"></div>
 	<div id="messagesDiv"></div>
 </body>
 </html>

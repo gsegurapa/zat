@@ -45,7 +45,7 @@
 		ge.getWindow().setVisibility(true);
 		// ge.getSun().setVisibility(true);
 		ge.getOptions().setStatusBarVisibility(false);
-		ge.getNavigationControl().setVisibility(ge.VISIBILITY_AUTO);
+		// ge.getNavigationControl().setVisibility(ge.VISIBILITY_AUTO);
 
 		ge.getLayerRoot().enableLayerById(ge.LAYER_BORDERS, true);
 		ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS, true);

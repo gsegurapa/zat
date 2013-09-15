@@ -22,14 +22,17 @@ a:visited { color: #400040;}
 	height: 70px;
 	margin: 0 auto;
 }
+#user {
+	font-weight: bold;
+}
 #others {
 	float: right;
 }
 #messageInput {
 	display: block;
-	width: 100%;
+	width: 99.5%;
 	clear: both;
-	margin-bottom: 3px;
+	margin: 3px 0;
 }
 .msgdiv {
 	border-top: solid gray 1px;
@@ -86,11 +89,27 @@ span#specialchars {
 .userimg {
 	max-width: 95%;
 }
+#shame {
+	position: absolute;
+	display: none;
+	border: solid black 1px;
+	border-radius: 3px;
+	background-color: white;
+	box-shadow: 5px 5px 3px #666;
+	right: 1em;
+	padding: 4px;
+}
+#shame table td:first-child {
+	text-align: right;
+	font-weight: bold;
+}
 </style>
 </head>
 <body>
 	<img id="logo" src="img/title.gif" title="Jack Rabbit Slim's" />
-	<strong id="nameInput">?</strong> <span id="others"></span>
+	<span id="user" class="button">?</span>
+	<span id="others" class="button"></span>
+	<div id="shame"></div>
 	<textarea id="messageInput" placeholder="Message" rows="3"></textarea>
 	<span id="kibbitz" class="button small" title="Kibbitz">+</span>
 	<span id="status"></span>

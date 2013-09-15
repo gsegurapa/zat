@@ -16,7 +16,8 @@
   var online = true;  // am I connected to Firebase?
   var messages = [];  // message names
   var files = []; // uploaded files for a message
-  var shift = false;  // is shift key down?
+  var shiftkey = false;  // is shift key down?
+  var shame = []; // hall of shame users
 
   getParams('?'+document.cookie); // params from cookies
   getParams(window.location.href); // params from URL override
@@ -37,77 +38,80 @@
   var usersdb = firebasedb.child('users');  // all user profiles
   var usrdb = usersdb.child(id);  // my profile
 
-  // get user profile
-  usrdb.once('value', function(snap) {
-    me = snap.val();  // user profile
-    lastseen = me.lastseen || 0;
+  $(document).ready(function() {
 
-    // get messages
-    msgdb.on('child_added', function(snap) {
-      var message = snap.val();
-      var d = message.stamp; // new Date(message.stamp);
-      messages.push(snap.name());  // keep track of messages
-      var newdiv = $('<div/>', {'class': 'msgdiv'}).
-        append($('<strong/>').text(message.name)).
-        append($('<span/>', {'class': 'msgtime'}).data('mts', d).text(' - '+deltaTime((new Date()) - d)+' ago')).
-        append($('<div/>').html(message.text)).
-        prependTo($('#messagesDiv'));
-      if (lastseen < d) {
-        newdiv.css('background-color', '#ffc');
+    // get user profile
+    usrdb.once('value', function(snap) {
+      me = snap.val();  // user profile
+      lastseen = me.lastseen || 0;
+
+      // get messages
+      msgdb.on('child_added', function(snap) {
+        var message = snap.val();
+        var d = message.stamp; // new Date(message.stamp);
+        messages.push(snap.name());  // keep track of messages
+        var newdiv = $('<div/>', {'class': 'msgdiv'}).
+          append($('<strong/>').text(message.name)).
+          append($('<span/>', {'class': 'msgtime'}).data('mts', d).text(' - '+deltaTime((new Date()) - d)+' ago')).
+          append($('<div/>').html(message.text)).
+          prependTo($('#messagesDiv'));
+        if (lastseen < d) {
+          newdiv.css('background-color', '#ffc');
+        }
+      });
+
+    }); // end get user profile and messages
+
+    // manage whether I am connected or not, and timestamp when I disconnect
+    connectdb.on('value', function(snap) {
+      if (snap.val() === true) {  // online
+        online = true;
+        $('#kibbitz').css('opacity', 1.0);
+        $('#status').text('');
+        var onlinedb = usrdb.child('online');
+        onlinedb.onDisconnect().set(Firebase.ServerValue.TIMESTAMP);  // time of disconnect
+        onlinedb.set(true); // I am online
+      } else {  // offline
+        online = false;
+        $('#kibbitz').css('opacity', 0.3);  // dim kibbitz button
+        $('#status').text('offline');
       }
     });
 
-  }); // end get user profile and messages
-
-  // manage whether I am connected or not, and timestamp when I disconnect
-  connectdb.on('value', function(snap) {
-    if (snap.val() === true) {  // online
-      online = true;
-      $('#kibbitz').css('opacity', 1.0);
-      $('#status').text('');
-      var onlinedb = usrdb.child('online');
-      onlinedb.onDisconnect().set(Firebase.ServerValue.TIMESTAMP);  // time of disconnect
-      onlinedb.set(true); // I am online
-    } else {  // offline
-      online = false;
-      $('#kibbitz').css('opacity', 0.3);  // dim kibbitz button
-      $('#status').text('offline');
-    }
-  });
-
-  // manage list of online users
-  usersdb.on('value', function(snap) {
-    var l = '';
-    var lurker = '';
-    var lurktime = 0;
-    snap.forEach(function(csnap) {
-      var name = csnap.name();
-      if (name !== id) {  // not me
-        if (csnap.val().online === true) {
-          l += ' '+name;  // list on online users
-        } else {
-          if (lurktime < +csnap.val().online) { // most recent lurker
-            lurker = name;
-            lurktime = +csnap.val().online;
+    // manage list of online users
+    usersdb.on('value', function(snap) {
+      var l = '';
+      var lurker = '';
+      var lurktime = 0;
+      snap.forEach(function(csnap) {
+        var name = csnap.name();
+        var onval = csnap.val().online;
+        if (name !== id) {  // not me
+          shame.push({ name: name, online: onval });
+          if (onval === true) {
+            l += ' '+name;  // list of online users
+          } else {
+            if (lurktime < +onval) { // most recent lurker
+              lurker = name;
+              lurktime = +onval;
+            }
           }
         }
-      }
+      });
+      $('#others').text(l.length > 0 ? 'Connected: ' + l :
+        'Last lurk: ' + lurker + ' - ' + deltaTime(new Date() - lurktime) + ' ago');
     });
-    $('#others').text(l.length > 0 ? 'Connected: ' + l :
-      'Last lurk: ' + lurker + ' - ' + deltaTime(new Date() - lurktime) + ' ago');
-  });
 
-  $(document).ready(function() {
-    $('#nameInput').text(id);
+    $('#user').text(id);
 
     // grow textarea automatically
     $('#messageInput').on('keyup keydown', function(e) {
       if (e.which === 16) { // SHIFT
-        shift = (e.type === 'keydown');
+        shiftkey = (e.type === 'keydown');
         return;
       }
       if (e.which === 13) { // RETURN
-        if (shift && e.type === 'keyup') {
+        if (shiftkey && e.type === 'keyup') {
           $('#kibbitz').click();
         }
       }
@@ -117,20 +121,25 @@
 
     $('#kibbitz').click( function() {  // post new message
       if (!online) { return; }  // do nothing if not online (should save message!)
-      var name = $('#nameInput').text();
+      var name = $('#user').text();
       var mess = $('#messageInput').val();
-      uptime();
-      if (name.length === 0 || mess.length === 0) {
-        return;
+      if (mess.length > 0 || files.length > 0) {
+        if (mess.length === 0) {
+          mess = 'Attachments:';
+          $.each(files, function(i, v) {
+            mess += ' '+v;
+          });
+        }
+        msgdb.push({
+          name: name,
+          text: mess.replace(/\r\n|[\n\r\x85]/g, '<br />'), // newline -> break
+          stamp: Firebase.ServerValue.TIMESTAMP,
+          files: files.join("\n")
+        });
+        $('#messageInput').val(''); // clear message text
       }
-      msgdb.push({
-        name: name,
-        text: mess.replace(/\r\n|[\n\r\x85]/g, '<br />'),
-        stamp: Firebase.ServerValue.TIMESTAMP,
-        files: files.join("\n")
-      });
+      uptime();
       files = [];
-      $('#messageInput').val(''); // clear message text
       $('.qq-upload-list').empty(); // clear list of uploaded files
 
       while (messages.length > KEEPNUM) {  // might need to delete an old message
@@ -197,6 +206,7 @@
       }
     });
 
+    // emoticon menu
     function emo(e) {
       insert('<img src="'+$(e.target).attr('src')+'" />');
       $(document).off('click', cancelemo);
@@ -218,6 +228,7 @@
       return false;
     });
 
+    // special characters menu
     function spc(e) {
       var c = $(e.target).html();
       var pos = c.search(/[FC]$/);
@@ -244,6 +255,30 @@
       $(document).on('click', cancelspc);
       return false;
     });
+
+    // Hall of Shame
+    $('#others').click(function(e) {
+      var table = '<table><tr><td></td><td><img src="img/eye.gif" /></td></tr>';
+      shame.sort(comptime);
+      var now = new Date;
+      $.each(shame, function(i, v) {
+        table += '<tr><td>' + v.name + '</td><td>' + (v.online === true ? 'online' : deltaTime(now - v.online)) + '</td></tr>';
+      })
+      $('#shame').show().on('click', cancelshame).html(table + '</table>');
+    });
+
+    function cancelshame(e) {
+      $('#shame').off('click', cancelshame).hide();
+    }
+
+    function comptime(a, b) {
+      if (a.online === true && b.online === true) {
+        return a.name < b.name ? -1 : 1;
+      }
+      if (a.online === true) { return -1; }
+      if (b.online === true) { return 1; }
+      return b.online - a.online;
+    }
 
   }); // end document ready
 
@@ -372,7 +407,7 @@
       var ss = el.selectionStart;
       var se = el.selectionEnd;
       var sel = el.value.substring(ss, se);
-      var m = ((sel.length === 0) ? el.value.substring(0, ss) : sel).match(/[\d.]+$/);
+      var m = ((sel.length === 0) ? el.value.substring(0, ss) : sel).match(/-?[\d.]+$/);
       var str = (m === null || m.length !== 1) ? '&deg;'+unit : (unit === 'C' ?
           (sel.length !== 0 ? m[0] : '') + '&deg;C (' + (Math.round((+m[0] * 18.0) + 320.0) / 10.0) + '&deg;F)' :
           (sel.length !== 0 ? m[0] : '') + '&deg;F (' + (Math.round((+m[0] - 32.0) * (50.0 / 9.0)) / 10.0) + '&deg;C)');

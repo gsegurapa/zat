@@ -54,6 +54,9 @@ span.button {
 span.small {
 	width: 12px;
 }
+span.button:hover {
+	background-color: #ff8;
+}
 span.button[title="Kibbitz"] { font-family: sans-serif; font-weight: bold; line-height: 18px; }
 .qq-upload-button-hover{background:white; }
 span.button[title="File Upload"] { font-family: sans-serif; font-size: 13px; line-height: 18px; }
@@ -64,6 +67,22 @@ span.button[title="Italic"] { font-style: italic; }
 span.button[title="Color"] { color: red; font-family: sans-serif; }
 span.button[title="Size"] { font-family: sans-serif; }
 span.button[title="Block Quote"] { font-weight: bold; }
+span.button[title="Special Characters"] { }
+span#emoticons {
+	display: none;
+	position: absolute;
+	right: 8px;
+	background-color: white;
+}
+span#emoticons img:hover, #emobutton:hover {
+	background-color: black;
+}
+span#specialchars {
+	display: none;
+	position: absolute;
+	right: 8px;
+	background-color: white;
+}
 .userimg {
 	max-width: 95%;
 }
@@ -84,6 +103,41 @@ span.button[title="Block Quote"] { font-weight: bold; }
 		<span class="button small" title="Color">c</span>
 		<span class="button small" title="Size">S</span>
 		<span class="button small" title="Block Quote">"</span>
+		<span id="spcbutton" class="button small" title="Special Characters">&copy;</span>
+		<img id="emobutton" src="emoticons/smile.gif" title="Emoticons" />
+	</span>
+	<span id="emoticons">
+		<img src="emoticons/blushing.gif" />
+		<img src="emoticons/devil.gif" />
+		<img src="emoticons/sealed.gif" />
+		<img src="emoticons/braces.gif" />
+		<img src="emoticons/undecided.gif" />
+		<img src="emoticons/innocent.gif" />
+		<img src="emoticons/yelling.gif" />
+		<img src="emoticons/headbang.gif" />
+		<img src="emoticons/surprise.gif" />
+		<img src="emoticons/cool.gif" />
+		<img src="emoticons/wink.gif" />
+		<img src="emoticons/tongue.gif" />
+		<img src="emoticons/laughing.gif" />
+		<img src="emoticons/lol.gif" />
+		<img src="emoticons/frown.gif" />
+		<img src="emoticons/smile.gif" />
+	</span>
+	<span id="specialchars">
+		<span class="special button">&iexcl;</span>
+		<span class="special button">&iquest;</span>
+		<span class="special button">&ntilde;</span>
+		<span class="special button">&euro;</span>
+		<span class="special button">&cent;</span>
+		<span class="special button">&frac12;</span>
+		<span class="special button">&amp;</span>
+		<span class="special button">&lt;</span>
+		<span class="special button">&gt;</span>
+		<span class="special button">&mdash;</span>
+		<span class="special button">&copy;</span>
+		<span class="special button">&deg;F</span>
+		<span class="special button">&deg;C</span>
 	</span>
 	<div style="height: 3px"></div>
 	<div id="fine-uploader"></div>

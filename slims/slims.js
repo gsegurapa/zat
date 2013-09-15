@@ -119,6 +119,7 @@
       if (!online) { return; }  // do nothing if not online (should save message!)
       var name = $('#nameInput').text();
       var mess = $('#messageInput').val();
+      uptime();
       if (name.length === 0 || mess.length === 0) {
         return;
       }
@@ -148,7 +149,6 @@
           }
         });
       }
-      uptime();
     });
 
     // formatting buttons
@@ -195,6 +195,54 @@
           insert('<a href="files/'+responseJSON.uploadName+'" target="_blank">'+fileName+'</a>');
         }
       }
+    });
+
+    function emo(e) {
+      insert('<img src="'+$(e.target).attr('src')+'" />');
+      $(document).off('click', cancelemo);
+      $('#emoticons img').off('click', emo);
+      $('#emoticons').hide();
+      return false;
+    }
+
+    function cancelemo(e) {
+      $(document).off('click', cancelemo);
+      $('#emoticons img').off('click', emo);
+      $('#emoticons').hide();
+    }
+
+    $('#emobutton').on('click', function(e) {
+      $('#emoticons').show();
+      $('#emoticons img').on('click', emo);
+      $(document).on('click', cancelemo);
+      return false;
+    });
+
+    function spc(e) {
+      var c = $(e.target).html();
+      var pos = c.search(/[FC]$/);
+      if (pos === -1) {
+        insert(c);
+      } else {
+        temperature(c.charAt(pos));
+      }      
+      $(document).off('click', cancelspc);
+      $('#specialchars span').off('click', spc);
+      $('#specialchars').hide();
+      return false;
+    }
+
+    function cancelspc(e) {
+      $('#specialchars span').off('click', spc);
+      $(document).off('click', cancelspc);
+      $('#specialchars').hide();
+    }
+
+    $('#spcbutton').on('click', function(e) {
+      $('#specialchars').show();
+      $('#specialchars span').on('click', spc);
+      $(document).on('click', cancelspc);
+      return false;
     });
 
   }); // end document ready
@@ -253,7 +301,7 @@
       var ss = el.selectionStart;
       el.value = el.value.substring(0, ss) + str + el.value.substring(el.selectionEnd, el.value.length);
       el.selectionStart = el.selectionEnd = ss + str.length;
-    } else {
+    } else {  // IE
       document.selection.createRange().text = str;
     }
   }
@@ -315,5 +363,28 @@
       document.selection.createRange().text = '<a href="' + lurl + '" target="_blank">'+ selected + '</a>';
     }
   }
+
+  function temperature(unit) {  // insert str into message
+    var el = $('#messageInput')[0];
+    var sel;
+    el.focus();
+    if (el.setSelectionRange) { // not IE
+      var ss = el.selectionStart;
+      var se = el.selectionEnd;
+      var sel = el.value.substring(ss, se);
+      var m = ((sel.length === 0) ? el.value.substring(0, ss) : sel).match(/[\d.]+$/);
+      var str = (m === null || m.length !== 1) ? '&deg;'+unit : (unit === 'C' ?
+          (sel.length !== 0 ? m[0] : '') + '&deg;C (' + (Math.round((+m[0] * 18.0) + 320.0) / 10.0) + '&deg;F)' :
+          (sel.length !== 0 ? m[0] : '') + '&deg;F (' + (Math.round((+m[0] - 32.0) * (50.0 / 9.0)) / 10.0) + '&deg;C)');
+      el.value = el.value.substring(0, ss) + str + el.value.substring(el.selectionEnd, el.value.length);
+      el.selectionStart = el.selectionEnd = ss + str.length;
+    } else {  // IE
+      var iesel = document.selection.createRange().text;
+      document.selection.createRange().text = = sel.length === 0 ? '&deg'+unit : (unit === 'C' ?
+          iesel + '&deg;C (' + (Math.round((+iesel * 18.0) + 320.0) / 10.0) + '&deg;F)' :
+          iesel + '&deg;F (' + (Math.round((+iesel - 32.0) * (50.0 / 9.0)) / 10.0) + '&deg;C)');
+    }
+  }
+
 
 }(jQuery));

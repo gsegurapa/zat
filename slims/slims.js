@@ -52,7 +52,7 @@
         messages.push(snap.name());  // keep track of messages
         var newdiv = $('<div/>', {'class': 'msgdiv'}).
           append($('<strong/>').text(message.name)).
-          append($('<span/>', {'class': 'msgtime'}).data('mts', d).text(' - '+deltaTime((new Date()) - d)+' ago')).
+          append($('<span/>', {'class': 'msgtime'}).data('mts', d).html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
           append($('<div/>').html(message.text)).
           prependTo($('#messagesDiv'));
         if (lastseen < d) {
@@ -83,13 +83,14 @@
       var l = '';
       var lurker = '';
       var lurktime = 0;
+      shame = [];
       snap.forEach(function(csnap) {
         var name = csnap.name();
         var onval = csnap.val().online;
+        shame.push({ name: name, online: onval });
         if (name !== id) {  // not me
-          shame.push({ name: name, online: onval });
           if (onval === true) {
-            l += ' '+name;  // list of online users
+            l += (l.length === 0 ? ' ' : ', ')+name;  // list of online users
           } else {
             if (lurktime < +onval) { // most recent lurker
               lurker = name;

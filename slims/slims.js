@@ -380,7 +380,7 @@
       el.selectionStart = el.selectionEnd = ss + str.length;
     } else {  // IE
       var iesel = document.selection.createRange().text;
-      document.selection.createRange().text = = sel.length === 0 ? '&deg'+unit : (unit === 'C' ?
+      document.selection.createRange().text = sel.length === 0 ? '&deg'+unit : (unit === 'C' ?
           iesel + '&deg;C (' + (Math.round((+iesel * 18.0) + 320.0) / 10.0) + '&deg;F)' :
           iesel + '&deg;F (' + (Math.round((+iesel - 32.0) * (50.0 / 9.0)) / 10.0) + '&deg;C)');
     }

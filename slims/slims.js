@@ -7,7 +7,7 @@
 	"use strict";
 
   var DATABASE = 'https://jrslims.firebaseIO.com/';
-  var KEEPNUM = 150;  // number of posts to keep
+  var KEEPNUM = 250;  // number of posts to keep
   var KEEPTIME = 86400000;  // one day
 
   var id; // userid

@@ -64,7 +64,7 @@
       }
       if (me.lastseen !== undefined) { lastseen = me.lastseen; }
       if (me.work !== undefined) { work = me.work; }
-      $('#logo').attr('class', work ? 'work' : '');
+      $('#logo').attr('class', work ? '' : 'show');
 
       // get messages
       msgdb.on('child_added', function(snap) {
@@ -73,7 +73,8 @@
         messages.push(snap.name());  // keep track of messages
         var newdiv = $('<div/>', {'class': 'msgdiv'}).
           append($('<strong/>').text(message.name)).
-          append($('<span/>', {'class': 'msgtime'}).data('mts', d).html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
+          append($('<span/>', {'class': 'msgtime'}).data('mts', d).
+              html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
           append($('<div/>').html(message.text)).
           prependTo($('#messagesDiv'));
         if (d <= lastseen) {
@@ -90,7 +91,7 @@
         $('#kibbitz').css('opacity', 1.0);
         $('#status').text('');
         var meonoffdb = onoffdb.child(id);
-        meonoffdb.onDisconnect().update({ offline: Firebase.ServerValue.TIMESTAMP });  // time of disconnect
+        meonoffdb.onDisconnect().update({ offline: Firebase.ServerValue.TIMESTAMP });  // disconnect
         meonoffdb.update({ online: Firebase.ServerValue.TIMESTAMP }); // I am online now
       } else {  // offline
         online = false;
@@ -289,7 +290,7 @@
       $('#profile').show().on('click', cancelprofile).html(table);
       $('#work').change(function() {
         work = $(this).prop('checked');
-        $('#logo').attr('class', work ? 'work' : '');
+        $('#logo').attr('class', work ? '' : 'show');
         usrdb.update({work: work});
       });
     });
@@ -372,12 +373,6 @@
     if (params.avatar) { avatar = params.avatar; }
   }
 
-  // function setCookie(name, value) {
-  //   var date = new Date();
-  //   date.setTime(date.getTime() + 730*86400000); // 2 years
-  //   document.cookie = name+'='+value+'; expires='+date.toGMTString()+'; path='+window.location.pathname;
-  // }
-
   // functions for manipulating and formatting messages
   function insert(str) {  // insert str into message
     var el = $('#messageInput')[0];
@@ -449,7 +444,7 @@
     }
   }
 
-  function temperature(unit) {  // insert str into message
+  function temperature(unit) {  // insert temperatures into message
     var el = $('#messageInput')[0];
     el.focus();
     if (el.setSelectionRange) { // not IE

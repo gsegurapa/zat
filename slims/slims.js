@@ -294,7 +294,7 @@
       var now = new Date();
       $.each(shame, function(i, v) {
         var off = v.offline || v.online - 10;
-        table += '<tr><td class="'+(v.online > off ? 'uonline' : 'uoffline') +'">' + v.name + '</td><td>' +
+        table += '<tr class="'+(v.online > off ? 'uonline' : 'uoffline') +'"><td>' + v.name + '</td><td>' +
             (v.online > off ? 'online '+deltaTime(now - v.online) : 'offline '+deltaTime(now - off)) +
             '</td></tr>';
       });

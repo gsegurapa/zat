@@ -145,21 +145,23 @@
 
       while (messages.length > KEEPNUM) {  // might need to delete an old message
         var fdb = msgdb.child(messages[0]);
-        fdb.once('value', function(snap) {
-          console.log('deleted: ', snap.name());
-          var m = snap.val();
-          if ((new Date) - m.stamp > KEEPTIME) {
-            if (m.files && m.files.length > 0) { // need to delete uploaded files
-              $.each(m.files.split("\n"), function(i, v) {
-                $.get('delete.php?file='+v);
-              });
-            }
-            fdb.remove(); // delete message
-            messages.shift(); // remove first element
-          }
-        });
+        fdb.once('value', deletemsg);
       }
-    });
+
+      function deletemsg(snap) {  // delete message and associated files
+        // console.log('deleted: ', snap.name());
+        var m = snap.val();
+        if ((new Date()) - m.stamp > KEEPTIME) {
+          if (m.files && m.files.length > 0) { // need to delete uploaded files
+            $.each(m.files.split("\n"), function(i, v) {
+              $.get('delete.php?file='+v);
+            });
+          }
+          fdb.remove(); // delete message
+          messages.shift(); // remove first element
+        }
+      }
+    }); // end click on kibbitz button (post new message)
 
     // formatting buttons
     $('#formatbuttons').on('click', 'span.button', function(e) {
@@ -216,13 +218,13 @@
       return false;
     }
 
-    function cancelemo(e) {
+    function cancelemo() {
       $(document).off('click', cancelemo);
       $('#emoticons img').off('click', emo);
       $('#emoticons').hide();
     }
 
-    $('#emobutton').on('click', function(e) {
+    $('#emobutton').on('click', function() {
       $('#emoticons').show();
       $('#emoticons img').on('click', emo);
       $(document).on('click', cancelemo);
@@ -244,13 +246,13 @@
       return false;
     }
 
-    function cancelspc(e) {
+    function cancelspc() {
       $('#specialchars span').off('click', spc);
       $(document).off('click', cancelspc);
       $('#specialchars').hide();
     }
 
-    $('#spcbutton').on('click', function(e) {
+    $('#spcbutton').on('click', function() {
       $('#specialchars').show();
       $('#specialchars span').on('click', spc);
       $(document).on('click', cancelspc);
@@ -258,17 +260,17 @@
     });
 
     // Hall of Shame
-    $('#others').click(function(e) {
+    $('#others').click(function() {
       var table = '<table><tr><td></td><td><img src="img/eye.gif" /></td></tr>';
       shame.sort(comptime);
-      var now = new Date;
+      var now = new Date();
       $.each(shame, function(i, v) {
         table += '<tr><td>' + v.name + '</td><td>' + (v.online === true ? 'online' : deltaTime(now - v.online)) + '</td></tr>';
-      })
+      });
       $('#shame').show().on('click', cancelshame).html(table + '</table>');
     });
 
-    function cancelshame(e) {
+    function cancelshame() {
       $('#shame').off('click', cancelshame).hide();
     }
 
@@ -402,7 +404,6 @@
 
   function temperature(unit) {  // insert str into message
     var el = $('#messageInput')[0];
-    var sel;
     el.focus();
     if (el.setSelectionRange) { // not IE
       var ss = el.selectionStart;
@@ -416,7 +417,7 @@
       el.selectionStart = el.selectionEnd = ss + str.length;
     } else {  // IE
       var iesel = document.selection.createRange().text;
-      document.selection.createRange().text = sel.length === 0 ? '&deg'+unit : (unit === 'C' ?
+      document.selection.createRange().text = iesel.length === 0 ? '&deg'+unit : (unit === 'C' ?
           iesel + '&deg;C (' + (Math.round((+iesel * 18.0) + 320.0) / 10.0) + '&deg;F)' :
           iesel + '&deg;F (' + (Math.round((+iesel - 32.0) * (50.0 / 9.0)) / 10.0) + '&deg;C)');
     }

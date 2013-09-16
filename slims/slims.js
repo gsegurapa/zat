@@ -196,9 +196,7 @@
         case 'Size':        wrap('<font size="+2">', '</font>'); break;
         case 'Block Quote': wrap('<blockquote>', '</blockquote>'); break;
       }
-    }). // color button blue during click
-      on('mousedown', 'span.button', function(e) { $(e.target).css('background-color', '#bbf'); }).
-      on('mouseup', 'span.button', function(e) { $(e.target).css('background-color', 'white'); });
+    });
 
     // click to mark post as read
     $('#messagesDiv').on('click', '.msgdiv', function() {

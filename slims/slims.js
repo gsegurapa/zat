@@ -25,20 +25,22 @@
 
   // getParams('?'+document.cookie); // params from cookies
 
-  if (window.location.search.search(/^\?[\w ]{1,}$/) === 0) {
-    id = decodeURIComponent(window.location.search.slice(1));
+  if (window.location.search.search(/^\?[\w% ]{1,}$/) === 0) {
+    id = $.trim(decodeURIComponent(window.location.search.slice(1)));
+  } else if (window.location.hash.search(/^#[\w% ]{1,}$/) === 0) {
+    id = $.trim(decodeURIComponent(window.location.hash.slice(1)));
   } else {
     getParams(window.location.href); // params from URL
   }
 
   // determine user id
   while (id.search(/^[\w ]{1,}$/) !== 0) {
-    var t = prompt('Enter your ID');
-    if (t.length > 0) {
-      id = t;
-      // window.location.search = id;
-      // setCookie('id', id);
+    var t = $.trim(prompt('Enter your ID (containing A-Z a-z 0-9 _ space):', id));
+    if (t.length === 0) {
+      t = 'INVALID';
+      window.location.href = 'http://jrslims.com';
     }
+    id = t;
   }
 
   $(document).ready(function() {
@@ -144,11 +146,11 @@
       if (!online) { return; }  // do nothing if not online (should save message!)
       var name = $('#user').text();
       var mess = $('#messageInput').val();
-      if (mess.length > 0 || files.length > 0) {
+      if (mess.length > 0 || files.length > 0) {  // files uploaded, but no message
         if (mess.length === 0) {
           mess = 'Attachments:';
           $.each(files, function(i, v) {
-            mess += ' '+v;
+            mess += ' <a href="'+v+'" target="_blank">'+v+'</a>';
           });
         }
         msgdb.push({
@@ -467,6 +469,5 @@
           iesel + '&deg;F (' + (Math.round((+iesel - 32.0) * (50.0 / 9.0)) / 10.0) + '&deg;C)');
     }
   }
-
 
 }(jQuery));

@@ -22,6 +22,9 @@ a:visited { color: #400040;}
 	height: 70px;
 	margin: 0 auto;
 }
+#logo.work {
+	display: none;
+}
 #user {
 	font-weight: bold;
 }
@@ -88,7 +91,7 @@ span#specialchars {
 .userimg {
 	max-width: 95%;
 }
-#shame {
+#profile, #shame {
 	position: absolute;
 	display: none;
 	border: solid black 1px;
@@ -98,18 +101,30 @@ span#specialchars {
 	background-position: right top;
 	background-repeat: no-repeat;
 	box-shadow: 5px 5px 3px #666;
-	right: 1em;
 	padding: 4px;
+	z-index: 1000;
 }
-#shame table td:first-child {
-	text-align: right;
+#profile {
+	left: 1em;
+}
+#shame {
+	right: 1em;
+}
+td.uonline {
 	font-weight: bold;
+}
+td.uoffline {
+	font-style: italic;
+}
+#shame table td:first-child, #profile table td:first-child {
+	text-align: right;
 }
 </style>
 </head>
 <body>
 	<img id="logo" src="img/title.gif" title="Jack Rabbit Slim's" />
 	<span id="user" class="button">?</span>
+	<div id="profile"></div>
 	<span id="others" class="button"></span>
 	<div id="shame"></div>
 	<textarea id="messageInput" placeholder="Message" rows="3"></textarea>

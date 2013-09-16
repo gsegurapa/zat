@@ -11,6 +11,10 @@
   var KEEPTIME = 86400000;  // one day
 
   var id; // userid
+  var work = false; // work mode
+  var email = '';  // email address
+  var avatar = ''; // user icon
+
   var me; // user object
   var lastseen = 0; // last post I've seen
   var online = true;  // am I connected to Firebase?
@@ -35,10 +39,14 @@
   var firebasedb = new Firebase(DATABASE);
   var connectdb = firebasedb.child('.info/connected'); // connected
   var msgdb = firebasedb.child('messages'); // list of messages
+  var onoffdb = firebasedb.child('onoff');
   var usersdb = firebasedb.child('users');  // all user profiles
   var usrdb = usersdb.child(id);  // my profile
 
+
   $(document).ready(function() {
+
+    $('#logo').attr('class', work ? 'work' : '');
 
     // get user profile
     usrdb.once('value', function(snap) {
@@ -68,9 +76,9 @@
         online = true;
         $('#kibbitz').css('opacity', 1.0);
         $('#status').text('');
-        var onlinedb = usrdb.child('online');
-        onlinedb.onDisconnect().set(Firebase.ServerValue.TIMESTAMP);  // time of disconnect
-        onlinedb.set(true); // I am online
+        var meonoffdb = onoffdb.child(id);
+        meonoffdb.onDisconnect().update({ offline: Firebase.ServerValue.TIMESTAMP });  // time of disconnect
+        meonoffdb.update({ online: Firebase.ServerValue.TIMESTAMP }); // I am online now
       } else {  // offline
         online = false;
         $('#kibbitz').css('opacity', 0.3);  // dim kibbitz button
@@ -79,28 +87,29 @@
     });
 
     // manage list of online users
-    usersdb.on('value', function(snap) {
+    onoffdb.on('value', function(snap) {
       var l = '';
       var lurker = '';
       var lurktime = 0;
       shame = [];
       snap.forEach(function(csnap) {
         var name = csnap.name();
-        var onval = csnap.val().online;
-        shame.push({ name: name, online: onval });
+        var onoffval = csnap.val();
+        shame.push({ name: name, online: onoffval.online, offline: onoffval.offline });
         if (name !== id) {  // not me
-          if (onval === true) {
+          if (onoffval.online > onoffval.offline) {
             l += (l.length === 0 ? ' ' : ', ')+name;  // list of online users
           } else {
-            if (lurktime < +onval) { // most recent lurker
+            var offnum = +onoffval.offline;
+            if (lurktime < offnum) { // most recent lurker
               lurker = name;
-              lurktime = +onval;
+              lurktime = offnum;
             }
           }
         }
       });
       $('#others').text(l.length > 0 ? 'Connected: ' + l :
-        'Last lurk: ' + lurker + ' - ' + deltaTime(new Date() - lurktime) + ' ago');
+        'Last lurk: ' + (lurktime === 0 ? 'none' : lurker ));
     });
 
     $('#user').text(id);
@@ -259,28 +268,52 @@
       return false;
     });
 
+    // Profile
+    $('#user').click(function() {
+      var table = '<table><tr><td><b>Profile</b></td><td></td></tr><tr><td>ID</td><td>'+id+
+          '</td></tr><tr><td>Email</td><td><input id="email" type="text" value="'+
+          email+'" /></td></tr><tr><td>Work</td><td><input id="work" type="checkbox" '+
+          (work ? 'checked="checked" ' : '')+' /></td></tr><tr><td>Avatar</td><td><img src="'+
+          avatar+'" width="39" height="50" /></td></tr></table>';
+      $('#profile').show().on('click', cancelprofile).html(table);
+      $('#work').change(function() {
+        work = $(this).prop('checked');
+        $('#logo').attr('class', work ? 'work' : '');
+        setCookie('work', work);
+      });
+    });
+
+    function cancelprofile() {
+      $('#profile').off('click', cancelprofile).hide(500);
+    }
+
     // Hall of Shame
     $('#others').click(function() {
       var table = '<table><tr><td></td><td><img src="img/eye.gif" /></td></tr>';
       shame.sort(comptime);
       var now = new Date();
       $.each(shame, function(i, v) {
-        table += '<tr><td>' + v.name + '</td><td>' + (v.online === true ? 'online' : deltaTime(now - v.online)) + '</td></tr>';
+        var off = v.offline || v.online - 10;
+        table += '<tr><td class="'+(v.online > off ? 'uonline' : 'uoffline') +'">' + v.name + '</td><td>' +
+            (v.online > off ? 'online '+deltaTime(now - v.online) : 'offline '+deltaTime(now - off)) +
+            '</td></tr>';
       });
       $('#shame').show().on('click', cancelshame).html(table + '</table>');
     });
 
     function cancelshame() {
-      $('#shame').off('click', cancelshame).hide();
+      $('#shame').off('click', cancelshame).hide(500);
     }
 
     function comptime(a, b) {
-      if (a.online === true && b.online === true) {
-        return a.name < b.name ? -1 : 1;
+      var aon = a.online > a.offline;
+      var bon = b.online > b.offline;
+      if (aon && bon) {
+        return b.online - a.online;
       }
-      if (a.online === true) { return -1; }
-      if (b.online === true) { return 1; }
-      return b.online - a.online;
+      if (aon) { return -1; }
+      if (bon) { return 1; }
+      return b.offline - a.offline;
     }
 
   }); // end document ready
@@ -323,6 +356,9 @@
         function(m,key,value) { params[key] = value; });
 
     if (params.id) { id = params.id; }
+    if (params.email) { email = params.email; }
+    if (params.work) { work = params.work === 'true'; }
+    if (params.avatar) { avatar = params.avatar; }
   }
 
   function setCookie(name, value) {

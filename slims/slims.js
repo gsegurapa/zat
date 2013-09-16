@@ -10,7 +10,7 @@
   var KEEPNUM = 250;  // number of posts to keep
   var KEEPTIME = 86400000;  // one day
 
-  var id; // userid
+  var id = ''; // userid
   var work = false; // work mode
   var email = '';  // email address
   var avatar = ''; // user icon
@@ -23,35 +23,46 @@
   var shiftkey = false;  // is shift key down?
   var shame = []; // hall of shame users
 
-  getParams('?'+document.cookie); // params from cookies
-  getParams(window.location.href); // params from URL override
+  // getParams('?'+document.cookie); // params from cookies
+
+  if (window.location.search.search(/^\?[\w ]{1,}$/) === 0) {
+    id = decodeURIComponent(window.location.search.slice(1));
+  } else {
+    getParams(window.location.href); // params from URL
+  }
 
   // determine user id
-  if (id === undefined) {
-    var t = prompt('Enter your id');
+  while (id.search(/^[\w ]{1,}$/) !== 0) {
+    var t = prompt('Enter your ID');
     if (t.length > 0) {
       id = t;
-      setCookie('id', id);
+      // window.location.search = id;
+      // setCookie('id', id);
     }
   }
 
-  // firebase references
-  var firebasedb = new Firebase(DATABASE);
-  var connectdb = firebasedb.child('.info/connected'); // connected
-  var msgdb = firebasedb.child('messages'); // list of messages
-  var onoffdb = firebasedb.child('onoff');
-  var usersdb = firebasedb.child('users');  // all user profiles
-  var usrdb = usersdb.child(id);  // my profile
-
-
   $(document).ready(function() {
 
-    $('#logo').attr('class', work ? 'work' : '');
+    // firebase references
+    var firebasedb = new Firebase(DATABASE);
+    var connectdb = firebasedb.child('.info/connected'); // connected
+    var msgdb = firebasedb.child('messages'); // list of messages
+    var onoffdb = firebasedb.child('onoff');
+    var usersdb = firebasedb.child('users');  // all user profiles
+    var usrdb = usersdb.child(id);  // my profile
 
-    // get user profile
+
+    // get user profile and messages
     usrdb.once('value', function(snap) {
       me = snap.val();  // user profile
-      lastseen = me.lastseen || 0;
+      if (me === null) {
+        me = { lastseen: 0 };
+        usrdb.set(me);
+        $('#user').click();
+      }
+      if (me.lastseen !== undefined) { lastseen = me.lastseen; }
+      if (me.work !== undefined) { work = me.work; }
+      $('#logo').attr('class', work ? 'work' : '');
 
       // get messages
       msgdb.on('child_added', function(snap) {
@@ -66,9 +77,9 @@
         if (lastseen < d) {
           newdiv.css('background-color', '#ffc');
         }
-      });
+      }); // end get messages
 
-    }); // end get user profile and messages
+    }); // end get user profile
 
     // manage whether I am connected or not, and timestamp when I disconnect
     connectdb.on('value', function(snap) {
@@ -279,7 +290,7 @@
       $('#work').change(function() {
         work = $(this).prop('checked');
         $('#logo').attr('class', work ? 'work' : '');
-        setCookie('work', work);
+        usrdb.update({work: work});
       });
     });
 
@@ -361,11 +372,11 @@
     if (params.avatar) { avatar = params.avatar; }
   }
 
-  function setCookie(name, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 730*86400000); // 2 years
-    document.cookie = name+'='+value+'; expires='+date.toGMTString()+'; path='+window.location.pathname;
-  }
+  // function setCookie(name, value) {
+  //   var date = new Date();
+  //   date.setTime(date.getTime() + 730*86400000); // 2 years
+  //   document.cookie = name+'='+value+'; expires='+date.toGMTString()+'; path='+window.location.pathname;
+  // }
 
   // functions for manipulating and formatting messages
   function insert(str) {  // insert str into message

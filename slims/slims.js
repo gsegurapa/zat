@@ -74,7 +74,7 @@
           append($('<span/>', {'class': 'msgtime'}).data('mts', d).html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
           append($('<div/>').html(message.text)).
           prependTo($('#messagesDiv'));
-        if (lastseen < d) {
+        if (d <= lastseen) {
           newdiv.css('background-color', '#ffc');
         }
       }); // end get messages
@@ -201,8 +201,8 @@
     // click to mark post as read
     $('#messagesDiv').on('click', '.msgdiv', function() {
       var $this = $(this);
-      lastseen = $this.css('background-color', '#fff').find('.msgtime').data('mts');
-      $this.nextAll().css('background-color', '#fff');
+      lastseen = $this.css('background-color', '#ffc').find('.msgtime').data('mts');
+      $this.nextAll().css('background-color', '#ffc');
       usrdb.update({'lastseen': lastseen});
       uptime();
     });

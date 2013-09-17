@@ -229,9 +229,11 @@
     // click to mark post as read
     $('#messagesDiv').on('click', '.msgdiv', function() {
       var $this = $(this);
-      lastseen = $this.css('background-color', '#ffc').find('.msgtime').data('mts');
-      $this.nextAll().css('background-color', '#ffc');
-      setTimeout(function() { usrdb.update({'lastseen': lastseen}); }, 10);
+      var mts = $this.find('.msgtime').data('mts');
+      if (mts > lastseen) {
+        $this.css('background-color', '#ffc').nextAll().css('background-color', '#ffc');
+        setTimeout(function() { usrdb.update({'lastseen': lastseen}); }, 10);
+      }
       uptime();
     });
 

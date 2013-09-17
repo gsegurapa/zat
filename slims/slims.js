@@ -73,7 +73,7 @@
         var message = snap.val();
         var d = message.stamp; // new Date(message.stamp);
         var memail = message.email || '';
-        var name = memail ? '<a href="mailto:'+email+'">'+message.name+'</a>' : message.name;
+        var name = memail ? '<a href="mailto:'+memail+'">'+message.name+'</a>' : message.name;
         messages.push(snap.name());  // keep track of messages
         var newdiv = $('<div/>', {'class': 'msgdiv'}).
           append($('<strong/>').html(name)).
@@ -292,8 +292,8 @@
           '<table><tr><td></td></tr><tr><td><span class="Ptext">rofile </span></td><td><span class="Ptext">for&nbsp;'+id+
           '</span></td></tr><tr><td>Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
           ' /></td></tr><tr><td>Email:</td><td><input id="email" type="text" value="'+
-          email+'" /></td></tr><tr><td>Avatar:</td><td><img src="'+
-          avatar+'" width="39" height="50" /></td></tr></table>';
+          email+'" /></td></tr><tr><td>Avatar:</td><td><img id="avatar" src="'+
+          avatar+'" width="39" height="50" /></td></tr></table><div id="cloakroom"></div>';
       $('#profile').show().on('click', 'img.close', cancelprofile).html(table);
       $('#work').change(function() {
         work = $(this).prop('checked');
@@ -304,6 +304,20 @@
         email = $.trim($(this).val());
         usrdb.update({email: email});
       });
+      $('#avatar').on('click', function() {
+        if ($('#cloakroom img').length > 0) { return; }
+        $.each(slimages, function(k, v) {
+          $('<img/>', { src: 'avatars/'+k, title: v }).appendTo('#cloakroom');
+        });
+        $('#cloakroom img').on('click', function() {
+          avatar = $(this).attr('src');
+          var title = $(this).attr('title');
+          $('#avatar').attr('src', avatar);
+          usrdb.update({ avatar: avatar, title: title });
+          $('#cloakroom').empty();
+        })
+      });
+
     });
 
     function cancelprofile() {

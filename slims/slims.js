@@ -175,11 +175,11 @@
         var post = {
           name: name,
           text: mess.replace(/\r\n|[\n\r\x85]/g, '<br />'), // newline -> break
-          stamp: Firebase.ServerValue.TIMESTAMP,
-          files: files.join("\n")
+          stamp: Firebase.ServerValue.TIMESTAMP
         };
         if (email) { post.email = email; }
         if (avatar) { post.avatar = avatar; }
+        if (files.length > 0) { post.files = files.join("\n"); }
         // msgdb.push(post);
         var msgRef = msgdb.push();
         msgRef.setWithPriority(post, Firebase.ServerValue.TIMESTAMP);

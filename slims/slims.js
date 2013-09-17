@@ -20,7 +20,7 @@
   var me; // user object
   var lastseen = 0; // last post I've seen
   var online = true;  // am I connected to Firebase?
-  var messages = [];  // message names
+  var messageBodies = {};  // message bodies, keyed by Firebase name
   var files = []; // uploaded files for a message
   var shiftkey = false;  // is shift key down?
   var shame = []; // hall of shame users
@@ -112,7 +112,6 @@
       if (me.email !== undefined) { email = me.email; }
       if (me.avatar !== undefined) { avatar = me.avatar; }
 
-      // msgdb.endAt().limit(250).on('child_added', getmessages); // start getting messages
       msgdb.on('child_added', getmessages); // start getting messages
       msgdb.on('child_removed', dropmessages);  // remove from messages list
     }); // end get user profile
@@ -122,7 +121,6 @@
       var d = message.stamp; // new Date(message.stamp);
       var memail = message.email || '';
       var name = memail ? '<a href="mailto:'+memail+'">'+message.name+'</a>' : message.name;
-      messages.push(snap.name());  // keep track of messages
       var newdiv = $('<div/>', { id: snap.name(), 'class': 'msgdiv' });
       if (message.avatar) {
         $('<img/>', { 'class': 'avatar'+(work ? '' : ' show'), src: message.avatar }).appendTo(newdiv);
@@ -132,17 +130,23 @@
             html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
         append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
         prependTo($('#messagesDiv'));
+      messageBodies[snap.name()] = newdiv.html();  // keep track of messages
       if (d <= lastseen) {
         newdiv.css('background-color', '#ffc');
       }
     } // end get messages
 
     function dropmessages(snap) { // sync from Firebase
-      var idx = messages.indexOf(snap.name());
-      if (idx >= 0) { // found
-        messages.splice(idx, 1);  // remove from messages list
+      var name = snap.name();
+      var msgbody = messageBodies[name];
+      if (msgbody !== undefined) {
+        delete messageBodies[name];
       }
-      $('#'+snap.name()).remove();  // remove message from DOM
+      // var idx = messageBodies.indexOf(snap.name());
+      // if (idx >= 0) { // found
+      //   messageBodies.splice(idx, 1);  // remove from messages list
+      // }
+      $('#'+name).remove();  // remove message from DOM
     }
 
     // grow textarea automatically
@@ -190,13 +194,14 @@
       $('.qq-upload-list').empty(); // clear list of uploaded files
       $('.qq-upload-drop-area').hide(); // hide drop area if no files uploaded
 
-      if (messages.length > KEEPNUM) {  // might need to delete an old message
-        // dnum = Math.min(3, messages.length - KEEPNUM);
+      console.log(Object.keys(messageBodies).length);
+      if (Object.keys(messageBodies).length > KEEPNUM) {  // might need to delete an old message
+        // dnum = Math.min(3, messageBodies.length - KEEPNUM);
         // var olddb = msgdb.endAt(tsp);
-        msgdb.once('child_added', oldmsg);
+        msgdb.once('child_added', removemsg);
       }
 
-      function oldmsg(snap) { // delete old message and files
+      function removemsg(snap) { // delete old message and files
         var m = snap.val();
         if (snap.val().stamp < (new Date()) - KEEPTIME) {  // should use priority
           // console.log('remove', snap.name());
@@ -410,7 +415,7 @@
       var el = $(this);
       el.text(' - '+deltaTime(now-el.data('mts'))+' ago');
     });
-    // console.log(messages.length);
+    // console.log(messageBodies.length);
   }
 
   function getParams(p) { // read from URL parameters or cookie

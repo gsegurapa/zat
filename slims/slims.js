@@ -8,13 +8,15 @@
 
   var DATABASE = 'https://jrslims.firebaseIO.com/';
   var KEEPNUM = 250;  // number of posts to keep
-  var KEEPTIME = 86400000;  // one day
+  var KEEPTIME = 86400000;  // keep posts for one day
 
+  // profile data
   var id = ''; // userid
   var work = false; // work mode
   var email = '';  // email address
   var avatar = ''; // user icon
 
+  // global variables
   var me; // user object
   var lastseen = 0; // last post I've seen
   var online = true;  // am I connected to Firebase?
@@ -22,8 +24,6 @@
   var files = []; // uploaded files for a message
   var shiftkey = false;  // is shift key down?
   var shame = []; // hall of shame users
-
-  // getParams('?'+document.cookie); // params from cookies
 
   if (window.location.search.search(/^\?[\w% ]{1,}$/) === 0) {
     id = $.trim(decodeURIComponent(window.location.search.slice(1)));
@@ -65,14 +65,18 @@
       if (me.lastseen !== undefined) { lastseen = me.lastseen; }
       if (me.work !== undefined) { work = me.work; }
       $('#logo').attr('class', work ? '' : 'show');
+      if (me.email !== undefined) { email = me.email; }
+      if (me.avatar != undefined) { avatar = me.avatar; }
 
       // get messages
       msgdb.on('child_added', function(snap) {
         var message = snap.val();
         var d = message.stamp; // new Date(message.stamp);
+        var memail = message.email || '';
+        var name = memail ? '<a href="mailto:'+email+'">'+message.name+'</a>' : message.name;
         messages.push(snap.name());  // keep track of messages
         var newdiv = $('<div/>', {'class': 'msgdiv'}).
-          append($('<strong/>').text(message.name)).
+          append($('<strong/>').html(name)).
           append($('<span/>', {'class': 'msgtime'}).data('mts', d).
               html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
           append($('<div/>').html(message.text)).
@@ -154,12 +158,14 @@
             mess += ' <a href="'+v+'" target="_blank">'+v+'</a>';
           });
         }
-        msgdb.push({
+        var post = {
           name: name,
           text: mess.replace(/\r\n|[\n\r\x85]/g, '<br />'), // newline -> break
           stamp: Firebase.ServerValue.TIMESTAMP,
           files: files.join("\n")
-        });
+        };
+        if (email) { post.email = email; }
+        msgdb.push(post);
         $('#messageInput').val(''); // clear message text
       }
       uptime();
@@ -282,26 +288,32 @@
 
     // Profile
     $('#user').click(function() {
-      var table = '<table><tr><td><b>Profile</b></td><td></td></tr><tr><td>ID</td><td>'+id+
-          '</td></tr><tr><td>Email</td><td><input id="email" type="text" value="'+
-          email+'" /></td></tr><tr><td>Work</td><td><input id="work" type="checkbox" '+
-          (work ? 'checked="checked" ' : '')+' /></td></tr><tr><td>Avatar</td><td><img src="'+
+      var table = '<img class="close" src="img/close_icon.gif" /><img id="Pimg" src="img/profile.png" />'+
+          '<table><tr><td></td></tr><tr><td><span class="Ptext">rofile </span></td><td><span class="Ptext">for&nbsp;'+id+
+          '</span></td></tr><tr><td>Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
+          ' /></td></tr><tr><td>Email:</td><td><input id="email" type="text" value="'+
+          email+'" /></td></tr><tr><td>Avatar:</td><td><img src="'+
           avatar+'" width="39" height="50" /></td></tr></table>';
-      $('#profile').show().on('click', cancelprofile).html(table);
+      $('#profile').show().on('click', 'img.close', cancelprofile).html(table);
       $('#work').change(function() {
         work = $(this).prop('checked');
         $('#logo').attr('class', work ? '' : 'show');
         usrdb.update({work: work});
       });
+      $('#email').change(function() {
+        email = $.trim($(this).val());
+        usrdb.update({email: email});
+      });
     });
 
     function cancelprofile() {
-      $('#profile').off('click', cancelprofile).hide(500);
+      $('#profile').off('click', 'img.close', cancelprofile).hide(300);
     }
 
     // Hall of Shame
     $('#others').click(function() {
-      var table = '<table><tr><td></td><td><img src="img/eye.gif" /></td></tr>';
+      var table = '<img class="close" src="img/close_icon.gif" />'+
+          '<table><tr><td>Hall Of<br />Shame</td><td><img src="img/eye.gif" /></td></tr>';
       shame.sort(comptime);
       var now = new Date();
       $.each(shame, function(i, v) {
@@ -310,11 +322,11 @@
             (v.online > off ? 'online '+deltaTime(now - v.online) : 'offline '+deltaTime(now - off)) +
             '</td></tr>';
       });
-      $('#shame').show().on('click', cancelshame).html(table + '</table>');
+      $('#shame').show().on('click', 'img.close', cancelshame).html(table + '</table>');
     });
 
     function cancelshame() {
-      $('#shame').off('click', cancelshame).hide(500);
+      $('#shame').off('click', 'img.close', cancelshame).hide(300);
     }
 
     function comptime(a, b) {
@@ -464,5 +476,20 @@
           iesel + '&deg;F (' + (Math.round((+iesel - 32.0) * (50.0 / 9.0)) / 10.0) + '&deg;C)');
     }
   }
+
+  var slimages = {
+    'El0812.jpg': 'Ellen Hanrahan, El, Red',
+    'Jen04.jpg': 'Jennifer K Longstaff, Jenn, jkl',
+    'wm.jpg': 'Wm Leler',
+    'wayne.gif': 'Wayne Hale, Zulu',
+    'darroll.jpg': 'Darroll Evans, Buckwheat',
+    'lorenboston.jpg': 'Loren Lacy',
+    'julie.gif': 'Julie Hardin',
+    'stilts.jpg': 'Dave Hill, Stiltskin',
+    'kbh_2008.jpg': 'Kristen (Bendon) Hyman, Babe',
+    'pippa.jpg': 'Pippa, Cyndy, dolliedish',
+    'margarita.jpg': 'Margarita Remus, M',
+    'leslie11.jpg': 'Leslie, GeecheeGirl'
+  };
 
 }(jQuery));

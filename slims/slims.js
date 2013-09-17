@@ -45,6 +45,8 @@
 
   $(document).ready(function() {
 
+    $('#user').text(id);
+
     // firebase references
     var firebasedb = new Firebase(DATABASE);
     var connectdb = firebasedb.child('.info/connected'); // connected
@@ -52,44 +54,6 @@
     var onoffdb = firebasedb.child('onoff');
     var usersdb = firebasedb.child('users');  // all user profiles
     var usrdb = usersdb.child(id);  // my profile
-
-
-    // get user profile and messages
-    usrdb.once('value', function(snap) {
-      me = snap.val();  // user profile
-      if (me === null) {
-        me = { lastseen: 0 };
-        setTimeout(function() { usrdb.set(me); }, 10);
-        $('#user').click();
-      }
-      if (me.lastseen !== undefined) { lastseen = me.lastseen; }
-      if (me.work !== undefined) { work = me.work; }
-      $('#logo').attr('class', work ? '' : 'show');
-      if (me.email !== undefined) { email = me.email; }
-      if (me.avatar !== undefined) { avatar = me.avatar; }
-
-      msgdb.on('child_added', getmessages); // start getting messages
-    }); // end get user profile
-
-    function getmessages(snap) {  // get messages
-      var message = snap.val();
-      var d = message.stamp; // new Date(message.stamp);
-      var memail = message.email || '';
-      var name = memail ? '<a href="mailto:'+memail+'">'+message.name+'</a>' : message.name;
-      messages.push(snap.name());  // keep track of messages
-      var newdiv = $('<div/>', {'class': 'msgdiv'});
-      if (message.avatar) {
-        $('<img/>', { 'class': 'avatar'+(work ? '' : ' show'), src: message.avatar }).appendTo(newdiv);
-      }
-      newdiv.append($('<strong/>').html(name)).
-        append($('<span/>', {'class': 'msgtime'}).data('mts', d).
-            html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
-        append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
-        prependTo($('#messagesDiv'));
-      if (d <= lastseen) {
-        newdiv.css('background-color', '#ffc');
-      }
-    } // end get messages
 
     // manage whether I am connected or not, and timestamp when I disconnect
     connectdb.on('value', function(snap) {
@@ -108,6 +72,7 @@
     });
 
     // manage list of online users
+    // should use 'child changed' event instead of reprocessing the entire value !!!
     onoffdb.on('value', function(snap) {
       var l = '';
       var lurker = '';
@@ -133,7 +98,52 @@
         'Last lurk: ' + (lurktime === 0 ? 'none' : lurker ));
     });
 
-    $('#user').text(id);
+    // get user profile and messages
+    usrdb.once('value', function(snap) {
+      me = snap.val();  // user profile
+      if (me === null) {
+        me = { lastseen: 0 };
+        setTimeout(function() { usrdb.set(me); }, 10);
+        $('#user').click();
+      }
+      if (me.lastseen !== undefined) { lastseen = me.lastseen; }
+      if (me.work !== undefined) { work = me.work; }
+      $('#logo').attr('class', work ? '' : 'show');
+      if (me.email !== undefined) { email = me.email; }
+      if (me.avatar !== undefined) { avatar = me.avatar; }
+
+      // msgdb.endAt().limit(250).on('child_added', getmessages); // start getting messages
+      msgdb.on('child_added', getmessages); // start getting messages
+      msgdb.on('child_removed', dropmessages);  // remove from messages list
+    }); // end get user profile
+
+    function getmessages(snap) {  // get messages
+      var message = snap.val();
+      var d = message.stamp; // new Date(message.stamp);
+      var memail = message.email || '';
+      var name = memail ? '<a href="mailto:'+memail+'">'+message.name+'</a>' : message.name;
+      messages.push(snap.name());  // keep track of messages
+      var newdiv = $('<div/>', { id: snap.name(), 'class': 'msgdiv' });
+      if (message.avatar) {
+        $('<img/>', { 'class': 'avatar'+(work ? '' : ' show'), src: message.avatar }).appendTo(newdiv);
+      }
+      newdiv.append($('<strong/>').html(name)).
+        append($('<span/>', {'class': 'msgtime'}).data('mts', d).
+            html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
+        append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
+        prependTo($('#messagesDiv'));
+      if (d <= lastseen) {
+        newdiv.css('background-color', '#ffc');
+      }
+    } // end get messages
+
+    function dropmessages(snap) { // sync from Firebase
+      var idx = messages.indexOf(snap.name());
+      if (idx >= 0) { // found
+        messages.splice(idx, 1);  // remove from messages list
+      }
+      $('#'+snap.name()).remove();  // remove message from DOM
+    }
 
     // grow textarea automatically
     $('#messageInput').on('keyup keydown', function(e) {
@@ -150,12 +160,13 @@
       if (el.scrollHeight > el.clientHeight) { el.style.height = el.scrollHeight+'px'; }
     });
 
-    $('#kibbitz').click( function() {  // post new message
+    // post new message and delete old messages
+    $('#kibbitz').click( function() {
       if (!online) { return; }  // do nothing if not online (should save message!)
       var name = $('#user').text();
-      var mess = $('#messageInput').val();
-      if (mess.length > 0 || files.length > 0) {  // files uploaded, but no message
-        if (mess.length === 0) {
+      var mess = $.trim($('#messageInput').val());
+      if (mess.length > 0 || files.length > 0) {  // message or files
+        if (mess.length === 0) {  // files uploaded, but no message
           mess = 'Attachments:';
           $.each(files, function(i, v) {
             mess += ' <a href="'+v+'" target="_blank">'+v+'</a>';
@@ -169,31 +180,35 @@
         };
         if (email) { post.email = email; }
         if (avatar) { post.avatar = avatar; }
-        setTimeout(function() { msgdb.push(post); }, 10);
+        // msgdb.push(post);
+        var msgRef = msgdb.push();
+        msgRef.setWithPriority(post, Firebase.ServerValue.TIMESTAMP);
         $('#messageInput').val(''); // clear message text
       }
       uptime();
       files = [];
       $('.qq-upload-list').empty(); // clear list of uploaded files
+      $('.qq-upload-drop-area').hide(); // hide drop area if no files uploaded
 
-      while (messages.length > KEEPNUM) {  // might need to delete an old message
-        var fdb = msgdb.child(messages[0]);
-        fdb.once('value', deletemsg);
+      if (messages.length > KEEPNUM) {  // might need to delete an old message
+        // dnum = Math.min(3, messages.length - KEEPNUM);
+        // var olddb = msgdb.endAt(tsp);
+        msgdb.once('child_added', oldmsg);
       }
 
-      function deletemsg(snap) {  // delete message and associated files
-        // console.log('deleted: ', snap.name());
+      function oldmsg(snap) { // delete old message and files
         var m = snap.val();
-        if ((new Date()) - m.stamp > KEEPTIME) {
-          if (m.files && m.files.length > 0) { // need to delete uploaded files
+        if (snap.val().stamp < (new Date()) - KEEPTIME) {  // should use priority
+          // console.log('remove', snap.name());
+          if (m.files && m.files.length > 0) { // delete uploaded files
             $.each(m.files.split("\n"), function(i, v) {
               $.get('delete.php?file='+v);
             });
           }
-          fdb.remove(); // delete message
-          messages.shift(); // remove first element
+          snap.ref().remove();  // delete from Firebase
         }
       }
+
     }); // end click on kibbitz button (post new message)
 
     // formatting buttons
@@ -222,8 +237,7 @@
 
     // drag and drop file uploader
     $('#fine-uploader').fineUploader({
-      // uploaderType: 'basic',
-      debug: true,  // turn off for production
+      // debug: true,  // turn off for production
       request: { endpoint: 'endpoint.php' },
       retry: { enableAuto: true },
       button: document.getElementById('fileup'),
@@ -394,6 +408,7 @@
       var el = $(this);
       el.text(' - '+deltaTime(now-el.data('mts'))+' ago');
     });
+    // console.log(messages.length);
   }
 
   function getParams(p) { // read from URL parameters or cookie

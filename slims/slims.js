@@ -66,30 +66,30 @@
       if (me.work !== undefined) { work = me.work; }
       $('#logo').attr('class', work ? '' : 'show');
       if (me.email !== undefined) { email = me.email; }
-      if (me.avatar != undefined) { avatar = me.avatar; }
+      if (me.avatar !== undefined) { avatar = me.avatar; }
 
-      // get messages
-      msgdb.on('child_added', function(snap) {
-        var message = snap.val();
-        var d = message.stamp; // new Date(message.stamp);
-        var memail = message.email || '';
-        var name = memail ? '<a href="mailto:'+memail+'">'+message.name+'</a>' : message.name;
-        messages.push(snap.name());  // keep track of messages
-        var newdiv = $('<div/>', {'class': 'msgdiv'});
-        if (message.avatar) {
-          $('<img/>', { 'class': 'avatar'+(work ? '' : ' show'), src: message.avatar }).appendTo(newdiv);
-        }
-        newdiv.append($('<strong/>').html(name)).
-          append($('<span/>', {'class': 'msgtime'}).data('mts', d).
-              html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
-          append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
-          prependTo($('#messagesDiv'));
-        if (d <= lastseen) {
-          newdiv.css('background-color', '#ffc');
-        }
-      }); // end get messages
-
+      msgdb.on('child_added', getmessages); // start getting messages
     }); // end get user profile
+
+    function getmessages(snap) {  // get messages
+      var message = snap.val();
+      var d = message.stamp; // new Date(message.stamp);
+      var memail = message.email || '';
+      var name = memail ? '<a href="mailto:'+memail+'">'+message.name+'</a>' : message.name;
+      messages.push(snap.name());  // keep track of messages
+      var newdiv = $('<div/>', {'class': 'msgdiv'});
+      if (message.avatar) {
+        $('<img/>', { 'class': 'avatar'+(work ? '' : ' show'), src: message.avatar }).appendTo(newdiv);
+      }
+      newdiv.append($('<strong/>').html(name)).
+        append($('<span/>', {'class': 'msgtime'}).data('mts', d).
+            html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
+        append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
+        prependTo($('#messagesDiv'));
+      if (d <= lastseen) {
+        newdiv.css('background-color', '#ffc');
+      }
+    } // end get messages
 
     // manage whether I am connected or not, and timestamp when I disconnect
     connectdb.on('value', function(snap) {
@@ -118,7 +118,7 @@
         var onoffval = csnap.val();
         shame.push({ name: name, online: onoffval.online, offline: onoffval.offline });
         if (name !== id) {  // not me
-          if (onoffval.online > onoffval.offline) {
+          if (onoffval.online > onoffval.offline) { // is online
             l += (l.length === 0 ? ' ' : ', ')+name;  // list of online users
           } else {
             var offnum = +onoffval.offline;
@@ -323,7 +323,7 @@
           $('#myavatar').attr('src', avatar);
           setTimeout(function() { usrdb.update({ avatar: avatar, title: title }); }, 10);
           $('#cloakroom').empty();
-        })
+        });
       });
 
     });

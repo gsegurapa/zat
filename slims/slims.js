@@ -75,11 +75,14 @@
         var memail = message.email || '';
         var name = memail ? '<a href="mailto:'+memail+'">'+message.name+'</a>' : message.name;
         messages.push(snap.name());  // keep track of messages
-        var newdiv = $('<div/>', {'class': 'msgdiv'}).
-          append($('<strong/>').html(name)).
+        var newdiv = $('<div/>', {'class': 'msgdiv'});
+        if (message.avatar) {
+          $('<img/>', { 'class': 'avatar'+(work ? '' : ' show'), src: message.avatar }).appendTo(newdiv);
+        }
+        newdiv.append($('<strong/>').html(name)).
           append($('<span/>', {'class': 'msgtime'}).data('mts', d).
               html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
-          append($('<div/>').html(message.text)).
+          append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
           prependTo($('#messagesDiv'));
         if (d <= lastseen) {
           newdiv.css('background-color', '#ffc');
@@ -165,6 +168,7 @@
           files: files.join("\n")
         };
         if (email) { post.email = email; }
+        if (avatar) { post.avatar = avatar; }
         msgdb.push(post);
         $('#messageInput').val(''); // clear message text
       }
@@ -297,7 +301,11 @@
       $('#profile').show().on('click', 'img.close', cancelprofile).html(table);
       $('#work').change(function() {
         work = $(this).prop('checked');
-        $('#logo').attr('class', work ? '' : 'show');
+        if (work) {
+          $('#logo, div.msgdiv img.avatar').removeClass('show');
+        } else {
+          $('#logo, div.msgdiv img.avatar').addClass('show');
+        }
         usrdb.update({work: work});
       });
       $('#email').change(function() {

@@ -59,7 +59,7 @@
       me = snap.val();  // user profile
       if (me === null) {
         me = { lastseen: 0 };
-        usrdb.set(me);
+        setTimeout(function() { usrdb.set(me); }, 10);
         $('#user').click();
       }
       if (me.lastseen !== undefined) { lastseen = me.lastseen; }
@@ -169,7 +169,7 @@
         };
         if (email) { post.email = email; }
         if (avatar) { post.avatar = avatar; }
-        msgdb.push(post);
+        setTimeout(function() { msgdb.push(post); }, 10);
         $('#messageInput').val(''); // clear message text
       }
       uptime();
@@ -216,7 +216,7 @@
       var $this = $(this);
       lastseen = $this.css('background-color', '#ffc').find('.msgtime').data('mts');
       $this.nextAll().css('background-color', '#ffc');
-      usrdb.update({'lastseen': lastseen});
+      setTimeout(function() { usrdb.update({'lastseen': lastseen}); }, 10);
       uptime();
     });
 
@@ -296,7 +296,7 @@
           '<table><tr><td></td></tr><tr><td><span class="Ptext">rofile </span></td><td><span class="Ptext">for&nbsp;'+id+
           '</span></td></tr><tr><td>Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
           ' /></td></tr><tr><td>Email:</td><td><input id="email" type="text" value="'+
-          email+'" /></td></tr><tr><td>Avatar:</td><td><img id="avatar" src="'+
+          email+'" /></td></tr><tr><td>Avatar:</td><td><img id="myavatar" src="'+
           avatar+'" width="39" height="50" /></td></tr></table><div id="cloakroom"></div>';
       $('#profile').show().on('click', 'img.close', cancelprofile).html(table);
       $('#work').change(function() {
@@ -306,13 +306,13 @@
         } else {
           $('#logo, div.msgdiv img.avatar').addClass('show');
         }
-        usrdb.update({work: work});
+        setTimeout(function() { usrdb.update({work: work}); }, 10);
       });
       $('#email').change(function() {
         email = $.trim($(this).val());
-        usrdb.update({email: email});
+        setTimeout(function() { usrdb.update({email: email}); }, 10);
       });
-      $('#avatar').on('click', function() {
+      $('#myavatar').on('click', function() {
         if ($('#cloakroom img').length > 0) { return; }
         $.each(slimages, function(k, v) {
           $('<img/>', { src: 'avatars/'+k, title: v }).appendTo('#cloakroom');
@@ -320,8 +320,8 @@
         $('#cloakroom img').on('click', function() {
           avatar = $(this).attr('src');
           var title = $(this).attr('title');
-          $('#avatar').attr('src', avatar);
-          usrdb.update({ avatar: avatar, title: title });
+          $('#myavatar').attr('src', avatar);
+          setTimeout(function() { usrdb.update({ avatar: avatar, title: title }); }, 10);
           $('#cloakroom').empty();
         })
       });
@@ -335,7 +335,7 @@
     // Hall of Shame
     $('#others').click(function() {
       var table = '<img class="close" src="img/close_icon.gif" />'+
-          '<table><tr><td>Hall Of<br />Shame</td><td><img src="img/eye.gif" /></td></tr>';
+          '<table><tr><td><img src="img/eye.gif" /></td><td id="hos">Hall Of Shame</td></tr>';
       shame.sort(comptime);
       var now = new Date();
       $.each(shame, function(i, v) {

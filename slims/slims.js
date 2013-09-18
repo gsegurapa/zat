@@ -155,16 +155,20 @@
       $('#'+name).remove();  // remove message from DOM
     }
 
-    // grow textarea automatically
+    // grow textarea automatically and handle Shift-Enter
     $('#messageInput').on('keyup keydown', function(e) {
       if (e.which === 16) { // SHIFT
         shiftkey = (e.type === 'keydown');
         return;
       }
       if (e.which === 13) { // RETURN
-        if (shiftkey && e.type === 'keyup') {
-          $('#kibbitz').click();
-        }
+        if (shiftkey) {
+          e.preventDefault();
+          if (e.type === 'keyup') {
+            $('#kibbitz').click();
+          }
+          return false;
+        } 
       }
       var el = e.delegateTarget;
       if (el.scrollHeight > el.clientHeight) { el.style.height = el.scrollHeight+'px'; }

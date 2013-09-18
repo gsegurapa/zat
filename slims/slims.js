@@ -24,6 +24,7 @@
   var files = []; // uploaded files for a message
   var shiftkey = false;  // is shift key down?
   var shame = []; // hall of shame users
+  var timeout;  // time last message arrived
 
   if (window.location.search.search(/^\?[\w% ]{1,}$/) === 0) {
     id = $.trim(decodeURIComponent(window.location.search.slice(1)));
@@ -45,7 +46,7 @@
 
   $(document).ready(function() {
 
-    $('#user').text(id);
+    $('#user').text(id);  // profile button label
 
     // firebase references
     var firebasedb = new Firebase(DATABASE);
@@ -112,28 +113,33 @@
       if (me.email !== undefined) { email = me.email; }
       if (me.avatar !== undefined) { avatar = me.avatar; }
 
+      timeout = (new Date()).valueOf();
       msgdb.on('child_added', addmessages); // start getting messages
       msgdb.on('child_removed', dropmessages);  // remove from messages list
     }); // end get user profile
 
     function addmessages(snap) {  // add messages to page
       var message = snap.val();
-      var d = message.stamp; // new Date(message.stamp);
-      var memail = message.email || '';
-      var name = memail ? '<a href="mailto:'+memail+'">'+message.name+'</a>' : message.name;
+      var mstamp = message.stamp;
+      var name = message.email ? '<a href="mailto:'+message.email+'">'+message.name+'</a>' : message.name;
+      var now = (new Date()).valueOf();
+      if (now - timeout > 5000) { // 5 seconds
+        uptime();
+      }
       var newdiv = $('<div/>', { id: snap.name(), 'class': 'msgdiv' });
       if (message.avatar) {
         $('<img/>', { 'class': 'avatar'+(work ? '' : ' show'), src: message.avatar }).appendTo(newdiv);
       }
       newdiv.append($('<strong/>').html(name)).
-        append($('<span/>', {'class': 'msgtime'}).data('mts', d).
-            html(' &ndash; '+deltaTime((new Date()) - d)+' ago')).
+        append($('<span/>', {'class': 'msgtime'}).data('mts', mstamp).
+            html(' &ndash; '+deltaTime(now - mstamp)+' ago')).
         append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
         prependTo($('#messagesDiv'));
-      messageBodies[snap.name()] = newdiv.html();  // keep track of messages
-      if (d <= lastseen) {
+      if (mstamp <= lastseen) {
         newdiv.css('background-color', '#ffc');
       }
+      timeout = now;
+      messageBodies[snap.name()] = newdiv.html();  // keep track of messages
     } // end get messages
 
     function dropmessages(snap) { // sync from Firebase
@@ -188,8 +194,9 @@
         var msgRef = msgdb.push();
         msgRef.setWithPriority(post, Firebase.ServerValue.TIMESTAMP);
         $('#messageInput').val(''); // clear message text
+      } else {
+        uptime();
       }
-      uptime();
       files = [];
       $('.qq-upload-list').empty(); // clear list of uploaded files
       $('.qq-upload-drop-area').hide(); // hide drop area if no files uploaded

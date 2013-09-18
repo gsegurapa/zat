@@ -171,6 +171,19 @@ tr.uoffline {
 #cloakroom img:active {
 	border-color: #bbf;
 }
+#helpdiv {
+	display: none;
+	position: absolute;
+	overflow: auto;
+	top: 200px;
+	left: 2%;
+	width: 90%;
+	background-color: white;
+	border: solid black 1px;
+	box-shadow: 5px 5px 3px #666;
+	padding: 15px;
+	z-index: 1000;
+}
 </style>
 </head>
 <body>
@@ -230,5 +243,27 @@ tr.uoffline {
 	<div style="height: 3px"></div>
 	<div id="fine-uploader"></div>
 	<div id="messagesDiv"></div>
+	<div id="helpdiv">
+		<img class="close" src="img/close_icon.gif" />
+		<h2>Jack Rabbit Slims Guide</h2>
+		<p>When you first visit Slims, it will ask you for your ID.  If you already have one, type it in.
+		Otherwise, pick one using the characters A-Z a-z 0-9 _ and space.</p>
+		<p>When you first enter Slims, it will open a profile window for you.
+		Enter your email address, select an avatar, and specify if you want to use Slims in work mode.</p>
+		<p>To make it easier to access Slims, type in the URL to your browser, followed by a question mark and then your ID.
+		If you ID contains a space character, use "%20" instead. Enter Slims and then set a bookmark to that page.</p>
+		<p>Inside Slims, you can click on the following things:
+			the Jack Rabbit Slims logo to see this help page;
+			your ID to see and edit your profile;
+			the "Connected" / "Last Lurk" button to see when people connected and disconnected;
+			the "+" button to post a message (or click it when you have not typed a message to update times);
+			and the formatting buttons.</p>
+		<p>The formatting buttons are: "File" to upload an image or other file from your computer;
+			"link" to create a link; "img" to create an image from a URL;
+			"b" to make text bold; "i" to make text italic; "c" to change the color of text; "S" to change the size of text;
+			"&copy;" to insert special characters; and the yellow circle to insert an emoticon.
+			You can also drag and drop a file onto Slims to upload it from your computer.</p>
+		<p>Click on any message to mark that you have seen it (and all messages preceeding it).</p>
+	</div>
 </body>
 </html>

@@ -98,7 +98,7 @@
         'Last lurk: ' + (lurktime === 0 ? 'none' : lurker ));
     });
 
-    // get user profile and messages
+    // get user profile and start messages
     usrdb.once('value', function(snap) {
       me = snap.val();  // user profile
       if (me === null) {
@@ -112,11 +112,11 @@
       if (me.email !== undefined) { email = me.email; }
       if (me.avatar !== undefined) { avatar = me.avatar; }
 
-      msgdb.on('child_added', getmessages); // start getting messages
+      msgdb.on('child_added', addmessages); // start getting messages
       msgdb.on('child_removed', dropmessages);  // remove from messages list
     }); // end get user profile
 
-    function getmessages(snap) {  // get messages
+    function addmessages(snap) {  // add messages to page
       var message = snap.val();
       var d = message.stamp; // new Date(message.stamp);
       var memail = message.email || '';
@@ -194,7 +194,7 @@
       $('.qq-upload-list').empty(); // clear list of uploaded files
       $('.qq-upload-drop-area').hide(); // hide drop area if no files uploaded
 
-      console.log(Object.keys(messageBodies).length);
+      // console.log(Object.keys(messageBodies).length);
       if (Object.keys(messageBodies).length > KEEPNUM) {  // might need to delete an old message
         // dnum = Math.min(3, messageBodies.length - KEEPNUM);
         // var olddb = msgdb.endAt(tsp);
@@ -347,7 +347,7 @@
         });
       });
 
-    });
+    }); // end Profile
 
     function cancelprofile() {
       $('#profile').off('click', 'img.close', cancelprofile).hide(300);
@@ -366,13 +366,13 @@
             '</td></tr>';
       });
       $('#shame').show().on('click', 'img.close', cancelshame).html(table + '</table>');
-    });
+    }); // end Hall of Shame
 
     function cancelshame() {
       $('#shame').off('click', 'img.close', cancelshame).hide(300);
     }
 
-    function comptime(a, b) {
+    function comptime(a, b) { // for sorting times
       var aon = a.online > a.offline;
       var bon = b.online > b.offline;
       if (aon && bon) {
@@ -382,6 +382,12 @@
       if (bon) { return 1; }
       return b.offline - a.offline;
     }
+
+    $('#logo').click(function() {
+      $('#helpdiv').show(200).one('click', function() {
+        $('#helpdiv').hide();
+      });
+    });
 
   }); // end document ready
 

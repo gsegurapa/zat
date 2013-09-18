@@ -135,6 +135,9 @@
             html(' &ndash; '+deltaTime(now - mstamp)+' ago')).
         append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
         prependTo($('#messagesDiv'));
+      if (work) {
+        newdiv.find('img.userimg').addClass('worksmall').click(imagebig);
+      }
       if (mstamp <= lastseen) {
         newdiv.css('background-color', '#ffc');
       }
@@ -173,6 +176,11 @@
       var el = e.delegateTarget;
       if (el.scrollHeight > el.clientHeight) { el.style.height = el.scrollHeight+'px'; }
     });
+
+    function imagebig(e) {
+      $(e.target).toggleClass('worksmall');
+      return false;
+    }
 
     // post new message and delete old messages
     $('#kibbitz').click( function() {
@@ -335,8 +343,10 @@
         work = $(this).prop('checked');
         if (work) {
           $('#logo, div.msgdiv img.avatar').removeClass('show');
+          $('img.userimg').addClass('worksmall').click(imagebig);
         } else {
           $('#logo, div.msgdiv img.avatar').addClass('show');
+          $('img.userimg').removeClass('worksmall').off('click', imagebig);
         }
         setTimeout(function() { usrdb.update({work: work}); }, 10);
       });

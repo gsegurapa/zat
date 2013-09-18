@@ -105,7 +105,7 @@
       if (me === null) {
         me = { lastseen: 0 };
         setTimeout(function() { usrdb.set(me); }, 10);
-        $('#user').click();
+        $('#user, #logo').click();
       }
       if (me.lastseen !== undefined) { lastseen = me.lastseen; }
       if (me.work !== undefined) { work = me.work; }
@@ -177,7 +177,7 @@
       if (el.scrollHeight > el.clientHeight) { el.style.height = el.scrollHeight+'px'; }
     });
 
-    function imagebig(e) {
+    function imagebig(e) {  // in work mode, toggle image size
       $(e.target).toggleClass('worksmall');
       return false;
     }
@@ -255,8 +255,9 @@
       var $this = $(this);
       var mts = $this.find('.msgtime').data('mts');
       if (mts > lastseen) {
+        lastseen = mts;
         $this.css('background-color', '#ffc').nextAll().css('background-color', '#ffc');
-        setTimeout(function() { usrdb.update({'lastseen': lastseen}); }, 10);
+        usrdb.update({'lastseen': lastseen}); // save time of last seen
       }
       uptime();
     });

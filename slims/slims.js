@@ -113,7 +113,10 @@
       if (me.email !== undefined) { email = me.email; }
       if (me.avatar !== undefined) { avatar = me.avatar; }
 
-      timeout = (new Date()).valueOf();
+      var now = new Date();
+      $('#usertime').text(now.toLocaleTimeString()).attr('title', now.toLocaleDateString()).click(uptime);
+
+      timeout = now.valueOf();      
       msgdb.on('child_added', addmessages); // start getting messages
       msgdb.on('child_removed', dropmessages);  // remove from messages list
     }); // end get user profile
@@ -125,6 +128,7 @@
       var now = (new Date()).valueOf();
       if (now - timeout > 5000) { // 5 seconds
         uptime();
+        timeout = now;
       }
       var newdiv = $('<div/>', { id: snap.name(), 'class': 'msgdiv' });
       if (message.avatar) {
@@ -141,7 +145,6 @@
       if (mstamp <= lastseen) {
         newdiv.css('background-color', '#ffc');
       }
-      timeout = now;
       messageBodies[snap.name()] = newdiv.html();  // keep track of messages
     } // end get messages
 
@@ -151,10 +154,6 @@
       if (msgbody !== undefined) {
         delete messageBodies[name];
       }
-      // var idx = messageBodies.indexOf(snap.name());
-      // if (idx >= 0) { // found
-      //   messageBodies.splice(idx, 1);  // remove from messages list
-      // }
       $('#'+name).remove();  // remove message from DOM
     }
 
@@ -202,18 +201,17 @@
         if (email) { post.email = email; }
         if (avatar) { post.avatar = avatar; }
         if (files.length > 0) { post.files = files.join("\n"); }
-        // msgdb.push(post);
         var msgRef = msgdb.push();
         msgRef.setWithPriority(post, Firebase.ServerValue.TIMESTAMP);
         $('#messageInput').val(''); // clear message text
-      } else {
-        uptime();
+        files = [];
+        $('.qq-upload-list').empty(); // clear list of uploaded files
+        $('.qq-upload-drop-area').hide(); // hide drop area
       }
-      files = [];
-      $('.qq-upload-list').empty(); // clear list of uploaded files
-      $('.qq-upload-drop-area').hide(); // hide drop area if no files uploaded
 
-      // console.log(Object.keys(messageBodies).length);
+      uptime(); // update times
+
+      // console.log('kibbitz', $('.msgtime').length, Object.keys(messageBodies).length);
       if (Object.keys(messageBodies).length > KEEPNUM) {  // might need to delete an old message
         // dnum = Math.min(3, messageBodies.length - KEEPNUM);
         // var olddb = msgdb.endAt(tsp);
@@ -443,7 +441,8 @@
       var el = $(this);
       el.text(' - '+deltaTime(now-el.data('mts'))+' ago');
     });
-    // console.log(messageBodies.length);
+    $('#usertime').text(now.toLocaleTimeString()).attr('title', now.toLocaleDateString());
+    // console.log('num messages:', $('.msgtime').length, Object.keys(messageBodies).length);
   }
 
   function getParams(p) { // read from URL parameters or cookie

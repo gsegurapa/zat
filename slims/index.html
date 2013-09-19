@@ -57,6 +57,9 @@ div.msgdiv div.msgbody {
 #status {
 	color: red;
 }
+#usertime {
+	font-style: italic;
+}
 #formatbuttons {
 	float: right;
 }
@@ -192,6 +195,7 @@ tr.uoffline {
 	<textarea id="messageInput" placeholder="Message" rows="3"></textarea>
 	<span id="kibbitz" class="button small" title="Kibbitz">+</span>
 	<span id="status"></span>
+	<span id="usertime" class="button">Loading...</span>
 	<span id="formatbuttons">
 		<span id="fileup" class="button" title="File Upload">File</span>
 		<span class="button" title="Link">link</span>
@@ -256,6 +260,7 @@ tr.uoffline {
 			your ID button (upper left) to see and edit your profile;
 			the "Connected" / "Last Lurk" button (upper right) to see when people connected and disconnected;
 			the "+" button to post a message;
+			the current time button to update the current time;
 			and the formatting buttons.</p>
 		<p>The ten formatting buttons are: "File" to upload an image or other file from your local computer;
 			"link" to create a link; "img" to create an image from a URL;

@@ -28,6 +28,7 @@
   var messageInputHeight; // height of messageInput textarea
   var paramOverride = false;
 
+  // get ID from URL
   if (window.location.search.search(/^\?[\w% ]{1,}$/) === 0) {
     id = $.trim(decodeURIComponent(window.location.search.slice(1)));
   } else if (window.location.hash.search(/^#[\w% ]{1,}$/) === 0) {
@@ -56,71 +57,45 @@
     var connectdb = firebasedb.child('.info/connected'); // connected
     var msgdb = firebasedb.child('messages'); // list of messages
     var onoffdb = firebasedb.child('onoff');
-    var myonoffdb = onoffdb.child(id);
+    var myonoffdb;  // when I go on or off line
+    var mystatusdb; // online status
     var usersdb = firebasedb.child('users');  // all user profiles
     var myuserdb = usersdb.child(id);  // my profile
 
-    // manage whether I am connected or not, and timestamp when I disconnect
-    connectdb.on('value', function(snap) {
-      if (snap.val() === true) {  // online
-        online = true;
-        $('#kibbitz').css('opacity', 1.0);
-        $('#status').text('');
-        myonoffdb.onDisconnect().update({ offline: Firebase.ServerValue.TIMESTAMP });  // disconnect
-        myonoffdb.update({ online: Firebase.ServerValue.TIMESTAMP }); // I am online now
-      } else {  // offline
-        online = false;
-        $('#kibbitz').css('opacity', 0.3);  // dim kibbitz button
-        $('#status').text('offline');
-      }
-    });
-
-    var mystatusdb = myonoffdb.child('status').push(Firebase.ServerValue.TIMESTAMP);
-    mystatusdb.onDisconnect().remove();
-
-    // manage list of online users
-    // should use 'child changed' event instead of reprocessing the entire value !!!
-    onoffdb.on('value', function(snap) {
-      var list = '';
-      var lurker = '';
-      var lurktime = 0;
-      shame = [];
-      snap.forEach(function(csnap) {
-        var name = csnap.name();
-        var v = csnap.val();
-        // console.log(name, v);
-        shame.push({ name: name, online: v.online, offline: v.offline, status: v.status });
-        if (name !== id) {  // not me
-          if (v.status === undefined ? (!v.offline || v.online > v.offline) : Object.keys(v.status).length > 0) { // is online
-            list += (list.length === 0 ? ' ' : ', ')+name;  // list of online users
-          } else {
-            var offnum = +v.offline;
-            if (lurktime < offnum) { // most recent lurker
-              lurker = name;
-              lurktime = offnum;
-            }
-          }
-        }
-      });
-      $('#others').text(list.length > 0 ? 'Connected: ' + list :
-        'Last lurk: ' + (lurktime === 0 ? 'none' : lurker ));
-    });
+    myuserdb.once('value', startup);  // fire startup
 
     // get user profile and start messages
-    myuserdb.once('value', function(snap) {
+    function startup(snap) {
       me = snap.val();  // user profile
       if (me === null) {  // new user
+        var t = $.trim(prompt('ID "'+id+'" doesn\'t exist. Retype to create it or switch to different name.'));
+        if (t.length === 0) {
+          window.location.href = 'http://jrslims.com';
+          return;
+        }
+        if (t !== id) {
+          id = t;
+          $('#user').text(id);
+          myuserdb = usersdb.child(id);  // my profile
+          myuserdb.once('value', startup);
+          return;
+        }
         me = { lastseen: 0 };
-        setTimeout(function() { myuserdb.set(me); }, 10);
+        myuserdb.set(me); // inititalize
         $('#user, #logo').click();
       }
       if (me.lastseen !== undefined) { lastseen = me.lastseen; }
       if (me.work !== undefined) { work = me.work; }
       if (me.email !== undefined) { email = me.email; }
       if (me.avatar !== undefined) { avatar = me.avatar; }
-      
+
       if (paramOverride) { getParams(window.location.href); }
       $('#logo').attr('class', work ? '' : 'show');
+
+      myonoffdb = onoffdb.child(id);
+      connectdb.on('value', presencechange);
+      mystatusdb = myonoffdb.child('status').push(Firebase.ServerValue.TIMESTAMP);
+      mystatusdb.onDisconnect().remove();
 
       var now = new Date();
       $('#usertime').text(now.toLocaleTimeString()).attr('title', now.toLocaleDateString()).click(uptime);
@@ -128,7 +103,7 @@
       timeout = now.valueOf();      
       msgdb.on('child_added', addmessages); // start getting messages
       msgdb.on('child_removed', dropmessages);  // remove from messages list
-    }); // end get user profile
+    } // end get user profile
 
     function addmessages(snap) {  // add messages to page
       var message = snap.val();
@@ -164,6 +139,20 @@
         delete messageBodies[name];
       }
       $('#'+name).remove();  // remove message from DOM
+    }
+
+    function presencechange(snap) { // manage whether I am connected or not, and timestamp when I disconnect
+      if (snap.val() === true) {  // online
+        online = true;
+        $('#kibbitz').css('opacity', 1.0);
+        $('#status').text('');
+        myonoffdb.onDisconnect().update({ offline: Firebase.ServerValue.TIMESTAMP });  // disconnect
+        myonoffdb.update({ online: Firebase.ServerValue.TIMESTAMP }); // I am online now
+      } else {  // offline
+        online = false;
+        $('#kibbitz').css('opacity', 0.3);  // dim kibbitz button
+        $('#status').text('offline');
+      }
     }
 
     // grow textarea automatically and handle Shift-Enter
@@ -441,6 +430,34 @@
       if (bon) { return 1; }  // only b online
       return b.offline - a.offline; // both offline
     }
+
+    // manage list of online users
+    // should use 'child changed' event instead of reprocessing the entire value !!!
+    onoffdb.on('value', function(snap) {
+      var list = '';
+      var lurker = '';
+      var lurktime = 0;
+      shame = [];
+      snap.forEach(function(csnap) {
+        var name = csnap.name();
+        var v = csnap.val();
+        // console.log(name, v);
+        shame.push({ name: name, online: v.online, offline: v.offline, status: v.status });
+        if (name !== id) {  // not me
+          if (v.status === undefined ? (!v.offline || v.online > v.offline) : Object.keys(v.status).length > 0) { // is online
+            list += (list.length === 0 ? ' ' : ', ')+name;  // list of online users
+          } else {
+            var offnum = +v.offline;
+            if (lurktime < offnum) { // most recent lurker
+              lurker = name;
+              lurktime = offnum;
+            }
+          }
+        }
+      });
+      $('#others').text(list.length > 0 ? 'Connected: ' + list :
+        'Last lurk: ' + (lurktime === 0 ? 'none' : lurker ));
+    });
 
     $('#logo').click(function() {
       $('#helpdiv').show(200).one('click', function() {

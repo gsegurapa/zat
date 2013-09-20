@@ -53,8 +53,9 @@
     var connectdb = firebasedb.child('.info/connected'); // connected
     var msgdb = firebasedb.child('messages'); // list of messages
     var onoffdb = firebasedb.child('onoff');
+    var myonoffdb = onoffdb.child(id);
     var usersdb = firebasedb.child('users');  // all user profiles
-    var usrdb = usersdb.child(id);  // my profile
+    var myuserdb = usersdb.child(id);  // my profile
 
     // manage whether I am connected or not, and timestamp when I disconnect
     connectdb.on('value', function(snap) {
@@ -62,9 +63,8 @@
         online = true;
         $('#kibbitz').css('opacity', 1.0);
         $('#status').text('');
-        var meonoffdb = onoffdb.child(id);
-        meonoffdb.onDisconnect().update({ offline: Firebase.ServerValue.TIMESTAMP });  // disconnect
-        meonoffdb.update({ online: Firebase.ServerValue.TIMESTAMP }); // I am online now
+        myonoffdb.onDisconnect().update({ offline: Firebase.ServerValue.TIMESTAMP });  // disconnect
+        myonoffdb.update({ online: Firebase.ServerValue.TIMESTAMP }); // I am online now
       } else {  // offline
         online = false;
         $('#kibbitz').css('opacity', 0.3);  // dim kibbitz button
@@ -72,22 +72,26 @@
       }
     });
 
+    var mystatusdb = myonoffdb.child('status').push(Firebase.ServerValue.TIMESTAMP);
+    mystatusdb.onDisconnect().remove();
+
     // manage list of online users
     // should use 'child changed' event instead of reprocessing the entire value !!!
     onoffdb.on('value', function(snap) {
-      var l = '';
+      var list = '';
       var lurker = '';
       var lurktime = 0;
       shame = [];
       snap.forEach(function(csnap) {
         var name = csnap.name();
-        var onoffval = csnap.val();
-        shame.push({ name: name, online: onoffval.online, offline: onoffval.offline });
+        var v = csnap.val();
+        // console.log(name, v);
+        shame.push({ name: name, online: v.online, offline: v.offline, status: v.status });
         if (name !== id) {  // not me
-          if (onoffval.online > onoffval.offline) { // is online
-            l += (l.length === 0 ? ' ' : ', ')+name;  // list of online users
+          if (v.status === undefined ? (!v.offline || v.online > v.offline) : Object.keys(v.status).length > 0) { // is online
+            list += (list.length === 0 ? ' ' : ', ')+name;  // list of online users
           } else {
-            var offnum = +onoffval.offline;
+            var offnum = +v.offline;
             if (lurktime < offnum) { // most recent lurker
               lurker = name;
               lurktime = offnum;
@@ -95,16 +99,16 @@
           }
         }
       });
-      $('#others').text(l.length > 0 ? 'Connected: ' + l :
+      $('#others').text(list.length > 0 ? 'Connected: ' + list :
         'Last lurk: ' + (lurktime === 0 ? 'none' : lurker ));
     });
 
     // get user profile and start messages
-    usrdb.once('value', function(snap) {
+    myuserdb.once('value', function(snap) {
       me = snap.val();  // user profile
       if (me === null) {
         me = { lastseen: 0 };
-        setTimeout(function() { usrdb.set(me); }, 10);
+        setTimeout(function() { myuserdb.set(me); }, 10);
         $('#user, #logo').click();
       }
       if (me.lastseen !== undefined) { lastseen = me.lastseen; }
@@ -184,7 +188,7 @@
     // post new message and delete old messages
     $('#kibbitz').click( function() {
       if (!online) { return; }  // do nothing if not online (should save message!)
-      var name = $('#user').text();
+      var name = $('#user').text();      
       var mess = $.trim($('#messageInput').val());
       if (mess.length > 0 || files.length > 0) {  // message or files
         if (mess.length === 0) {  // files uploaded, but no message
@@ -192,10 +196,26 @@
           $.each(files, function(i, v) {
             mess += ' <a href="'+v+'" target="_blank">'+v+'</a>';
           });
+        } else {  // linkify message
+          // var $message = $('<div/>').html(mess);
+          // console.log('mess:', $message.html());
+          // $message.find('*').contents().filter(function() {
+          //   return this.nodeType === Node.TEXT_NODE && !/^\s*$/.test(this.nodeValue);
+          // }).each(function(i, v) {
+          //   console.log('each:', $(this).text());
+          //   var result = $(this).text().replace(/\r\n|[\n\r\x85]/g, '<br />'). // newlines to breaks
+          //       replace(urlRegex, '<a href="$&" target="_blank">$&</a>').
+          //       replace(mailRegex, '<a href="mailto:$&">$&</a>');
+          //   console.log('result:', result);              
+          //   this.innerHtml = result;
+          // });
+          // mess = $message.html();
+          // console.log('output:', mess);
+          mess = mess.replace(/\r\n|[\n\r\x85]/g, '<br />');  // newlines to breaks
         }
         var post = {
           name: name,
-          text: mess.replace(/\r\n|[\n\r\x85]/g, '<br />'), // newline -> break
+          text: mess,
           stamp: Firebase.ServerValue.TIMESTAMP
         };
         if (email) { post.email = email; }
@@ -255,7 +275,7 @@
       if (mts > lastseen) {
         lastseen = mts;
         $this.css('background-color', '#ffc').nextAll().css('background-color', '#ffc');
-        usrdb.update({'lastseen': lastseen}); // save time of last seen
+        myuserdb.update({'lastseen': lastseen}); // save time of last seen
       }
       uptime();
     });
@@ -347,11 +367,11 @@
           $('#logo, div.msgdiv img.avatar').addClass('show');
           $('img.userimg').removeClass('worksmall').off('click', imagebig);
         }
-        setTimeout(function() { usrdb.update({work: work}); }, 10);
+        setTimeout(function() { myuserdb.update({ work: work }); }, 10);
       });
       $('#email').change(function() {
         email = $.trim($(this).val());
-        setTimeout(function() { usrdb.update({email: email}); }, 10);
+        setTimeout(function() { myuserdb.update({ email: email }); }, 10);
       });
       $('#myavatar').on('click', function() {
         if ($('#cloakroom img').length > 0) { return; }
@@ -362,7 +382,7 @@
           avatar = $(this).attr('src');
           var title = $(this).attr('title');
           $('#myavatar').attr('src', avatar);
-          setTimeout(function() { usrdb.update({ avatar: avatar, title: title }); }, 10);
+          setTimeout(function() { myuserdb.update({ avatar: avatar, title: title }); }, 10);
           $('#cloakroom').empty();
         });
       });
@@ -380,9 +400,12 @@
       shame.sort(comptime);
       var now = new Date();
       $.each(shame, function(i, v) {
-        var off = v.offline || v.online - 10;
-        table += '<tr class="'+(v.online > off ? 'uonline' : 'uoffline') +'"><td>' + v.name + '</td><td>' +
-            (v.online > off ? 'online '+deltaTime(now - v.online) : 'offline '+deltaTime(now - off)) +
+        var count = v.status === undefined ? (!v.offline || v.online > v.offline ? 1 : 0) : Object.keys(v.status).length;
+        // v.online > (v.offline || v.online - 10);
+        table += '<tr class="'+(count > 0 ? 'uonline' : 'uoffline') +'"><td>' + v.name + '</td><td>' +
+            (count > 0 ? 'online '+(count > 1 ? '(&times;'+count+') ' : '')+'for '+
+            deltaTime(now - (v.status !== undefined ? oldestconnect(v.status) : v.online)) :
+            'offline for '+deltaTime(now - (v.offline || v.online))) +
             '</td></tr>';
       });
       $('#shame').show().on('click', 'img.close', cancelshame).html(table + '</table>');
@@ -392,15 +415,24 @@
       $('#shame').off('click', 'img.close', cancelshame).hide(300);
     }
 
-    function comptime(a, b) { // for sorting times
-      var aon = a.online > a.offline;
-      var bon = b.online > b.offline;
-      if (aon && bon) {
-        return b.online - a.online;
+    function oldestconnect(st) {
+      var oldest = (new Date()).valueOf();
+      $.each(st, function(k, v) {
+        if (v < oldest) { oldest = v; }
+      });
+      return oldest;
+    }
+
+    function comptime(a, b) { // for sorting times in Hall of Shame
+      var aon = a.status !== undefined ? Object.keys(a.status).length > 0 : (!a.offline || a.online > a.offline);
+      var bon = b.status !== undefined ? Object.keys(b.status).length > 0 : (!b.offline || b.online > b.offline);
+      if (aon && bon) { // both are online
+        return (b.status !== undefined ? oldestconnect(b.status) : b.online) -
+            (a.status !== undefined ? oldestconnect(a.status) : a.online);
       }
-      if (aon) { return -1; }
-      if (bon) { return 1; }
-      return b.offline - a.offline;
+      if (aon) { return -1; } // only a online
+      if (bon) { return 1; }  // only b online
+      return b.offline - a.offline; // both offline
     }
 
     $('#logo').click(function() {
@@ -547,6 +579,10 @@
           iesel + '&deg;F (' + (Math.round((+iesel - 32.0) * (50.0 / 9.0)) / 10.0) + '&deg;C)');
     }
   }
+
+  // regular expressions for finding URLs and Mail addresses
+  // var urlRegex = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
+  // var mailRegex = /\w+@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6})+/gim;
 
   var slimages = {
     'El0812.jpg': 'Ellen Hanrahan, El, Red',

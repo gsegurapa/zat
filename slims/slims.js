@@ -347,7 +347,7 @@
 
     // Profile
     $('#user').click(function() {
-      var table = '<img class="close" src="img/close_icon.gif" /><img id="Pimg" src="img/profile.png" />'+
+      var table = '<img class="close" src="img/close_icon.gif" /><img id="Pimg" src="img/profile.png" width="106" height="148" />'+
           '<table><tr><td></td></tr><tr><td><span class="Ptext">rofile </span></td><td><span class="Ptext">for&nbsp;'+id+
           '</span></td></tr><tr><td>Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
           ' /></td></tr><tr><td>Email:</td><td><input id="email" type="text" value="'+
@@ -400,7 +400,7 @@
     // Hall of Shame
     $('#others').click(function() {
       var table = '<img class="close" src="img/close_icon.gif" />'+
-          '<table><tr><td><img src="img/eye.gif" /></td><td id="hos">Hall Of Shame</td></tr>';
+          '<table><tr><td><img src="img/eye.gif" width="73" height="63" /></td><td id="hos">Hall Of Shame</td></tr>';
       shame.sort(comptime);
       var now = new Date();
       $.each(shame, function(i, v) {

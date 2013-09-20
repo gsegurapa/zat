@@ -26,6 +26,7 @@
   var shame = []; // hall of shame users
   var timeout;  // time last message arrived
   var messageInputHeight; // height of messageInput textarea
+  var paramOverride = false;
 
   if (window.location.search.search(/^\?[\w% ]{1,}$/) === 0) {
     id = $.trim(decodeURIComponent(window.location.search.slice(1)));
@@ -33,6 +34,7 @@
     id = $.trim(decodeURIComponent(window.location.hash.slice(1)));
   } else {
     getParams(window.location.href); // params from URL
+    paramOverride = true;
   }
 
   $(document).ready(function() {
@@ -107,16 +109,18 @@
     // get user profile and start messages
     myuserdb.once('value', function(snap) {
       me = snap.val();  // user profile
-      if (me === null) {
+      if (me === null) {  // new user
         me = { lastseen: 0 };
         setTimeout(function() { myuserdb.set(me); }, 10);
         $('#user, #logo').click();
       }
       if (me.lastseen !== undefined) { lastseen = me.lastseen; }
       if (me.work !== undefined) { work = me.work; }
-      $('#logo').attr('class', work ? '' : 'show');
       if (me.email !== undefined) { email = me.email; }
       if (me.avatar !== undefined) { avatar = me.avatar; }
+      
+      if (paramOverride) { getParams(window.location.href); }
+      $('#logo').attr('class', work ? '' : 'show');
 
       var now = new Date();
       $('#usertime').text(now.toLocaleTimeString()).attr('title', now.toLocaleDateString()).click(uptime);

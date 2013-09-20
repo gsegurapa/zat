@@ -352,7 +352,7 @@
           '</span></td></tr><tr><td>Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
           ' /></td></tr><tr><td>Email:</td><td><input id="email" type="text" value="'+
           email+'" /></td></tr><tr><td>Avatar:</td><td><img id="myavatar" src="'+
-          avatar+'" width="39" height="50" /></td></tr></table><div id="cloakroom"></div>';
+          avatar+'" width="39" height="50" title="'+avatar+'" /></td></tr></table><div id="cloakroom"></div>';
       $('#profile').show().on('click', 'img.close', cancelprofile).html(table);
       $('#work').change(function() {
         work = $(this).prop('checked');
@@ -377,7 +377,7 @@
         $('#cloakroom img').on('click', function() {
           avatar = $(this).attr('src');
           var title = $(this).attr('title');
-          $('#myavatar').attr('src', avatar);
+          $('#myavatar').attr( { src: avatar, title: avatar });
           setTimeout(function() { myuserdb.update({ avatar: avatar, title: title }); }, 10);
           $('#cloakroom').empty();
         });

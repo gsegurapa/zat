@@ -25,6 +25,7 @@
   var shiftkey = false;  // is shift key down?
   var shame = []; // hall of shame users
   var timeout;  // time last message arrived
+  var messageInputHeight; // height of messageInput textarea
 
   if (window.location.search.search(/^\?[\w% ]{1,}$/) === 0) {
     id = $.trim(decodeURIComponent(window.location.search.slice(1)));
@@ -34,17 +35,17 @@
     getParams(window.location.href); // params from URL
   }
 
-  // determine user id
-  while (id.search(/^[\w ]{1,}$/) !== 0) {
-    var t = $.trim(prompt('Enter your ID (containing A-Z a-z 0-9 _ space):', id));
-    if (t.length === 0) {
-      t = 'INVALID';
-      window.location.href = 'http://jrslims.com';
-    }
-    id = t;
-  }
-
   $(document).ready(function() {
+
+    // determine user id
+    while (id.search(/^[\w ]{1,}$/) !== 0) {
+      var t = $.trim(prompt('Enter your ID (containing A-Z a-z 0-9 _ space):', id));
+      if (t.length === 0) {
+        t = 'INVALID';
+        window.location.href = 'http://jrslims.com';
+      }
+      id = t;
+    }
 
     $('#user').text(id);  // profile button label
 
@@ -162,7 +163,7 @@
     }
 
     // grow textarea automatically and handle Shift-Enter
-    $('#messageInput').on('keyup keydown', function(e) {
+    messageInputHeight = $('#messageInput').on('keyup keydown', function(e) {
       if (e.which === 16) { // SHIFT
         shiftkey = (e.type === 'keydown');
         return;
@@ -178,7 +179,7 @@
       }
       var el = e.delegateTarget;
       if (el.scrollHeight > el.clientHeight) { el.style.height = el.scrollHeight+'px'; }
-    });
+    }).css('height');
 
     function imagebig(e) {  // in work mode, toggle image size
       $(e.target).toggleClass('worksmall');
@@ -225,7 +226,7 @@
         if (files.length > 0) { post.files = files.join("\n"); }
         var msgRef = msgdb.push();
         msgRef.setWithPriority(post, Firebase.ServerValue.TIMESTAMP);
-        $('#messageInput').val(''); // clear message text
+        $('#messageInput').val('').css('height', messageInputHeight); // clear message text
         files = [];
         $('.qq-upload-list').empty(); // clear list of uploaded files
         $('.qq-upload-drop-area').hide(); // hide drop area

@@ -188,7 +188,7 @@
     // post new message and delete old messages
     $('#kibbitz').click( function() {
       if (!online) { return; }  // do nothing if not online (should save message!)
-      var name = $('#user').text();      
+      var name = $('#user').text();
       var mess = $.trim($('#messageInput').val());
       if (mess.length > 0 || files.length > 0) {  // message or files
         if (mess.length === 0) {  // files uploaded, but no message
@@ -211,7 +211,9 @@
           // });
           // mess = $message.html();
           // console.log('output:', mess);
-          mess = mess.replace(/\r\n|[\n\r\x85]/g, '<br />');  // newlines to breaks
+          mess = mess.replace(urlRegex, '<a href="$&" target="_blank">$&</a>'). // URL to link
+              replace(mailRegex, '<a href="mailto:$&">$&</a>'). // mail address to link
+              replace(/\r\n|[\n\r\x85]/g, '<br />');  // newlines to breaks
         }
         var post = {
           name: name,
@@ -583,6 +585,8 @@
   // regular expressions for finding URLs and Mail addresses
   // var urlRegex = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
   // var mailRegex = /\w+@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6})+/gim;
+  var urlRegex = /^[ \t]*\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
+  var mailRegex = /^[ \t]*\w+@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6})+/i;
 
   var slimages = {
     'El0812.jpg': 'Ellen Hanrahan, El, Red',

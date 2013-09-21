@@ -352,7 +352,8 @@
     $('#user').click(function() {
       var table = '<img class="close" src="img/close_icon.gif" /><img id="Pimg" src="img/profile.png" width="106" height="148" />'+
           '<table><tr><td></td></tr><tr><td><span class="Ptext">rofile </span></td><td><span class="Ptext">for&nbsp;'+id+
-          '</span></td></tr><tr><td>Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
+          '</span></td></tr><tr><td colspan="2">'+client+
+          '</td></tr><tr><td>Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
           ' /></td></tr><tr><td>Email:</td><td><input id="email" type="text" value="'+
           email+'" /></td></tr><tr><td>Avatar:</td><td><img id="myavatar" src="'+
           avatar+'" width="39" height="50" /> <input id="avatarurl" type="text" value="'+
@@ -479,7 +480,6 @@
     // get client domain or IP address
     $.getJSON('client.php', function(data) {
       client = $.trim(data.client);
-      $('#client').text(client);
     });
 
     // get script URL of Slims

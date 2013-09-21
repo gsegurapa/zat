@@ -351,11 +351,11 @@
     // Profile
     $('#user').click(function() {
       var table = '<img class="close" src="img/close_icon.gif" /><img id="Pimg" src="img/profile.png" width="106" height="148" />'+
-          '<table><tr><td></td></tr><tr><td><span class="Ptext">rofile </span></td><td><span class="Ptext">for&nbsp;'+id+
-          '</span></td></tr><tr><td colspan="2">'+client+
-          '</td></tr><tr><td>Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
-          ' /></td></tr><tr><td>Email:</td><td><input id="email" type="text" value="'+
-          email+'" /></td></tr><tr><td>Avatar:</td><td><img id="myavatar" src="'+
+          '<table><tr><td></td></tr><tr><td id="Ptext" colspan="2">rofile for&nbsp;'+id+
+          '</td></tr><tr><td colspan="2" style="font-weight:normal">('+client+
+          ')</td></tr><tr><td style="text-align:right">Work:</td><td><input id="work" type="checkbox" '+(work ? 'checked="checked" ' : '')+
+          ' /></td></tr><tr><td style="text-align:right">Email:</td><td><input id="email" type="text" value="'+
+          email+'" /></td></tr><tr><td style="text-align:right">Avatar:</td><td><img id="myavatar" src="'+
           avatar+'" width="39" height="50" /> <input id="avatarurl" type="text" value="'+
           avatar+'" /></td></tr></table><div id="cloakroom"></div>';
       $('#profile').show().on('click', 'img.close', cancelprofile).html(table);

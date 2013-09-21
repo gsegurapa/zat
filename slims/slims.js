@@ -27,6 +27,7 @@
   var timeout;  // time last message arrived
   var messageInputHeight; // height of messageInput textarea
   var paramOverride = false;
+  var userhost = ''; // user's domain or IP address
 
   // get ID from URL
   if (window.location.search.search(/^\?[\w% ]{1,}$/) === 0) {
@@ -108,7 +109,8 @@
     function addmessages(snap) {  // add messages to page
       var message = snap.val();
       var mstamp = message.stamp;
-      var name = message.email ? '<a href="mailto:'+message.email+'">'+message.name+'</a>' : message.name;
+      var name = (message.email ? '<a href="mailto:'+message.email+'">'+message.name+'</a>' : message.name) +
+        (message.host ? ' ('+message.host+')' : '');
       var now = (new Date()).valueOf();
       if (now - timeout > 5000) { // 5 seconds
         uptime();
@@ -215,6 +217,7 @@
           stamp: Firebase.ServerValue.TIMESTAMP
         };
         if (email) { post.email = email; }
+        if (userhost) { post.host = userhost; }
         if (avatar) { post.avatar = avatar; }
         if (files.length > 0) { post.files = files.join("\n"); }
         var msgRef = msgdb.push();
@@ -471,6 +474,12 @@
       $('#helpdiv').show(200).one('click', function() {
         $('#helpdiv').hide();
       });
+    });
+
+    // get user domain or IP address
+    $.getJSON('hostname.php', function(data) {
+      userhost = $.trim(data.hostname);
+      $('#userhost').text(userhost);
     });
 
   }); // end document ready

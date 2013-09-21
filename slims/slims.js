@@ -122,7 +122,7 @@
       }
       newdiv.append($('<strong/>').html(name)).
         append($('<span/>', {'class': 'msgtime'}).data('mts', mstamp).
-            html(' &ndash; '+deltaTime(now - mstamp)+' ago')).
+            html('<br />'+deltaTime(now - mstamp)+' ago')).
         append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
         prependTo($('#messagesDiv'));
       if (work) {
@@ -512,7 +512,7 @@
     var now = new Date();
     $('.msgtime').each(function() {
       var el = $(this);
-      el.text(' - '+deltaTime(now-el.data('mts'))+' ago');
+      el.html('<br />'+deltaTime(now-el.data('mts'))+' ago');
     });
     $('#usertime').text(now.toLocaleTimeString()).attr('title', now.toLocaleDateString());
     // console.log('num messages:', $('.msgtime').length, Object.keys(messageBodies).length);

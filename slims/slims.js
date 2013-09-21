@@ -27,7 +27,7 @@
   var timeout;  // time last message arrived
   var messageInputHeight; // height of messageInput textarea
   var paramOverride = false;
-  var userhost = ''; // user's domain or IP address
+  var client = ''; // user's domain or IP address
 
   // get ID from URL
   if (window.location.search.search(/^\?[\w% ]{1,}$/) === 0) {
@@ -217,7 +217,7 @@
           stamp: Firebase.ServerValue.TIMESTAMP
         };
         if (email) { post.email = email; }
-        if (userhost) { post.host = userhost; }
+        if (client) { post.host = client; }
         if (avatar) { post.avatar = avatar; }
         if (files.length > 0) { post.files = files.join("\n"); }
         var msgRef = msgdb.push();
@@ -476,11 +476,14 @@
       });
     });
 
-    // get user domain or IP address
-    $.getJSON('hostname.php', function(data) {
-      userhost = $.trim(data.hostname);
-      $('#userhost').text(userhost);
+    // get client domain or IP address
+    $.getJSON('client.php', function(data) {
+      client = $.trim(data.client);
+      $('#client').text(client);
     });
+
+    // get script URL of Slims
+    $('.scripturl').text(window.location.href.replace(/\?.*$/, ''));
 
   }); // end document ready
 

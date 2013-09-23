@@ -230,7 +230,7 @@
 
       uptime(); // update times
 
-      // console.log('kibbitz', $('.msgtime').length, Object.keys(messageBodies).length);
+      console.log('kibbitz', $('.msgtime').length, Object.keys(messageBodies).length);
       if (Object.keys(messageBodies).length > KEEPNUM) {  // might need to delete an old message
         // dnum = Math.min(3, messageBodies.length - KEEPNUM);
         // var olddb = msgdb.endAt(tsp);

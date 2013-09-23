@@ -109,7 +109,7 @@
     function addmessages(snap) {  // add messages to page
       var message = snap.val();
       var mstamp = message.stamp;
-      var name = (message.email ? '<a href="mailto:'+message.email+'">'+message.name+'</a>' : message.name) +
+      var name = '<strong>'+(message.email ? '<a href="mailto:'+message.email+'">'+message.name+'</a>' : message.name)+'</strong>' +
         (message.host ? ' ('+message.host+')' : '');
       var now = (new Date()).valueOf();
       if (now - timeout > 5000) { // 5 seconds
@@ -120,7 +120,7 @@
       if (message.avatar) {
         $('<img/>', { 'class': 'avatar'+(work ? '' : ' show'), src: message.avatar }).appendTo(newdiv);
       }
-      newdiv.append($('<strong/>').html(name)).
+      newdiv.append($('<span/>').html(name)).
         append($('<span/>', {'class': 'msgtime'}).data('mts', mstamp).
             html('<br />'+deltaTime(now - mstamp)+' ago')).
         append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
@@ -239,7 +239,7 @@
 
       function removemsg(snap) { // delete old message and files
         var m = snap.val();
-        if (snap.val().stamp < (new Date()) - KEEPTIME) {  // should use priority
+        if (m.stamp < (new Date()) - KEEPTIME) {  // should use priority
           // console.log('remove', snap.name());
           if (m.files && m.files.length > 0) { // delete uploaded files
             $.each(m.files.split("\n"), function(i, v) {

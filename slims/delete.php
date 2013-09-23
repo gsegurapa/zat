@@ -5,5 +5,9 @@
 
 $file = htmlspecialchars($_GET['file']);
 $filepath = 'files/'.$file;
-@unlink($filepath);
+if (unlink($filepath)) {
+	echo $filepath.' deleted';
+} else {
+	header("HTTP/1.0 404 Not Found");
+}
 ?>

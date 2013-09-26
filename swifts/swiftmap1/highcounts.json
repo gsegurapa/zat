@@ -443,11 +443,15 @@
 	"count": 0
 },
 {
-	"name": "Humboldt Co Redwood Snag",
-	"location": "CA",
-	"latitude": 0,
-	"longitude": 0,
-	"count": 0
+	"name": "Redwood Snag",
+	"location": "Humboldt County CA",
+	"latitude": 40.7853507,
+	"longitude": -124.057703,
+	"type": "snag",
+	"count": {
+		"2008-2010HighNorth": 884,
+		"2008-2010HighSouth": 1080
+	}
 },
 {
 	"name": "7th and A Street",

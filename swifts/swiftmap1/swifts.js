@@ -237,11 +237,11 @@
     }
 
     function addMarkerToGroup(group, v) {
-      var size = 30 + Math.round(v.count[group] * 100 / 30000);
+      var size = 30 + Math.round(v.count[group] * (v.type === 'snag' ? 0.025 : 0.005));
       var icon = L.icon({
-        iconUrl: 'chimney.png',
-        iconSize: [Math.round(size * 0.1958), size],
-        iconAnchor: [Math.round(size * 0.0979), size - 1],
+        iconUrl: v.type === 'snag' ? 'snag.png' : 'chimney.png',
+        iconSize: [Math.round(size * (v.type === 'snag' ? 0.45 : 0.1958)), size],
+        iconAnchor: [Math.round(size * (v.type === 'snag' ? 0.22 : 0.0979)), size - 1],
         popupAnchor: [0, -size]
       });
       groups[group].addLayer(L.marker([v.latitude, v.longitude], { title: v.count[group]+' swifts', riseOnHover: true, icon: icon }).

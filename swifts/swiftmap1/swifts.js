@@ -244,8 +244,8 @@
         iconAnchor: [Math.round(size * 0.0979), size - 1],
         popupAnchor: [0, -size]
       });
-      groups[group].addLayer(L.marker([v.latitude, v.longitude], { title: v.name, riseOnHover: true, icon: icon }).
-          bindPopup(v.location+'<br />'+v.name+'<br />('+v.latitude+','+v.longitude+')<br />count: '+v.count[group]));
+      groups[group].addLayer(L.marker([v.latitude, v.longitude], { title: v.count[group]+' swifts', riseOnHover: true, icon: icon }).
+          bindPopup(v.count[group]+' swifts<br />'+v.location+'<br />'+v.name+'<br />('+v.latitude+','+v.longitude+')'));
     }
 
   });

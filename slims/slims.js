@@ -643,6 +643,7 @@
     'pippa.jpg': 'Pippa, Cyndy, dolliedish',
     'margarita.jpg': 'Margarita Remus, M',
     'leslie11.jpg': 'Leslie, GeecheeGirl',
+    'don.jpg': 'Don Hall',
     'man.jpg': 'The Man',
     'happy.gif': 'Mr. Happy',
     'newuser.png': 'New User'

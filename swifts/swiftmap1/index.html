@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Swift Map</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+<!--[if lte IE 8]>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
+<![endif]-->
+<script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="swifts.js"></script>
+<style type="text/css">
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#map_div {
+  position: absolute;
+  top: 0px;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+}
+#info {
+  display: none;
+  font-family: arial, helvetica, sans-serif;
+  position: absolute;
+  left: 70px;
+  top: .5em;
+  padding: .3em 1em;
+  white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+#data_layer {
+  font-family: arial, helvetica, sans-serif;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: .3em 1em;
+  white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.6);
+
+}
+#map_div.three {
+	transform-style: preserve-3d;
+	transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -webkit-transform-style: preserve-3d;
+  -webkit-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -moz-transform-style: preserve-3d;
+  -moz-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -ms-transform-style: preserve-3d;
+  -ms-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+  -o-transform-style: preserve-3d;
+  -o-transform: perspective(600px) rotateX(30deg) translateZ(300px);
+}
+.attribution {
+  font-weight: bold;
+  font-size: 160%;
+  text-decoration: none;
+}
+</style>
+</head>
+<body>
+<div id="map_div"></div>
+<div id="info"></div>
+<div id="data_layer">
+  <label><input type="radio" class="leaflet-control-layers-selector" name="leaflet-overlay-layer" /><span> 2008-2010HighNorth</span></label> |
+  <label><input type="radio" class="leaflet-control-layers-selector" name="leaflet-overlay-layer" checked /><span> 2008-2010HighSouth</span></label>
+</div>
+</div>
+</body>
+</html>

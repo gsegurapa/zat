@@ -1,0 +1,528 @@
+[
+{
+	"name": "Cumberland School",
+	"state": "BC",
+	"latitude": 49.62136,
+	"longitude": -125.0333,
+	"count": {
+		"2008-2010HighNorth": 200,
+		"2008-2010HighSouth": 93
+	}
+},
+{
+	"name": "Nelsen Evangelical Church",
+	"state": "BC",
+	"latitude": 49.48971,
+	"longitude": -117.29406,
+	"count": {
+		"2008-2010HighNorth": 100,
+		"2008-2010HighSouth": 0
+	}
+},{
+	"name": "Hamilton Fire Hall",
+	"state": "MT",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Kalispell Jail",
+	"state": "MT",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Kalispell Medical Equipment",
+	"state": "MT",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Stevensville Hotel",
+	"state": "MT",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Moscow Downtown",
+	"state": "ID",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Lapwai Officers Quarter",
+	"state": "ID",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Sumas Old Customs House",
+	"state": "WA",
+	"latitude": 49.00133,
+	"longitude": -122.2639,
+	"count": {
+		"2008-2010HighNorth": 1840,
+		"2008-2010HighSouth": 277
+	}
+},
+{
+	"name": "Orient School",
+	"state": "WA",
+	"latitude": 48.86756,
+	"longitude": -118.20483,
+	"count": {
+		"2008-2010HighNorth": 300,
+		"2008-2010HighSouth": 146
+	}
+},
+{
+	"name": "Sedro-Wolley Old Northern State Hospital",
+	"state": "WA",
+	"latitude": 48.533674,
+	"longitude": -122.206293,
+	"count": {
+		"2008-2010HighNorth": 750,
+		"2008-2010HighSouth": 4200
+	}
+},
+{
+	"name": "Totem Lake",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Snohomish Carnegie Library",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Monroe Wagner Elementary School",
+	"state": "WA",
+	"latitude": 47.853637,
+	"longitude": -121.979282,
+	"count": {
+		"2008-2010HighNorth": 21027,
+		"2008-2010HighSouth": 16650
+	}
+},
+{
+	"name": "Monroe School District Admin Building",
+	"state": "WA",
+	"latitude": 47.85407,
+	"longitude": -121.96874,
+	"count": {
+		"2008-2010HighNorth": 4700,
+		"2008-2010HighSouth": 3576
+	}
+},
+{
+	"name": "Old Ellensburg Hospital",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Yakima Herald News",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Old Parker Heigths School",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Selleck Old Schoolhouse",
+	"state": "WA",
+	"latitude": 47.376332,
+	"longitude": -121.868591,
+	"count": {
+		"2008-2010HighNorth": 8251,
+		"2008-2010HighSouth": 7310
+	}
+},
+{
+	"name": "JBLM Ft Lewis Bldg 2068 Big Stack",
+	"state": "WA",
+	"latitude": 47.091702,
+	"longitude": -122.60484,
+	"count": {
+		"2008-2010HighNorth": 400,
+		"2008-2010HighSouth": 800
+	}
+},
+{
+	"name": "Olympia Residences",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Tumwater Olympia Brewery",
+	"state": "WA",
+	"latitude": 47.01445,
+	"longitude": -122.9023,
+	"count": {
+		"2008-2010HighNorth": 450,
+		"2008-2010HighSouth": 0
+	}
+},
+{
+	"name": "Centralia Downtown",
+	"state": "WA",
+	"latitude": 46.71806,
+	"longitude": -122.95284,
+	"count": {
+		"2008-2010HighNorth": 889,
+		"2008-2010HighSouth": 798
+	}
+},
+{
+	"name": "Battleground Bieker Res.",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Camas Ne 6",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Camas Residence",
+	"state": "WA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Rainier Old Hall",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Raineer Carpet One",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Tillamook Wilson School",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Portland SE Hawthorne Ave",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Portland Mackins Auto Body",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "NE Portland On Columbia Ave",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Portland Mt. Tabor Apts",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Portland Chapman School",
+	"state": "OR",
+	"latitude": 45.53325,
+	"longitude": -122.70584,
+	"count": {
+		"2008-2010HighNorth": 10000,
+		"2008-2010HighSouth": 21000
+	}
+},
+{
+	"name": "Portland Duniway Wood Box",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Oregon City across from HS",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Oregon City High School",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Oregon City Downtown",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Oregon City Kings Acedemy",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "La Grande Foley Bldg.",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Union High School",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Mt Angel JFK High School",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Corvallis Whiteside Theatre",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Corvallis Wiegand Hall",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Corvallis Frat House",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Albany Fire Station",
+	"state": "OR",
+	"latitude": 44.63487,
+	"longitude": -123.10698,
+	"count": {
+		"2008-2010HighNorth": 1620,
+		"2008-2010HighSouth": 3030
+	}
+},
+{
+	"name": "Lebanon Hotel",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Lebanon 2nd/grant",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Eugene UO Agate Hall",
+	"state": "OR",
+	"latitude": 44.04021,
+	"longitude": -123.06898,
+	"count": {
+		"2008-2010HighNorth": 4375,
+		"2008-2010HighSouth": 12000
+	}
+},
+{
+	"name": "Eugene Smith Family Books",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Roseburg Uvaa Clay Place",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Roseburg Residence",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Bend Boys And Girls Club",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Bend Old Library",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Bend Christmas Presence",
+	"state": "OR",
+	"latitude": 44.05667,
+	"longitude": -121.30974,
+	"count": {
+		"2008-2010HighNorth": 2000,
+		"2008-2010HighSouth": 187
+	}
+},
+{
+	"name": "Medford Voorhies Manson",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Lakeview 1st Presbyterian",
+	"state": "OR",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Humboldt Co Redwood Snag",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Arcata 7th And A Street",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Arcata 13th And I Street",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Garberville Sprowl Creek Rd",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Santa Rosa Res.",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Sebastopol High And Calder",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Healdsburg Rio Lindo Academy",
+	"state": "CA",
+	"latitude": 38.62688,
+	"longitude": -122.84239,
+	"count": {
+		"2008-2010HighNorth": 3,
+		"2008-2010HighSouth": 20000
+	}
+},
+{
+	"name": "SF North Bay McNear Brick",
+	"state": "CA",
+	"latitude": 37.98306,
+	"longitude": -122.46238,
+	"count": {
+		"2008-2010HighNorth": 480,
+		"2008-2010HighSouth": 10000
+	}
+},
+{
+	"name": "San Francisco Presido",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "Los Angeles Chester Williams",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+},
+{
+	"name": "San Diego Church Lofts",
+	"state": "CA",
+	"latitude": 0,
+	"longitude": 0,
+	"count": 0
+}
+]

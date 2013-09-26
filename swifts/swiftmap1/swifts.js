@@ -91,6 +91,7 @@
   var overlay = false;  // show overlay for hybrid
   var groups = { '2008-2010HighNorth': L.layerGroup(), '2008-2010HighSouth': L.layerGroup() };
   var savegroup = '2008-2010HighSouth'; // currently displayed data group
+  var databounds; // view bounds to see all data
 
   $(document).ready(function() {
       
@@ -161,6 +162,9 @@
       case 189: // - or _
         map.setZoom(--zoomLevel);
         break;
+      case 13: // return
+        map.fitBounds(databounds);
+        break;
       }
     });
 
@@ -228,7 +232,8 @@
         addMarkerToGroup('2008-2010HighSouth', v);
         addMarkerToGroup('2008-2010HighNorth', v);
       });
-      map.fitBounds(L.latLngBounds(points)).addLayer(groups[savegroup]);
+      databounds = L.latLngBounds(points);
+      map.fitBounds(databounds).addLayer(groups[savegroup]);
     }
 
     function addMarkerToGroup(group, v) {
@@ -240,7 +245,7 @@
         popupAnchor: [0, -size]
       });
       groups[group].addLayer(L.marker([v.latitude, v.longitude], { title: v.name, riseOnHover: true, icon: icon }).
-          bindPopup(v.state+'<br />'+v.name+'<br />('+v.latitude+','+v.longitude+')<br />count: '+v.count[group]));
+          bindPopup(v.location+'<br />'+v.name+'<br />('+v.latitude+','+v.longitude+')<br />count: '+v.count[group]));
     }
 
   });

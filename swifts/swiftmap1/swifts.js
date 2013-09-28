@@ -237,7 +237,7 @@
     }
 
     function addMarkerToGroup(group, v) {
-      var size = 30 + Math.round(v.count[group] * (v.type === 'snag' ? 0.025 : 0.005));
+      var size = 30 + Math.round(v.count[group] * (v.type === 'snag' ? 0.025 : 0.004));
       var icon = L.icon({
         iconUrl: v.type === 'snag' ? 'snag.png' : 'chimney.png',
         iconSize: [Math.round(size * (v.type === 'snag' ? 0.45 : 0.1958)), size],

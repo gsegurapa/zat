@@ -216,7 +216,7 @@
 
       $.ajax({
         dataType: 'json',
-        url: 'highcounts.json',
+        url: 'counts.json',
         success: successfn,
         error: function(jqXHR, status, thrown) {
           if (console && console.log) { console.log('error', jqXHR, status, thrown); }
@@ -227,7 +227,7 @@
     function successfn(data, status) {
       var points = [];
       $.each(data, function(k, v) {
-        if (v.count === 0 || v.latitude === 0 || v.longitude === 0) { return; }
+        if (v.counts === null || v.latitude === 0 || v.longitude === 0) { return; }
         points.push(L.latLng(v.latitude, v.longitude));
         addMarkerToGroup('2008-2010HighSouth', v);
         addMarkerToGroup('2008-2010HighNorth', v);
@@ -237,15 +237,15 @@
     }
 
     function addMarkerToGroup(group, v) {
-      var size = 30 + Math.round(v.count[group] * (v.type === 'snag' ? 0.025 : 0.004));
+      var size = 30 + Math.round(v.counts[group] * (v.type === 'snag' ? 0.025 : 0.004));
       var icon = L.icon({
         iconUrl: v.type === 'snag' ? 'snag.png' : 'chimney.png',
         iconSize: [Math.round(size * (v.type === 'snag' ? 0.45 : 0.1958)), size],
         iconAnchor: [Math.round(size * (v.type === 'snag' ? 0.22 : 0.0979)), size - 1],
         popupAnchor: [0, -size]
       });
-      groups[group].addLayer(L.marker([v.latitude, v.longitude], { title: v.count[group]+' swifts', riseOnHover: true, icon: icon }).
-          bindPopup(v.count[group]+' swifts<br />'+v.location+'<br />'+v.name+'<br />('+v.latitude+','+v.longitude+')'));
+      groups[group].addLayer(L.marker([v.latitude, v.longitude], { title: v.counts[group]+' swifts', riseOnHover: true, icon: icon }).
+          bindPopup(v.counts[group]+' swifts<br />'+v.location+'<br />'+v.name+'<br />('+v.latitude+','+v.longitude+')'));
     }
 
   });

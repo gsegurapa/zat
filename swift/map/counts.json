@@ -18,7 +18,18 @@
 		"2008-2010HighNorth": 100,
 		"2008-2010HighSouth": null
 	}
-},{
+},
+{
+	"name": "Cranbrook",
+	"location": "Cranbrook BC",
+	"latitude": null,
+	"longitude": null,
+	"counts": {
+		"2008-2010HighNorth": 385,
+		"2008-2010HighSouth": null
+	}
+},
+{
 	"name": "Fire Hall",
 	"location": "Hamilton MT",
 	"latitude": null,
@@ -43,25 +54,34 @@
 	"counts": null
 },
 {
-	"name": "Stevensville Hotel",
+	"name": "Stevensville Hotel Main Street",
 	"location": "Stevensville MT",
 	"latitude": null,
 	"longitude": null,
-	"counts": null
+	"counts": {
+		"2008-2010HighNorth": null,
+		"2008-2010HighSouth": 400
+	}
 },
 {
 	"name": "Downtown",
 	"location": "Moscow ID",
 	"latitude": null,
 	"longitude": null,
-	"counts": null
+	"counts": {
+		"2008-2010HighNorth": 55,
+		"2008-2010HighSouth": 550
+	}
 },
 {
 	"name": "Officers Quarter",
-	"location": "Lapwai ID",
+	"location": "Fort Lapwai ID",
 	"latitude": null,
 	"longitude": null,
-	"counts": null
+	"counts": {
+		"2008-2010HighNorth": null,
+		"2008-2010HighSouth": 650
+	}
 },
 {
 	"name": "Old Customs House",
@@ -292,8 +312,8 @@
 {
 	"name": "High School",
 	"location": "Oregon City OR",
-	"latitude": null,
-	"longitude": null,
+	"latitude": 45.35614,
+	"longitude": -122.59559,
 	"counts": null
 },
 {

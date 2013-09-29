@@ -1,6 +1,10 @@
-// Flightstats map tile servers and overlays
+// Map of Vaux Swift roosting sites and counts
+/*jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true,
+  strict:true, undef:true, unused:true, curly:true, indent:false */
+/*global jQuery:false, L:false, document:false */
 
 (function($){
+  "use strict";
 
   var tilesinfo = {
     mqosm: { // map quest / open street map
@@ -79,7 +83,7 @@
       zoomLevel = 5,
       center = L.latLng(40, -115),
       controls = true,
-      view = null; // 3D
+      view = null, // 3D
       info = false; // display info
   
   // console.log(document.cookie);
@@ -88,7 +92,6 @@
   
   var map; // Leaflet map object
   var layerControl; // interactive control
-  var overlay = false;  // show overlay for hybrid
   var groups = { '2008-2010HighNorth': L.layerGroup(), '2008-2010HighSouth': L.layerGroup() };
   var savegroup = '2008-2010HighSouth'; // currently displayed data group
   var databounds; // view bounds to see all data
@@ -111,7 +114,7 @@
     var basemaps = {};
 
     if (controls) {
-      layerControl = L.control.layers({}, {})
+      layerControl = L.control.layers({}, {});
       map.addControl(layerControl);
     }
 
@@ -225,6 +228,8 @@
     } // end mapready
 
     function successfn(data, status) {
+      console.log(status);
+      if (status !== 'success') { alert('cannot load counts.json: '+status); }
       var points = [];
       $.each(data, function(k, v) {
         if (v.counts === null || v.latitude === 0 || v.longitude === 0) { return; }

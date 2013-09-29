@@ -228,11 +228,10 @@
     } // end mapready
 
     function successfn(data, status) {
-      console.log(status);
       if (status !== 'success') { alert('cannot load counts.json: '+status); }
       var points = [];
       $.each(data, function(k, v) {
-        if (v.counts === null || v.latitude === 0 || v.longitude === 0) { return; }
+        if (v.counts === null || v.latitude === null || v.longitude === null) { return; }
         points.push(L.latLng(v.latitude, v.longitude));
         addMarkerToGroup('2008-2010HighSouth', v);
         addMarkerToGroup('2008-2010HighNorth', v);
@@ -242,7 +241,9 @@
     }
 
     function addMarkerToGroup(group, v) {
-      var size = 30 + Math.round(v.counts[group] * (v.type === 'snag' ? 0.025 : 0.004));
+      var c = v.counts[group];  // count for this data group
+      if (c === undefined || c === null) { return; }
+      var size = 30 + Math.round(c * (v.type === 'snag' ? 0.025 : 0.004));
       var icon = L.icon({
         iconUrl: v.type === 'snag' ? 'snag.png' : 'chimney.png',
         iconSize: [Math.round(size * (v.type === 'snag' ? 0.45 : 0.1958)), size],

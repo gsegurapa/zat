@@ -16,48 +16,51 @@
 	"longitude": -117.29406,
 	"counts": {
 		"2008-2010HighNorth": 100,
-		"2008-2010HighSouth": 0
+		"2008-2010HighSouth": null
 	}
 },{
 	"name": "Fire Hall",
 	"location": "Hamilton MT",
-	"latitude": 0,
-	"longitude": 0,
-	"counts": null
+	"latitude": null,
+	"longitude": null,
+	"counts": {
+		"2008-2010HighNorth": 218,
+		"2008-2010HighSouth": 10
+	}
 },
 {
 	"name": "Jail",
 	"location": "Kalispell MT",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Medical Equipment",
 	"location": "Kalispell MT",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Stevensville Hotel",
 	"location": "Stevensville MT",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Downtown",
 	"location": "Moscow ID",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Officers Quarter",
 	"location": "Lapwai ID",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -93,15 +96,15 @@
 {
 	"name": "Totem Lake",
 	"location": "Totem Lake WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Carnegie Library",
 	"location": "Snohomish WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -127,22 +130,22 @@
 {
 	"name": "Old Ellensburg Hospital",
 	"location": "Ellensburg WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Herald News",
 	"location": "Yakima WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Old Parker Heights School",
 	"location": "WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -168,8 +171,8 @@
 {
 	"name": "Residences",
 	"location": "Olympia WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -195,71 +198,71 @@
 {
 	"name": "Bieker Res.",
 	"location": "Battleground WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Ne 6",
 	"location": "Camas WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Residence",
 	"location": "Camas WA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Old Hall",
 	"location": "Rainier OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Carpet One",
 	"location": "Rainier OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Wilson School",
 	"location": "Tillamook OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "SE Hawthorne Ave",
 	"location": "Portland OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Mackins Auto Body",
 	"location": "Portland OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "NE Columbia Ave",
 	"location": "Portland OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Mt. Tabor Apts",
 	"location": "Portland OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -275,78 +278,78 @@
 {
 	"name": "Duniway Wood Box",
 	"location": "Portland OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Across from HS",
 	"location": "Oregon City OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "High School",
 	"location": "Oregon City OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Downtown",
 	"location": "Oregon City OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Kings Academy",
 	"location": "Oregon City OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Foley Bldg.",
 	"location": "La Grande OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "High School",
 	"location": "Union OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "JFK High School",
 	"location": "Mt Angel OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Whiteside Theatre",
 	"location": "Corvallis OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Wiegand Hall",
 	"location": "Corvallis OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Frat House",
 	"location": "Corvallis OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -362,15 +365,15 @@
 {
 	"name": "Hotel",
 	"location": "Lebanon OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "2nd/Grant",
 	"location": "Lebanon OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -386,36 +389,36 @@
 {
 	"name": "Smith Family Books",
 	"location": "Eugene OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Uvaa Clay Place",
 	"location": "Roseburg OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Residence",
 	"location": "Roseburg OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Boys And Girls Club",
 	"location": "Bend OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Old Library",
 	"location": "Bend OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -431,15 +434,15 @@
 {
 	"name": "Voorhies Manson",
 	"location": "Medford OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "First Presbyterian",
 	"location": "Lakeview OR",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -456,36 +459,36 @@
 {
 	"name": "7th and A Street",
 	"location": "Arcata CA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "13th and I Street",
 	"location": "Arcata CA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Sprowl Creek Rd",
 	"location": "Garberville CA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Reservoir",
 	"location": "Santa Rosa CA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "High and Calder",
 	"location": "Sebastopol CA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
@@ -511,22 +514,22 @@
 {
 	"name": "Presido",
 	"location": "San Francisco CA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Chester Williams",
 	"location": "Los Angeles CA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 },
 {
 	"name": "Church Lofts",
 	"location": "San Diego CA",
-	"latitude": 0,
-	"longitude": 0,
+	"latitude": null,
+	"longitude": null,
 	"counts": null
 }
 ]

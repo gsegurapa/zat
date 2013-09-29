@@ -209,7 +209,7 @@
     showinfo();
 
     // var chimneyIcon = L.icon({
-    //   iconUrl: 'chimney.png',
+    //   iconUrl: 'img/chimney.png',
     //   iconSize: [15, 76],
     //   iconAnchor: [7, 75]
     // });
@@ -245,7 +245,7 @@
       if (c === undefined || c === null) { return; }
       var size = 30 + Math.round(c * (v.type === 'snag' ? 0.025 : 0.004));
       var icon = L.icon({
-        iconUrl: v.type === 'snag' ? 'snag.png' : 'chimney.png',
+        iconUrl: v.type === 'snag' ? 'img/snag.png' : 'img/chimney.png',
         iconSize: [Math.round(size * (v.type === 'snag' ? 0.45 : 0.1958)), size],
         iconAnchor: [Math.round(size * (v.type === 'snag' ? 0.22 : 0.0979)), size - 1],
         popupAnchor: [0, -size]

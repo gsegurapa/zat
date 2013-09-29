@@ -25,8 +25,9 @@
 	"name": "Cranbrook",
 	"location": "Cranbrook BC",
 	"alt": [ "Cranbrook" ],
-	"latitude": null,
-	"longitude": null,
+	"latitude": 49.51302,
+	"longitude": -115.76966,
+	"accuracy": "city",
 	"counts": {
 		"2008-2010HighNorth": 385,
 		"2008-2010HighSouth": null
@@ -35,9 +36,9 @@
 {
 	"name": "Fire Hall",
 	"location": "Hamilton MT",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
+	"alt": [ "Hamilton Fire House" ],
+	"latitude": 46.24585,
+	"longitude": -114.15853,
 	"counts": {
 		"2008-2010HighNorth": 218,
 		"2008-2010HighSouth": 10
@@ -63,8 +64,9 @@
 	"name": "Stevensville Hotel",
 	"location": "Stevensville MT",
 	"alt": [ "Stevensville Main Street" ],
-	"latitude": null,
-	"longitude": null,
+	"latitude": 46.51259,
+	"longitude": -114.09281,
+	"accuracy": "city",
 	"counts": {
 		"2008-2010HighNorth": null,
 		"2008-2010HighSouth": 400
@@ -73,9 +75,10 @@
 {
 	"name": "Downtown",
 	"location": "Moscow ID",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
+	"alt": [ "Moscow Downtown" ],
+	"latitude": 46.7324,
+	"longitude": -117.00141,
+	"accuracy": "city",
 	"counts": {
 		"2008-2010HighNorth": 55,
 		"2008-2010HighSouth": 550
@@ -84,9 +87,10 @@
 {
 	"name": "Officers Quarter",
 	"location": "Fort Lapwai ID",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
+	"alt": [ "Fort Lapwai" ],
+	"latitude": 46.40414,
+	"longitude": -116.80494,
+	"accuracy": "city",
 	"counts": {
 		"2008-2010HighNorth": null,
 		"2008-2010HighSouth": 650
@@ -95,7 +99,7 @@
 {
 	"name": "Old Customs House",
 	"location": "Sumas WA",
-	"alt": [],
+	"alt": [ "Sumas Old Customs House" ],
 	"latitude": 49.00133,
 	"longitude": -122.2639,
 	"counts": {
@@ -106,7 +110,7 @@
 {
 	"name": "School",
 	"location": "Orient WA",
-	"alt": [],
+	"alt": [ "Orient School" ],
 	"latitude": 48.86756,
 	"longitude": -118.20483,
 	"counts": {
@@ -117,12 +121,23 @@
 {
 	"name": "Old Northern State Hospital",
 	"location": "Sedro-Wolley WA",
-	"alt": [],
+	"alt": [ "Sedro-Wolley ONS Hospital" ],
 	"latitude": 48.533674,
 	"longitude": -122.206293,
 	"counts": {
 		"2008-2010HighNorth": 750,
 		"2008-2010HighSouth": 4200
+	}
+},
+{
+	"name": "Fish Hatchery",
+	"location": "Sequim WA",
+	"alt": [ "Sequim Fish Hatchery" ],
+	"latitude": 48.02318,
+	"longitude":  -123.13725,
+	"counts": {
+		"2008-2010HighNorth": 100,
+		"2008-2010HighSouth": 0
 	}
 },
 {
@@ -144,7 +159,7 @@
 {
 	"name": "Wagner Elementary School",
 	"location": "Monroe WA",
-	"alt": [],
+	"alt": [ "Monroe F. Wagner Elementary"],
 	"latitude": 47.853637,
 	"longitude": -121.979282,
 	"counts": {
@@ -155,7 +170,7 @@
 {
 	"name": "School District Admin Building",
 	"location": "Monroe WA",
-	"alt": [],
+	"alt": [ "Monroe Admin. Building" ],
 	"latitude": 47.85407,
 	"longitude": -121.96874,
 	"counts": {
@@ -166,31 +181,41 @@
 {
 	"name": "Old Ellensburg Hospital",
 	"location": "Ellensburg WA",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Ellensburg Old Hospital" ],
+	"latitude": 46.99458,
+	"longitude": -120.53545,
+	"counts": {
+		"2008-2010HighNorth": 850,
+		"2008-2010HighSouth": 480
+	}
 },
 {
 	"name": "Herald News",
 	"location": "Yakima WA",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Yakima Herald News" ],
+	"latitude": 46.60497,
+	"longitude": -120.50284,
+	"counts": {
+		"2008-2010HighNorth": 1184,
+		"2008-2010HighSouth": 1662
+	}
 },
 {
 	"name": "Old Parker Heights School",
 	"location": "WA",
 	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"latitude": 46.4736,
+	"longitude": -120.38598,
+	"accuracy": "unknown",
+	"counts": {
+		"2008-2010HighNorth": null,
+		"2008-2010HighSouth": 542
+	}
 },
 {
 	"name": "Old Schoolhouse",
 	"location": "Selleck WA",
-	"alt": [],
+	"alt": [ "Selleck Old Schoolhouse" ],
 	"latitude": 47.376332,
 	"longitude": -121.868591,
 	"counts": {
@@ -201,7 +226,7 @@
 {
 	"name": "Bldg 2068 Big Stack",
 	"location": "JBLM Ft Lewis WA",
-	"alt": [],
+	"alt": [ "Fort Lewis Building 2068" ],
 	"latitude": 47.091702,
 	"longitude": -122.60484,
 	"counts": {
@@ -212,26 +237,30 @@
 {
 	"name": "Residences",
 	"location": "Olympia WA",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Olympia Residence" ],
+	"latitude": 47.04488,
+	"longitude": -122.90175,
+	"accuracy": "city",
+	"counts": {
+		"2008-2010HighNorth": 200,
+		"2008-2010HighSouth": 180
+	}
 },
 {
 	"name": "Olympia Brewery",
 	"location": "Tumwater WA",
-	"alt": [],
+	"alt": [ "Tumwater Brewery" ],
 	"latitude": 47.01445,
 	"longitude": -122.9023,
 	"counts": {
 		"2008-2010HighNorth": 450,
-		"2008-2010HighSouth": 0
+		"2008-2010HighSouth": null
 	}
 },
 {
 	"name": "Downtown",
 	"location": "Centralia WA",
-	"alt": [],
+	"alt": [ "Centralia Downtown" ],
 	"latitude": 46.71806,
 	"longitude": -122.95284,
 	"counts": {
@@ -243,9 +272,13 @@
 	"name": "Bieker Res.",
 	"location": "Battleground WA",
 	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"latitude": 45.7808,
+	"longitude": -122.54778,
+	"accuracy": "city",
+	"counts": {
+		"2008-2010HighNorth": 3,
+		"2008-2010HighSouth": 350
+	}
 },
 {
 	"name": "Ne 6",

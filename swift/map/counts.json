@@ -202,14 +202,26 @@
 },
 {
 	"name": "Old Parker Heights School",
-	"location": "WA",
+	"location": "Wapato WA",
 	"alt": [],
 	"latitude": 46.4736,
 	"longitude": -120.38598,
-	"accuracy": "unknown",
+	"accuracy": "city",
 	"counts": {
 		"2008-2010HighNorth": null,
 		"2008-2010HighSouth": 542
+	}
+},
+{
+	"name": "Farm House",
+	"location": "Wapato WA",
+	"alt": [ "Wapato Farm House" ],
+	"latitude": 46.44784,
+	"longitude": -120.41979,
+	"accuracy": "city",
+	"counts": {
+		"2008-2010HighNorth": 250,
+		"2008-2010HighSouth": 125
 	}
 },
 {
@@ -259,6 +271,17 @@
 },
 {
 	"name": "Downtown",
+	"location": "Waitsburg WA",
+	"alt": [ "Waitsburg Downtown" ],
+	"latitude": 46.27016,
+	"longitude": -118.15329,
+	"counts": {
+		"2008-2010HighNorth": null,
+		"2008-2010HighSouth": 150
+	}
+},
+{
+	"name": "Downtown",
 	"location": "Centralia WA",
 	"alt": [ "Centralia Downtown" ],
 	"latitude": 46.71806,
@@ -281,12 +304,15 @@
 	}
 },
 {
-	"name": "Ne 6",
+	"name": "NE 6th",
 	"location": "Camas WA",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Camas Tavern" ],
+	"latitude": 45.58495,
+	"longitude": -122.40578,
+	"counts": {
+		"2008-2010HighNorth": 3795,
+		"2008-2010HighSouth": 2365
+	}
 },
 {
 	"name": "Residence",
@@ -295,6 +321,17 @@
 	"latitude": null,
 	"longitude": null,
 	"counts": null
+},
+{
+	"name": "Old Ice House",
+	"location": "Klickitat WA",
+	"alt": [ "Klickitat Old Ice House" ],
+	"latitude": 45.82064,
+	"longitude": -121.11771,
+	"counts": {
+		"2008-2010HighNorth": 354,
+		"2008-2010HighSouth": 3
+	}
 },
 {
 	"name": "Old Hall",

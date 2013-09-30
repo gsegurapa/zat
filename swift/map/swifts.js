@@ -243,13 +243,21 @@
     function addMarkerToGroup(group, v) {
       var c = v.counts[group];  // count for this data group
       if (c === undefined || c === null) { return; }
-      var size = 30 + Math.round(c * (v.type === 'snag' ? 0.025 : 0.004));
-      var icon = L.icon({
-        iconUrl: v.type === 'snag' ? 'img/snag.png' : 'img/chimney.png',
-        iconSize: [Math.round(size * (v.type === 'snag' ? 0.45 : 0.1958)), size],
-        iconAnchor: [Math.round(size * (v.type === 'snag' ? 0.22 : 0.0979)), size - 1],
-        popupAnchor: [0, -size]
+      // var size = 30 + Math.round(c * (v.type === 'snag' ? 0.025 : 0.004));
+      var size = 15 + Math.round(c * 0.004);
+      var icon = L.divIcon({
+        iconSize: [10, 10],
+        // iconAnchor: [Math.round(size * (v.type === 'snag' ? 0.22 : 0.0979)), size - 1],
+        popupAnchor: [1, -size],
+        html: '<img class="roost" src="img/' + (v.type === 'snag' ? 'snag' : 'chimney') + '.png" style="height:' +
+            size + 'px;left:' + (5-Math.round(size * 0.0979)) + 'px;" />'
       });
+      // var icon = L.icon({
+      //   iconUrl: v.type === 'snag' ? 'img/snag.png' : 'img/chimney.png',
+      //   iconSize: [Math.round(size * (v.type === 'snag' ? 0.45 : 0.1958)), size],
+      //   iconAnchor: [Math.round(size * (v.type === 'snag' ? 0.22 : 0.0979)), size - 1],
+      //   popupAnchor: [0, -size]
+      // });
       groups[group].addLayer(L.marker([v.latitude, v.longitude], { title: v.counts[group]+' swifts', riseOnHover: true, icon: icon }).
           bindPopup(v.counts[group]+' swifts<br />'+v.location+'<br />'+v.name+'<br />('+v.latitude+','+v.longitude+')'));
     }

@@ -126,7 +126,9 @@
 	"longitude": -122.206293,
 	"counts": {
 		"2008-2010HighNorth": 750,
-		"2008-2010HighSouth": 4200
+		"2008-2010HighSouth": 4200,
+		"2008-2011HighNorth": 4167,
+		"2008-2011HighSouth": 20965
 	}
 },
 {
@@ -164,7 +166,9 @@
 	"longitude": -121.979282,
 	"counts": {
 		"2008-2010HighNorth": 21027,
-		"2008-2010HighSouth": 16650
+		"2008-2010HighSouth": 16650,
+		"2008-2011HighNorth": 21027,
+		"2008-2011HighSouth": 26552
 	}
 },
 {
@@ -232,7 +236,9 @@
 	"longitude": -121.868591,
 	"counts": {
 		"2008-2010HighNorth": 8251,
-		"2008-2010HighSouth": 7310
+		"2008-2010HighSouth": 7310,
+		"2008-2011HighNorth": 8251,
+		"2008-2011HighSouth": 17591
 	}
 },
 {
@@ -243,7 +249,9 @@
 	"longitude": -122.60484,
 	"counts": {
 		"2008-2010HighNorth": 400,
-		"2008-2010HighSouth": 800
+		"2008-2010HighSouth": 800,
+		"2008-2010HighNorth": 8440,
+		"2008-2010HighSouth": 14697
 	}
 },
 {
@@ -403,10 +411,13 @@
 {
 	"name": "Duniway Wood Box",
 	"location": "Portland OR",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Portland Duniway" ],
+	"latitude": 45.50384,
+	"longitude": -122.68396,
+	"counts": {
+		"2008-2010HighNorth": 0,
+		"2008-2010HighSouth": 2699
+	}
 },
 {
 	"name": "Across from HS",
@@ -427,10 +438,16 @@
 {
 	"name": "Downtown",
 	"location": "Oregon City OR",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Oregon City Downtown" ],
+	"latitude": 45.35781,
+	"longitude": -122.60849,
+	"accuracy": "city",
+	"counts": {
+		"2008-2010HighNorth": 4742,
+		"2008-2010HighSouth": 7005,
+		"2008-2011HighNorth": 4742,
+		"2008-2011HighSouth": 7005
+	}
 },
 {
 	"name": "Kings Academy",
@@ -441,12 +458,27 @@
 	"counts": null
 },
 {
-	"name": "Foley Bldg.",
+	"name": "Residence",
+	"location": "McMinnville OR",
+	"alt": [],
+	"latitude": 45.20874,
+	"longitude": -123.19841,
+	"accuracy": "city",
+	"counts": {
+		"2008-2010HighNorth": 700,
+		"2008-2010HighSouth": 8
+	}
+},
+{
+	"name": "Foley Building",
 	"location": "La Grande OR",
 	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"latitude": 45.32934,
+	"longitude": -118.09524,
+	"counts": {
+		"2008-2010HighNorth": 2454,
+		"2008-2010HighSouth": 1020
+	}
 },
 {
 	"name": "High School",
@@ -462,23 +494,52 @@
 	"alt": [],
 	"latitude": null,
 	"longitude": null,
+	"accuracy": "city",
 	"counts": null
+},
+{
+	"name": "Residence",
+	"location": "Silverton OR",
+	"alt": [],
+	"latitude": 45.00556,
+	"longitude": -122.78202,
+	"counts": {
+		"2008-2010HighNorth": 900,
+		"2008-2010HighSouth": 450
+	}
+},
+{
+	"name": "Immaculate Conception",
+	"location": "Stayton OR",
+	"alt": [ "Stayton Immaculate Parish" ],
+	"latitude": 44.80262,
+	"longitude": -122.78929,
+	"counts": {
+		"2008-2010HighNorth": 965,
+		"2008-2010HighSouth": null
+	}
 },
 {
 	"name": "Whiteside Theatre",
 	"location": "Corvallis OR",
 	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"latitude": 44.56379,
+	"longitude": -123.26212,
+	"counts": {
+		"2008-2010HighNorth": null,
+		"2008-2010HighSouth": 3100
+	}
 },
 {
 	"name": "Wiegand Hall",
 	"location": "Corvallis OR",
 	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"latitude": 44.5672,
+	"longitude": -123.28534,
+	"counts": {
+		"2008-2010HighNorth": 1500,
+		"2008-2010HighSouth": 2000
+	}
 },
 {
 	"name": "Frat House",
@@ -500,12 +561,15 @@
 	}
 },
 {
-	"name": "Hotel",
+	"name": "Old Hotel",
 	"location": "Lebanon OR",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Lebanon Old Hotel" ],
+	"latitude": 44.53918,
+	"longitude": -122.90757,
+	"counts": {
+		"2008-2010HighNorth": 3200,
+		"2008-2010HighSouth": 750
+	}
 },
 {
 	"name": "2nd/Grant",
@@ -523,7 +587,20 @@
 	"longitude": -123.06898,
 	"counts": {
 		"2008-2010HighNorth": 4375,
-		"2008-2010HighSouth": 12000
+		"2008-2010HighSouth": 12000,
+		"2008-2011HighNorth": 7700,
+		"2008-2011HighSouth": 12000
+	}
+},
+{
+	"name": "Sacred Heart Hospital",
+	"location": "Eugene OR",
+	"alt": [],
+	"latitude": 44.08143,
+	"longitude": -123.02669,
+	"counts": {
+		"2008-2010HighNorth": 5000,
+		"2008-2010HighSouth": 2035
 	}
 },
 {
@@ -535,12 +612,28 @@
 	"counts": null
 },
 {
-	"name": "Uvaa Clay Place",
+	"name": "UVAA Clay Place",
 	"location": "Roseburg OR",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Roseburg Pottery Shed"],
+	"latitude": 43.21388,
+	"longitude": -123.36761,
+	"counts": {
+		"2008-2010HighNorth": 1720,
+		"2008-2010HighSouth": 770,
+		"2008-2011HighNorth": 1720,
+		"2008-2011HighSouth": 3749
+	}
+},
+{
+	"name": "UTAC",
+	"location": "Roseburg OR",
+	"alt": [ "Roseburg UACT"],
+	"latitude": 43.21411,
+	"longitude": -123.36654,
+	"counts": {
+		"2008-2010HighNorth": 100,
+		"2008-2010HighSouth": 299
+	}
 },
 {
 	"name": "Residence",
@@ -578,6 +671,17 @@
 	}
 },
 {
+	"name": "Episcopal Church",
+	"location": "Prineville OR",
+	"alt": [],
+	"latitude": 44.3013,
+	"longitude": -120.83829,
+	"counts": {
+		"2008-2010HighNorth": 1800,
+		"2008-2010HighSouth": null
+	}
+},
+{
 	"name": "Voorhies Manson",
 	"location": "Medford OR",
 	"alt": [],
@@ -594,6 +698,17 @@
 	"counts": null
 },
 {
+	"name": "Flynn's Furniture",
+	"location": "Lakeview OR",
+	"alt": [],
+	"latitude": 42.19006,
+	"longitude": -120.34632,
+	"counts": {
+		"2008-2010HighNorth": 2055,
+		"2008-2010HighSouth": 0
+	}
+},
+{
 	"name": "Redwood Snag",
 	"location": "Humboldt County CA",
 	"alt": [],
@@ -608,10 +723,13 @@
 {
 	"name": "7th and A Street",
 	"location": "Arcata CA",
-	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"alt": [ "Arcata Residence" ],
+	"latitude": 40.86599,
+	"longitude": -124.07911,
+	"counts": {
+		"2008-2010HighNorth": 430,
+		"2008-2010HighSouth": 430
+	}
 },
 {
 	"name": "13th and I Street",
@@ -628,6 +746,18 @@
 	"latitude": null,
 	"longitude": null,
 	"counts": null
+},
+{
+	"name": "School",
+	"location": "Garberville CA",
+	"alt": [ "Garberville School Stack" ],
+	"latitude": 40.09933,
+	"longitude": -123.79502,
+	"accuracy": "city",
+	"counts": {
+		"2008-2010HighNorth": 114,
+		"2008-2010HighSouth": null
+	}
 },
 {
 	"name": "Reservoir",
@@ -653,7 +783,9 @@
 	"longitude": -122.84239,
 	"counts": {
 		"2008-2010HighNorth": 3,
-		"2008-2010HighSouth": 20000
+		"2008-2010HighSouth": 20000,
+		"2008-2011HighNorth": 500,
+		"2008-2011HighSouth": 20000
 	}
 },
 {
@@ -679,16 +811,37 @@
 	"name": "Chester Williams",
 	"location": "Los Angeles CA",
 	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"latitude": 34.04798,
+	"longitude": -118.25015,
+	"counts": {
+		"2008-2010HighNorth": 10000,
+		"2008-2010HighSouth": null,
+		"2008-2011HighNorth": 10000,
+		"2008-2011HighSouth": 8790
+	}
 },
 {
 	"name": "Church Lofts",
 	"location": "San Diego CA",
 	"alt": [],
-	"latitude": null,
-	"longitude": null,
-	"counts": null
+	"latitude": 32.71501,
+	"longitude": -117.15586,
+	"counts": {
+		"2008-2010HighNorth": 10000,
+		"2008-2010HighSouth": null,
+		"2008-2011HighNorth": 10000,
+		"2008-2011HighSouth": 2000
+	}
+},
+{
+	"name": "St Paul's",
+	"location": "San Diego CA",
+	"alt": [],
+	"latitude": 32.73403,
+	"longitude": -117.15955,
+	"counts": {
+		"2008-2010HighNorth": 500,
+		"2008-2010HighSouth": 0
+	}
 }
 ]

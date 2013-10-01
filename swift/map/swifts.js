@@ -6,6 +6,14 @@
 (function($){
   "use strict";
 
+  var data_sources = {
+    '2008-2010HighNorth': 'high counts 2008 to 2010 North (spring)',
+    '2008-2010HighSouth': 'high counts 2008 to 2010 South (fall)',
+    '2008-2011HighNorth': 'high counts 2008 to 2011 North (spring)',
+    '2008-2011HighSouth': 'high counts 2008 to 2011 South (fall)'
+  };
+  var currentgroup = '2008-2010HighSouth'; // currently displayed data group
+
   var tilesinfo = {
     mqosm: { // map quest / open street map
       name: 'MapQuest Open Street Map',
@@ -55,7 +63,6 @@
   var mqoverlay = L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/hyb/{z}/{x}/{y}.png',
         { maxZoom: 18, subdomains: '1234', zIndex: 5 });
 
-  
   // process URL parameters and cookies --------------------------------------------------
   function getParams(p) {
     
@@ -70,7 +77,7 @@
     }
     if (params.controls) { controls = params.controls === 'true'; }
     if (params.view) { view = params.view; }
-    if (params.info) { info = params.info === 'true'; }
+    // if (params.info) { info = params.info === 'true'; }
   }
   
   function setCookie(name, value) {
@@ -83,17 +90,14 @@
       zoomLevel = 5,
       center = L.latLng(40, -115),
       controls = true,
-      view = null, // 3D
-      info = false; // display info
+      view = null; // 3D
   
-  // console.log(document.cookie);
   getParams('?'+document.cookie); // params from cookies
   getParams(window.location.href); // params from URL override
   
   var map; // Leaflet map object
   var layerControl; // interactive control
-  var groups = { '2008-2010HighNorth': L.layerGroup(), '2008-2010HighSouth': L.layerGroup() };
-  var savegroup = '2008-2010HighSouth'; // currently displayed data group
+  var groups = {};
   var databounds; // view bounds to see all data
 
   $(document).ready(function() {
@@ -101,16 +105,24 @@
     if (view === '3D') {
       $('#map_div').addClass('three');
     }
-  
-    if (info) {
-      $('#info').show();
-    }
 
+    var $select = $('#data_layer select');
+    $.each(data_sources, function(k, v) {
+      groups[k] = L.layerGroup();
+      $select.append('<option value="'+k+'"'+(k===currentgroup?' selected':'')+'>'+v+'</option>');
+    });
+  
     map = L.map('map_div', { // create map
       zoomControl: controls,
       attributionControl: controls
     }).on('load', mapReady);
         
+    $select.on('change', function(e) {
+      map.removeLayer(groups[currentgroup]); // remove old data group
+      currentgroup = $.trim($(e.target).val());
+      map.addLayer(groups[currentgroup]);  // add new data group
+    });
+
     var basemaps = {};
 
     if (controls) {
@@ -127,12 +139,6 @@
       if (controls) {
         layerControl.addBaseLayer(layer, v.name);
       }
-    });
-
-    $('#data_layer').on('click', 'input', function(e) {
-      map.removeLayer(groups[savegroup]); // remove old data group
-      savegroup = $.trim($(e.target).next().text());
-      map.addLayer(groups[savegroup]);  // add new data group
     });
 
     if (!tilesinfo[mapType]) {
@@ -170,21 +176,8 @@
         break;
       }
     });
-
-    function showinfo() {
-      if (!info) { return; }
-      var rnd = Math.pow(10,1+Math.ceil(Math.min(zoomLevel,15)/2));
-      $('#info').text('zoom='+zoomLevel+', center=('+(Math.round(center.lat*rnd)/rnd)+
-        ', '+(Math.round(center.lng*rnd)/rnd)+')');
-    }
     
-    map.setView(center, zoomLevel).on('moveend', function(e) {
-        zoomLevel = e.target.getZoom();
-        center = e.target.getCenter();
-        setCookie('center', center.lat+','+center.lng);
-        setCookie('zoomLevel', zoomLevel);
-        showinfo();
-    }).on('baselayerchange', function(e) {
+    map.setView(center, zoomLevel).on('baselayerchange', function(e) {
       if (map.hasLayer(mqoverlay)) { map.removeLayer(mqoverlay); }
       var layer = e.layer;
       $.each(basemaps, function(k, v) {
@@ -205,14 +198,6 @@
         }
       });
     });
-
-    showinfo();
-
-    // var chimneyIcon = L.icon({
-    //   iconUrl: 'img/chimney.png',
-    //   iconSize: [15, 76],
-    //   iconAnchor: [7, 75]
-    // });
     
     function mapReady() {
       if (controls) { map.attributionControl.setPrefix(''); }
@@ -233,31 +218,24 @@
       $.each(data, function(k, v) {
         if (v.counts === null || v.latitude === null || v.longitude === null) { return; }
         points.push(L.latLng(v.latitude, v.longitude));
-        addMarkerToGroup('2008-2010HighSouth', v);
-        addMarkerToGroup('2008-2010HighNorth', v);
+        $.each(data_sources, function(k) {
+          addMarkerToGroup(k, v);
+        });
       });
       databounds = L.latLngBounds(points);
-      map.fitBounds(databounds).addLayer(groups[savegroup]);
+      map.fitBounds(databounds).addLayer(groups[currentgroup]);
     }
 
     function addMarkerToGroup(group, v) {
       var c = v.counts[group];  // count for this data group
       if (c === undefined || c === null) { return; }
-      // var size = 30 + Math.round(c * (v.type === 'snag' ? 0.025 : 0.004));
       var size = 15 + Math.round(c * 0.004);
       var icon = L.divIcon({
         iconSize: [10, 10],
-        // iconAnchor: [Math.round(size * (v.type === 'snag' ? 0.22 : 0.0979)), size - 1],
         popupAnchor: [1, -size],
         html: '<img class="roost" src="img/' + (v.type === 'snag' ? 'snag' : 'chimney') + '.png" style="height:' +
             size + 'px;left:' + (5-Math.round(size * 0.0979)) + 'px;" />'
       });
-      // var icon = L.icon({
-      //   iconUrl: v.type === 'snag' ? 'img/snag.png' : 'img/chimney.png',
-      //   iconSize: [Math.round(size * (v.type === 'snag' ? 0.45 : 0.1958)), size],
-      //   iconAnchor: [Math.round(size * (v.type === 'snag' ? 0.22 : 0.0979)), size - 1],
-      //   popupAnchor: [0, -size]
-      // });
       groups[group].addLayer(L.marker([v.latitude, v.longitude], { title: v.counts[group]+' swifts', riseOnHover: true, icon: icon }).
           bindPopup(v.counts[group]+' swifts<br />'+v.location+'<br />'+v.name+'<br />('+v.latitude+','+v.longitude+')'));
     }

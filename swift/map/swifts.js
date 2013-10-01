@@ -97,7 +97,7 @@
   
   var map; // Leaflet map object
   var layerControl; // interactive control
-  var groups = {};
+  var groups = {};  // layer groups for each data source
   var databounds; // view bounds to see all data
 
   $(document).ready(function() {
@@ -112,17 +112,17 @@
       $select.append('<option value="'+k+'"'+(k===currentgroup?' selected':'')+'>'+v+'</option>');
     });
   
-    map = L.map('map_div', { // create map
-      zoomControl: controls,
-      attributionControl: controls
-    }).on('load', mapReady);
-        
     $select.on('change', function(e) {
       map.removeLayer(groups[currentgroup]); // remove old data group
       currentgroup = $.trim($(e.target).val());
       map.addLayer(groups[currentgroup]);  // add new data group
     });
 
+    map = L.map('map_div', { // create map
+      zoomControl: controls,
+      attributionControl: controls
+    }).on('load', mapReady);
+        
     var basemaps = {};
 
     if (controls) {

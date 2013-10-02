@@ -129,7 +129,8 @@
         newdiv.find('img.userimg').addClass('worksmall').click(imagebig);
       }
       if (mstamp <= lastseen) {
-        newdiv.css('background-color', '#ffc');
+        $('.msgdiv').css('border-top', 'solid gray 1px');
+        newdiv.css({ 'background-color': '#ffffe8', 'border-top': 'solid black 3px' });
       }
       messageBodies[snap.name()] = newdiv.html();  // keep track of messages
     } // end get messages
@@ -273,8 +274,9 @@
       var mts = $this.find('.msgtime').data('mts');
       if (mts > lastseen) {
         lastseen = mts;
-        $this.css('background-color', '#ffc').nextAll().css('background-color', '#ffc');
         myuserdb.update({'lastseen': lastseen}); // save time of last seen
+        $('.msgdiv').css('border-top', 'solid gray 1px');
+        $this.css({ 'background-color': '#ffffe8', 'border-top': 'solid black 3px' }).nextAll().css('background-color', '#ffffe8');
       }
       uptime();
     });

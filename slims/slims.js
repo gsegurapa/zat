@@ -326,7 +326,7 @@
     function spc(e) {
       var c = $(e.target).html();
       var pos = c.search(/[FC]$/);
-      if (pos === -1) {
+      if (pos === -1) { // not temperature
         insert(c);
       } else {
         temperature(c.charAt(pos));

@@ -1205,6 +1205,7 @@
       this.scale_ = scale; // 0->1.0
     },
     onAdd: function(map) {
+      if (this.image_) { return; }
       this.map_ = map;
       this.image_ = $('<img>', { src: this.url_, css: { border: 'none', position: 'absolute' }});
       map.getPanes().overlayPane.appendChild(this.image_[0]);

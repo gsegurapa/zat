@@ -3,10 +3,11 @@ Jack Rabbit Slims
 
 This is the latest incarnation of the oldest running private chat room on the web.
 It is written almost entirely in JavaScript, with just a few small server utilities in PHP.
-The data is stored in Firebase.
+The data is stored in Firebase.  See https://www.firebase.com
 
 Fine Uploader
 =============
+
 Uses Fine Uploader to allow drag and drop file uploading.
 See http://fineuploader.com
 
@@ -21,6 +22,8 @@ processing.gif
 
 Files and Directories
 =====================
+
+In addition to the files associated with Fine Uploader, here are the rest of the files and directories and what they do:
 
 * avatars -- holds avatar icons for the users
 * client.php -- simple PHP server utility to return the domain and IP address of the client

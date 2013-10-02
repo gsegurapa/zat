@@ -1,9 +1,9 @@
 /**
  * @author stubroyles
  */
-function City(ridge)
+function city(ridge)
 {
-	var city=
+	var citytab =
 	{
 	ABC:"Bethel, AK"
 	,
@@ -313,10 +313,10 @@ function City(ridge)
 	}
 	;
 
-	return city[ridge];
+	return citytab[ridge];
 }
 
-function BBox(ridge,product,lat,lng)
+function bBox(ridge,product,lat,lng)
 {
 	var yx=
 	{

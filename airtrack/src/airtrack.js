@@ -1,6 +1,9 @@
 // Track airplanes for a specified airport, for signage
 // Also has animated weather
 // See help.html for documentation
+/*jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true,
+  strict:true, undef:true, unused:true, curly:true, indent:false */
+/*global jQuery:false, L:false, city:false, bBox:false, Raphael: false, BigScreen: false, document:false */
 
 (function($){
   "use strict";
@@ -357,7 +360,7 @@
 
   function displayActualStation() {
     $('#actualStation').text(weatherFrames <= 0 ? '' :
-      (weatherStation === 'automatic' ? actualStation+' - ' : '')+City(actualStation));
+      (weatherStation === 'automatic' ? actualStation+' - ' : '')+city(actualStation));
   }
 
 
@@ -424,7 +427,7 @@
       $('#legend').text(airportCode + ' - ' + flipairports[currentflip].loc);
       airportLoc = null; // reset location
       resetAirport = true;
-      for (i = 0; i < planes.length; i++) {
+      for (var i = 0; i < planes.length; i++) {
         planes[i].remove();
       }
       planes = [];
@@ -476,7 +479,7 @@
       return ret;
     }
 
-    function getDepartures(data, status, xhr) {
+    function getDepartures(data /* , status, xhr */) {
       if (!data || data.error) {
         if (data && data.error && data.error.errorCode === 'AUTH_FAILURE') {
           alert('Invalid or Expired AppId and AppKey');
@@ -554,10 +557,10 @@
                 // if (takeoff > 1000) { // DEBUG
                 //   console.log('takeoff: '+flight, takeoff.toFixed(0)+'m', pos.toString());
                 // }
-                if (showLegend && !flip & takeoff < 3000) {
-                  var t = $('#takeoff').html();
-                  if (t !== null) {
-                    $('#takeoff').html(t+(t.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>');
+                if (showLegend && !flip && takeoff < 3000) {
+                  var th = $('#takeoff').html();
+                  if (th !== null) {
+                    $('#takeoff').html(th+(th.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>');
                   }
                 }
                 if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
@@ -599,7 +602,7 @@
 
     } // end getDepartures
 
-    function getArrivals(data, status, xhr) {
+    function getArrivals(data /* , status, xhr */) {
       if (!data || data.error) {
         if (data && data.error && data.error.errorCode === 'AUTH_FAILURE') {
           alert('Invalid or Expired AppId and AppKey');
@@ -672,7 +675,7 @@
               var ocity = airports[oairport].city;
               showplanes++;
               if (positions.length >= 2) {
-                var lastpos = positions[1];
+                lastpos = positions[1];
                 p = L.latLng(+lastpos.lat, +lastpos.lon);
                 a = +lastpos.altitudeFt;
               }
@@ -746,11 +749,11 @@
       actualMapType =  mapType === 'automatic' ? // terrain is US only, use mapboxterrain map outside US
         (USbounds.contains(airportLoc) ? 'usterrain' : 'terrain') : mapType;
       if (zoomLevel > tilesinfo[actualMapType].maxZoom) {
-        var maxz = tilesinfo[actualMapType].maxZoom
+        var maxz = tilesinfo[actualMapType].maxZoom;
         alert('maximum zoom for '+actualMapType+' mapType is '+maxz);
         zoomLevel = maxz;
       } else if (zoomLevel < tilesinfo[actualMapType].minZoom) {
-        var minz = tilesinfo[actualMapType].minZoom
+        var minz = tilesinfo[actualMapType].minZoom;
         alert('minimum zoom for '+actualMapType+' mapType is '+minz);
         zoomLevel = minz;
       }
@@ -818,8 +821,8 @@
           }
         });
       } else { // not interactive, hide cursor on map when full screen
-        BigScreen.onenter = function() { $('#map_div').css('cursor', 'none'); }
-        BigScreen.onexit = function() { $('#map_div').css('cursor', ''); }
+        BigScreen.onenter = function() { $('#map_div').css('cursor', 'none'); };
+        BigScreen.onexit = function() { $('#map_div').css('cursor', ''); };
       }
 
       if (!map.hasEventListeners('zoomend')) { map.on({zoomend: recenter, moveend: recenter}); }
@@ -861,7 +864,7 @@
       switch($el.attr('id')) {
        case 'flightMarkerScale':
         flightMarkerScale = +$el.val();
-        for (i = 0; i < planes.length; i++) {
+        for (var i = 0; i < planes.length; i++) {
           planes[i].setFlightMarkerScale(flightMarkerScale/100);
         }
         break;
@@ -900,7 +903,7 @@
       $('#weatherOpacity').val(weatherOpacity);
     }
 
-    function configurator(e) {
+    function configurator() {
       if ($('#config:visible').length === 0) {
         if (+($config.css('left').slice(0,-2)) > $(document).width()-100 || +($config.css('bottom').slice(0,-2)) < -300) {
           $config.animate({left: 12, bottom: 46}, {queue: false});
@@ -928,7 +931,7 @@
         return false;
       };
       $body.mousemove(movefun);
-      var upfun = function(e) {
+      var upfun = function() {
         $body.unbind('mousemove', movefun).unbind('mouseup', upfun);
       };
       $body.mouseup(upfun);
@@ -1253,7 +1256,7 @@
       this.radar_ = weatherRadar || 'NCR'; // N0R, N1P, NTP, N0V, N0S, NCR, (N0Z)
       this.nframes_ = weatherFrames;
       this.opacity_ = opacity===undefined ? 0.3 : opacity;
-      var bb = BBox(this.station_, this.radar_);
+      var bb = bBox(this.station_, this.radar_);
       this.bounds_ = L.latLngBounds([bb.y1, bb.x1], [bb.y0, bb.x0]);
           // new L.LatLng(bb.y1, bb.x1), // sw
           // new L.LatLng(bb.y0, bb.x0)); // ne
@@ -1272,7 +1275,7 @@
           css: { position: 'absolute', width: '100%', height: '100%', opacity: this.opacity_ }
           }).appendTo(this.div_);
         this.timer_ = setInterval(function() {
-          $img.attr('src', that.url_+'?nocache='+(new Date).getTime());
+          $img.attr('src', that.url_+'?nocache='+(new Date()).getTime());
         }, 120000); // update image every 2 minutes
       } else { // animate multiple images
         var $images = [];
@@ -1351,13 +1354,13 @@
       wlayer = undefined;
     }
     if (weatherFrames <= 0) { return; } // no weather image
-    actualStation = weatherStation === 'automatic' ? BBox(null, weatherRadar, airportLoc.lat, airportLoc.lng) : weatherStation;
-    if (actualStation && City(actualStation) !== undefined) { // http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm
+    actualStation = weatherStation === 'automatic' ? bBox(null, weatherRadar, airportLoc.lat, airportLoc.lng) : weatherStation;
+    if (actualStation && city(actualStation) !== undefined) { // http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm
       wlayer = new WeatherImage(actualStation, weatherRadar, weatherFrames, weatherOpacity/100);
       map.addLayer(wlayer);
       displayActualStation();
     }
-  }
+  };
 
   // an airplane and its shadow, label, maybe tail --------------------------------------- 
   var Plane = L.Class.extend({
@@ -1471,13 +1474,13 @@
       var color = this.depart_ ? '#44e' : '#d62';
       this.fidiv_ = $('<div>', { 'class': 'flabel flabel'+labelSize, title: this.title_,
         css: { color: color, 'border-color': color } }); // flight info label
-      var $text = $('<span>', { 'class': 'fnotext', html: this.fno_ +
+      $('<span>', { 'class': 'fnotext', html: this.fno_ +
         (showOtherAirport ? (this.depart_ ? '&raquo;' : '&laquo;')+this.airport_ : '') }).appendTo(this.fidiv_);
       $('<span>', { 'class': 'delay' }).appendTo(this.fidiv_);
       this.fidiv_.appendTo(this.div_);
       this.setAirlineLogo(showAirlineLogos);
       if (transform_prop) {
-        this.line_ = Lineseg(this.div_, this.depart_ ? '#94C1E7' : '#FAA71A' );
+        this.line_ = lineseg(this.div_, this.depart_ ? '#94C1E7' : '#FAA71A' );
       }
     },
     
@@ -1678,7 +1681,7 @@
     
     mapchanged: function() {
       var newpos = this.map_.latLngToLayerPoint(this.llpos_);
-      var change = newpos.subtract(this.curpos_)
+      var change = newpos.subtract(this.curpos_);
       this.curpos_ = newpos;
       this.curalt_ = this.alt_;
       this.currot_ = this.rot_;
@@ -1739,7 +1742,7 @@
         this.fidiv_.find('img.airlinelogo').remove();
         this.fidiv_.find('.fnotext, .delay').css('bottom', 0);
       }
-      function kill_logo(e) {
+      function kill_logo() {
         $airlogo.unbind('error', kill_logo);
         $airlogo.remove();
         $text.css('bottom', 0);
@@ -1782,10 +1785,10 @@
   Plane.logo_url = function(ac) {
     // sizes include 12, 16, 24, 32, 36, 48, 64
     return 'http://dem5xqcn61lj8.cloudfront.net/NewAirlineLogos/'+ac+'/'+ac+'_'+labelSize+'x'+labelSize+'.png'; // aa/aa_24x24.png
-  }
+  };
   
   // misc functions ----------------------------------------------------------------------
-  function Lineseg(p, c) { // draw a line using a rotated div
+  function lineseg(p, c) { // draw a line using a rotated div
     var $div = $('<div>', { 'class': 'lineseg' });
     if (p) { $div.appendTo(p); } // parent
     if (c) { $div.css('border-top-color', c); } // line color
@@ -1809,7 +1812,7 @@
               left: p1.x - 0.5*length*(1 - Math.cos(angle)) }).
               css(transform_prop, 'rotate('+angle+'rad)');
         } else {
-          $div.css({ top: Math.min(p1.y, p2.y), left: x1 });
+          $div.css({ top: Math.min(p1.y, p2.y), left: p1.x });
           var nCos = dx/length;
           var nSin = dy/length;
           $div.css('filter', "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=" +
@@ -1832,13 +1835,13 @@
     var style = element.style,
         prefixed;
     // test standard property first
-    if (typeof style[propName] == 'string') return propName;
+    if (typeof style[propName] === 'string') { return propName; }
     // capitalize
     propName = propName.charAt(0).toUpperCase() + propName.slice(1);
     // test vendor specific properties
     for (var i=0, l=browser_prefixes.length; i<l; i++) {
       prefixed = browser_prefixes[i] + propName;
-      if (typeof style[prefixed] == 'string') return prefixed;
+      if (typeof style[prefixed] === 'string') { return prefixed; }
     }
     // if (document.documentMode === 9) { return '-ms-transform'; } // HACK! for IE9
     if (window.msPerformance) { return '-ms-transform'; } // HACK! for IE9
@@ -1891,10 +1894,10 @@
       } */
 
 /*      if (weatherStation === 'AUTO' || (weatherStation === false && weatherFrames !== null)) {
-        actualStation = BBox(null, weatherRadar, airportLoc.lat, airportLoc.lng);
-        // if (console) { console.log('Using '+weatherStation+' ('+City(weatherStation)+') for weather'); }
+        actualStation = bBox(null, weatherRadar, airportLoc.lat, airportLoc.lng);
+        // if (console) { console.log('Using '+weatherStation+' ('+city(weatherStation)+') for weather'); }
       }
-      if (actualStation && City(actualStation) !== undefined) { // http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm
+      if (actualStation && city(actualStation) !== undefined) { // http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm
         WeatherImage.setlayer();
         // wlayer = new WeatherImage(actualStation, weatherRadar, weatherFrames, weatherOpacity/100);
         // map.addLayer(wlayer);

@@ -102,8 +102,10 @@
       $('#usertime').text(now.toLocaleTimeString()).attr('title', now.toLocaleDateString()).click(uptime);
 
       timeout = now.valueOf();      
-      msgdb.on('child_added', addmessages); // start getting messages
-      msgdb.on('child_removed', dropmessages);  // remove from messages list
+      setTimeout( function() {  // delay until after logo appears
+        msgdb.on('child_added', addmessages); // start getting messages
+        msgdb.on('child_removed', dropmessages);  // remove from messages list
+      }, 20);
     } // end get user profile
 
     function addmessages(snap) {  // add messages to page
@@ -272,14 +274,21 @@
     $('#messagesDiv').on('click', '.msgdiv', function() {
       var $this = $(this);
       var mts = $this.find('.msgtime').data('mts');
+      console.log(mts, lastseen, mts > lastseen, mts === lastseen);
       if (mts > lastseen) {
         lastseen = mts;
-        myuserdb.update({'lastseen': lastseen}); // save time of last seen
+        myuserdb.update({'lastseen': lastseen}, oncomplete); // save time of last seen
         $('.msgdiv').css('border-top', 'solid gray 1px');
         $this.css({ 'background-color': '#ffffe8', 'border-top': 'solid black 3px' }).nextAll().css('background-color', '#ffffe8');
       }
       uptime();
     });
+
+    function oncomplete(err) {
+      if (err !== null) {
+        if (console && console.log) { console.log('error updating lastseen: ', err); }
+      }
+    }
 
     // drag and drop file uploader
     $('#fine-uploader').fineUploader({

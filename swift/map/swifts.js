@@ -10,7 +10,9 @@
     '2008-2010HighNorth': 'high counts 2008 to 2010 North (spring)',
     '2008-2010HighSouth': 'high counts 2008 to 2010 South (fall)',
     '2008-2011HighNorth': 'high counts 2008 to 2011 North (spring)',
-    '2008-2011HighSouth': 'high counts 2008 to 2011 South (fall)'
+    '2008-2011HighSouth': 'high counts 2008 to 2011 South (fall)',
+    '2008-2013HighNorth': 'high counts 2008 to 2013 North (spring)',
+    '2008-2013HighSouth': 'high counts 2008 to 2013 South (fall)'
   };
   var currentgroup = '2008-2010HighSouth'; // currently displayed data group
 

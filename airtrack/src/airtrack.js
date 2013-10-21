@@ -166,7 +166,7 @@
   var frameMin = 120; // frames per minute for plane movement
   var physicsFrame = 0.125; // 8 updates per second for physics engine
   var fm = 0.3 * physicsFrame; // force multiplier
-  var updaterate = 15000; // 15 seconds (in milliseconds) for AJAX call
+  var updateRate = 15000; // 15 seconds (in milliseconds) for AJAX call
   var maintimer, physicstimer; // setInterval result
 
   var labelmargin = {12: '2px', 16: '3px', 24: '5px', 32: '7px'}; // valid label margins
@@ -204,7 +204,9 @@
     if (params.weatherStation) { weatherStation = (params.weatherStation&&params.weatherStation !== 'automatic')?params.weatherStation.toUpperCase():'automatic'; }
     if (params.weatherRadar) { weatherRadar = params.weatherRadar.toUpperCase(); }
     if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
+    
     if (params.logo) { logo = params.logo; }
+    if ($.isNumeric(params.updateRate)) { updateRate = +params.updateRate; }
     // not savable
     if (params.airlines !== undefined) { airlines = params.airlines; }
     if (params.interactive) { interactive = params.interactive==='true'; }
@@ -776,7 +778,7 @@
 
       WeatherImage.setlayer(); // add weather layer
      
-      maintimer = setInterval(mainloop, updaterate);
+      maintimer = setInterval(mainloop, updateRate);
     
       function moveplane() {
         for (var i = 0; i < planes.length; i++) {

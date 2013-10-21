@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, user-scalable=yes" />
 <title>Jack Rabbit Slims</title>
 <link rel="shortcut icon" href="favicon.ico" />
 
@@ -11,10 +12,12 @@
 <script type="text/javascript" src="slims.js"></script>
 <link href="fineuploader-3.8.2.min.css" rel="stylesheet">
 <style type="text/css">
-html { -webkit-font-smoothing: antialiased; } /* maxvoltar.com/archive/-webkit-font-smoothing */
+html {
+	-webkit-font-smoothing: antialiased; /* maxvoltar.com/archive/-webkit-font-smoothing */
+}
 body {
 	background: white url('img/back.gif');
-	margin: 8px;
+	margin: 7px;
 }
 a:link { color: black; }
 a:visited { color: #400040;}
@@ -23,6 +26,16 @@ a:visited { color: #400040;}
 	width: 460px;
 	height: 70px;
 	margin: 0 auto;
+}
+@media only screen and (min-width: 320px) and (max-width: 480px) {
+	html {
+		-webkit-text-size-adjust: none;
+		text-size-adjust: none;
+	}
+	#logo {
+		width: 302px;
+		height: 50px;
+	}
 }
 #logo.show {
 	display: block;
@@ -91,7 +104,7 @@ span.button[title="Block Quote"] { font-weight: bold; }
 span#emoticons, span#specialchars {
 	display: none;
 	position: absolute;
-	right: 8px;
+	right: 7px;
 	background-color: white;
 }
 span#emoticons img:hover, #emobutton:hover {
@@ -220,34 +233,47 @@ tr.uoffline {
 		<img id="emobutton" src="emoticons/blank.gif" title="Emoticons" />
 	</span>
 	<span id="emoticons">
-		<img src="emoticons/blushing.gif" />
-		<img src="emoticons/devil.gif" />
-		<img src="emoticons/sealed.gif" />
-		<img src="emoticons/braces.gif" />
-		<img src="emoticons/undecided.gif" />
-		<img src="emoticons/innocent.gif" />
-		<img src="emoticons/yelling.gif" />
-		<img src="emoticons/headbang.gif" />
-		<img src="emoticons/surprise.gif" />
-		<img src="emoticons/cool.gif" />
-		<img src="emoticons/wink.gif" />
-		<img src="emoticons/tongue.gif" />
-		<img src="emoticons/laughing.gif" />
-		<img src="emoticons/lol.gif" />
-		<img src="emoticons/frown.gif" />
-		<img src="emoticons/smile.gif" />
+		<img src="emoticons/elvis.png" title="elvis" />
+		<img src="emoticons/dead.png" title="dead" />
+		<img src="emoticons/happyno.gif" title="no" />
+		<img src="emoticons/yes.gif" title="yes" />
+		<img src="emoticons/insomnia.gif" title="insomnia" />
+		<img src="emoticons/yawn.gif" title="yawn" />
+		<img src="emoticons/bleh.gif" title="bleh" />
+		<img src="emoticons/sweat.gif" title="sweat" />
+		<img src="emoticons/pirate.gif" title="pirate" />
+		<img src="emoticons/blushing.gif" title="blushing" />
+		<img src="emoticons/devil.gif" title="devil" />
+		<img src="emoticons/sealed.gif" title="sealed" />
+		<img src="emoticons/braces.gif" title="braces" />
+		<img src="emoticons/undecided.gif" title="undecided" />
+		<img src="emoticons/innocent.gif" title="innocent" />
+		<img src="emoticons/yelling.gif" title="yelling" />
+		<img src="emoticons/headbang.gif" title="headbang" />
+		<img src="emoticons/surprise.gif" title="surprise" />
+		<img src="emoticons/cool.gif" title="cool" />
+		<img src="emoticons/wink.gif" title="wink" />
+		<img src="emoticons/tongue.gif" title="tongue" />
+		<img src="emoticons/laughing.gif" title="laughing" />
+		<img src="emoticons/lol.gif" title="lol" />
+		<img src="emoticons/frown.gif" title="frown" />
+		<img src="emoticons/smile.gif" title="smile" />
 	</span>
 	<span id="specialchars">
 		<span class="special button">&iexcl;</span>
 		<span class="special button">&iquest;</span>
 		<span class="special button">&ntilde;</span>
+		<span class="special button">&bull;</span>
+		<span class="special button">&hearts;</span>
+		<span class="special button">&mdash;</span>
 		<span class="special button">&euro;</span>
 		<span class="special button">&cent;</span>
 		<span class="special button">&frac12;</span>
+		<span class="special button">&ldquo;</span>
+		<span class="special button">&rdquo;</span>
 		<span class="special button">&amp;</span>
 		<span class="special button">&lt;</span>
 		<span class="special button">&gt;</span>
-		<span class="special button">&mdash;</span>
 		<span class="special button">&copy;</span>
 		<span class="special button">&deg;F</span>
 		<span class="special button">&deg;C</span>

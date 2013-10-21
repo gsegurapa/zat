@@ -97,10 +97,13 @@ div#brand {
   font-size: 20px;
   overflow: hidden;
 }
-img#fsimg {
-  margin-left: 12px;
-  padding-top: 4px;
-  cursor: default;
+#logo {
+  position: absolute;
+  margin-left: 10px;
+  margin-top: 4px;
+  padding: 0 5px;
+  font-size: 30px;
+  background-color: green;
 }
 div#delayed {
   position: absolute;
@@ -260,6 +263,7 @@ output, #actualStation {
 <body>
 <div id="map_div"></div>
 <div id="brand">
+  <div id="logo"></div>
   <div id="legend">
     <table>
       <tr><td><span style="color:#FAA71A;align:left">Landed:</span><span id="landing"></span></td>

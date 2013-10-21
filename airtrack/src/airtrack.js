@@ -176,7 +176,7 @@
   var airportCode, mapType, zoomLevel,
     showLabels, labelSize, showAirlineLogos, showOtherAirport, showDelays, // showOperatorAirlines,
     flightMarker, flightMarkerScale, airportMarker, airportMarkerScale, arrDep,
-    showLegend, weatherFrames, weatherStation, weatherRadar, weatherOpacity,
+    showLegend, weatherFrames, weatherStation, weatherRadar, weatherOpacity, logo,
     appId, appKey;
 
   function getParams(p) {
@@ -204,6 +204,7 @@
     if (params.weatherStation) { weatherStation = (params.weatherStation&&params.weatherStation !== 'automatic')?params.weatherStation.toUpperCase():'automatic'; }
     if (params.weatherRadar) { weatherRadar = params.weatherRadar.toUpperCase(); }
     if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
+    if (params.logo) { logo = params.logo; }
     // not savable
     if (params.airlines !== undefined) { airlines = params.airlines; }
     if (params.interactive) { interactive = params.interactive==='true'; }
@@ -377,6 +378,11 @@
     $(window).resize(recenter);
     $('#brand').click(configurator);
     if (!showLegend) { $('#brand').hide(); }
+    if (logo) {
+      $('#logo').append(decodeURI(logo));
+      var logowidth = $('#logo').width();
+      $('#legend').css('left', (30 + logowidth)+'px');
+    }
     if (!showDelays) {
       $('#delayed').hide();
       $('#legend').css('right', '10px');

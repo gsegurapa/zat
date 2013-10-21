@@ -105,7 +105,7 @@
       setTimeout( function() {  // delay until after logo appears
         msgdb.on('child_added', addmessages); // start getting messages
         msgdb.on('child_removed', dropmessages);  // remove from messages list
-      }, 20);
+      }, 10);
     } // end get user profile
 
     function addmessages(snap) {  // add messages to page
@@ -189,6 +189,7 @@
       if (!online) { return; }  // do nothing if not online (should save message!)
       var name = $('#user').text();
       var mess = $.trim($('#messageInput').val());
+      var deleted = 2;  // number of messages to delete
       if (mess.length > 0 || files.length > 0) {  // message or files
         if (mess.length === 0) {  // files uploaded, but no message
           mess = 'Attachments:';
@@ -233,14 +234,25 @@
 
       uptime(); // update times
 
-      console.log('kibbitz', $('.msgtime').length, Object.keys(messageBodies).length);
-      if (Object.keys(messageBodies).length > KEEPNUM) {  // might need to delete an old message
+      if (console && console.log) { console.log('number of messages:', Object.keys(messageBodies).length); }
+      deletemsg(null);  // delete expired messages and files
+      // if (Object.keys(messageBodies).length > KEEPNUM) {  // might need to delete an old message
         // dnum = Math.min(3, messageBodies.length - KEEPNUM);
         // var olddb = msgdb.endAt(tsp);
-        msgdb.once('child_added', removemsg);
+        // msgdb.once('child_added', cleanupmsg);
+      // }
+
+      function deletemsg(error) {
+        if (error !== null) {
+          if (console && console.log) { console.log('Error deleting message:', error); }
+          return;
+        }
+        if (deleted-- > 0 && Object.keys(messageBodies).length > KEEPNUM) {
+          msgdb.once('child_added', cleanupmsg);
+        }
       }
 
-      function removemsg(snap) { // delete old message and files
+      function cleanupmsg(snap, second) { // delete old message and files
         var m = snap.val();
         if (m.stamp < (new Date()) - KEEPTIME) {  // should use priority
           // console.log('remove', snap.name());
@@ -249,7 +261,7 @@
               $.get('delete.php?file='+v);
             });
           }
-          snap.ref().remove();  // delete from Firebase
+          snap.ref().remove(deletemsg);  // delete message from Firebase
         }
       }
 
@@ -274,7 +286,7 @@
     $('#messagesDiv').on('click', '.msgdiv', function() {
       var $this = $(this);
       var mts = $this.find('.msgtime').data('mts');
-      console.log(mts, lastseen, mts > lastseen, mts === lastseen);
+      // console.log(mts, lastseen, mts > lastseen, mts === lastseen);
       if (mts > lastseen) {
         lastseen = mts;
         myuserdb.update({'lastseen': lastseen}, oncomplete); // save time of last seen

@@ -204,9 +204,9 @@
     if (params.weatherStation) { weatherStation = (params.weatherStation&&params.weatherStation !== 'automatic')?params.weatherStation.toUpperCase():'automatic'; }
     if (params.weatherRadar) { weatherRadar = params.weatherRadar.toUpperCase(); }
     if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
-    
+
     if (params.logo) { logo = params.logo; }
-    if ($.isNumeric(params.updateRate)) { updateRate = +params.updateRate; }
+    if ($.isNumeric(params.updateRate)) { updateRate = 1000 * +params.updateRate; }
     // not savable
     if (params.airlines !== undefined) { airlines = params.airlines; }
     if (params.interactive) { interactive = params.interactive==='true'; }

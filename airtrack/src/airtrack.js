@@ -204,7 +204,7 @@
     if (params.weatherStation) { weatherStation = (params.weatherStation&&params.weatherStation !== 'automatic')?params.weatherStation.toUpperCase():'automatic'; }
     if (params.weatherRadar) { weatherRadar = params.weatherRadar.toUpperCase(); }
     if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
-
+    // not saved yet
     if (params.logo) { logo = params.logo; }
     if ($.isNumeric(params.updateRate)) { updateRate = 1000 * +params.updateRate; }
     // not savable
@@ -291,7 +291,6 @@
   if (appId.length === 0 || appKey.length === 0) {
     appId = default_appId;
     appKey = default_appKey;
-    // alert('appId and appKey required, app will run for 15 minutes');
     setTimeout(function() {
       appId = '';
       appKey = '';

@@ -162,9 +162,21 @@ The airplanes jump from one position to another, and the labels are turned off.<
 <h4>flip=true</h4>
 <p>Setting flip to true changes the airport every minute.
 Airports are displayed from west to east, around the world.
+To show only US airports, use flip=US instead.
 The current airport is displayed in the legend.
 You can also adjust the number of seconds between airport changes using the flipTime parameter.
 For example, flipTime=120 displays each airport for 2 minutes.</p>
+<h4>logo=<i>string</i></h4>
+<p>You can put an arbitrary string in the legend of the app using the logo parameter.
+Note that special characters like spaces must be encoded.
+For example, to put the string "Zat LLC" in the legend, specify "logo=Zat%20LLC" in the URL.</p>
+<h4>updateRate=<i>number</i></h4>
+<p>By default, the app makes an API call to get positional data every 15 seconds.
+You can override this using the updateRate parameter.
+For example, to make an API call every 60 seconds, specify "updateRate=60".</p>
+<p>The main purpose of this parameter is to reduce the cost of data calls.
+The downside is that the animation becomes less accurate, especially when airplanes are taking off and landing.
+You can experiment, but values greater than 60 seconds may not look very good.</p>
 <h4>view=3D</h4>
 <p>Setting view to 3D displays the map in psuedo-3D. Note that this does not work in all browsers.
 It also sets interactive mode to true, so you can drag the map around in 3D.</p>
@@ -192,7 +204,7 @@ Here are some additional examples:</p>
 </table>
 
 <hr />
-<h3><a href="http://flightstats.com" target="_blank">Flightstats Inc.</a></h3>
+<h3><a href="http://zat.com" target="_blank">Zat LLC</a></h3>
 
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
 <script type="text/javascript">

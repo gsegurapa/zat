@@ -99,7 +99,7 @@
       mystatusdb.onDisconnect().remove();
 
       var now = new Date();
-      $('#usertime').text(now.toLocaleTimeString()).attr('title', now.toLocaleDateString()).click(uptime);
+      $('#usertime').html('<time>'+now.toLocaleTimeString()+'</time>').attr('title', now.toLocaleDateString()).click(uptime);
 
       timeout = now.valueOf();      
       setTimeout( function() {  // delay until after logo appears
@@ -124,7 +124,7 @@
       }
       newdiv.append($('<span/>').html(name)).
         append($('<span/>', {'class': 'msgtime'}).data('mts', mstamp).
-            html('<br />'+deltaTime(now - mstamp)+' ago')).
+            html('<br /><time>'+deltaTime(now - mstamp)+' ago</time>')).
         append($('<div/>', { 'class': 'msgbody' }).html(message.text)).
         prependTo($('#messagesDiv'));
       if (work) {
@@ -315,6 +315,9 @@
         var suffix = fileName.slice(1+fileName.lastIndexOf('.')).toLowerCase();
         if (suffix==='jpg' || suffix==='jpeg' || suffix==='png' || suffix==='gif') {
           insert('<img class="userimg" src="files/'+responseJSON.uploadName+'" />');
+        } else if (suffix==='mp3') {
+          insert('<audio controls><source src="files/'+responseJSON.uploadName+'" type="audio/mpeg">'+
+            '<a href="files/'+responseJSON.uploadName+'" target="_blank">'+fileName+'</a></audio>');
         } else {
           insert('<a href="files/'+responseJSON.uploadName+'" target="_blank">'+fileName+'</a>');
         }
@@ -538,9 +541,9 @@
     var now = new Date();
     $('.msgtime').each(function() {
       var el = $(this);
-      el.html('<br />'+deltaTime(now-el.data('mts'))+' ago');
+      el.html('<br /><time>'+deltaTime(now-el.data('mts'))+' ago</time>');
     });
-    $('#usertime').text(now.toLocaleTimeString()).attr('title', now.toLocaleDateString());
+    $('#usertime').html('<time>'+now.toLocaleTimeString()+'</time>').attr('title', now.toLocaleDateString());
     // console.log('num messages:', $('.msgtime').length, Object.keys(messageBodies).length);
   }
 

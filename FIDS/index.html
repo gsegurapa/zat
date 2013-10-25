@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Flightstats FIDS Widget</title>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+	
+<style>
+	body {
+	  font-family: Tahoma, Geneva, sans-serif;
+	  font-size: 1em;
+	}
+	body, div.FlightHistory {
+	  min-width: 500px;
+	}
+	#whichway {
+		margin-top: 5px;
+		font-size: 1.2em;
+	}
+	table.tblhead {
+	  width: 98%;
+	}
+	tr.tblrow {
+	  height: 19px;
+	  border: white solid 1px;
+	  background-color: #ccc;
+	  text-align: center;
+	}
+	tr.tblrow td {
+	  border: black solid 1px;
+	  margin: 5px;
+		box-shadow: 2px 2px 1px #888;
+	  -webkit-box-shadow: 2px 2px 1px #888;
+	  -moz-box-shadow: 4px 4px 3px #888;
+	  -o-box-shadow: 4px 4px 3px #888;
+	}
+	div.FlightHistory {
+	  position: absolute;
+	  z-index: 2;
+	  width: 97%;
+	  height: 29px;
+	  overflow: hidden;
+	  background-color: white;
+	  border: solid #ebebeb 1px;
+	  border-left: solid #ebebeb 1px;
+	  border-right: solid #ebebeb 1px;
+	  line-height: 0.8;
+	  -webkit-transition: top 1s ease;
+	  -moz-transition: top 1s ease;
+	  -o-transition: top 1s ease;
+	  transition: top 1s ease;
+	}
+	div.pop {
+	  box-shadow: 4px 4px 3px #888;
+	  -webkit-box-shadow: 4px 4px 3px #888;
+	  -moz-box-shadow: 4px 4px 3px #888;
+	  -o-box-shadow: 4px 4px 3px #888;
+	  border-color: #888;
+	}
+	div.tcell {
+	  position: absolute;
+	  text-align: center;
+	  height: 29px;
+	}
+	div.tcell span.incell {
+	  vertical-align: middle;
+	}
+	span.flighttext {
+	  position: relative;
+	  top: -8px;
+	  font-size: .8em;
+	}
+	img.linelogo {
+	  width: 95px;
+	  height: 29px;
+	}
+	div.tcell.links a, .button {
+	  border: solid black 1px;
+	  text-decoration: none;
+	  padding: 1px 4px;
+	  font-size: 0.8em;
+	  border-radius: 6px;
+	  box-shadow: 2px 2px 1px #888;
+	  -webkit-box-shadow: 2px 2px 1px #888;
+	  -moz-box-shadow: 4px 4px 3px #888;
+	  -o-box-shadow: 4px 4px 3px #888;
+	}
+	span.linename {
+	  color: #5a0;
+	  text-shadow: 0.08em 0.08em 0.08em black;
+	  position: absolute;
+      width: 95px;
+      height: 29px;
+      margin-top: 5px;
+      left: 5px;
+      overflow: hidden;
+      font-size: 85%;
+      font-style: oblique;
+      text-align: center;
+      pointer-events: none;
+	}
+	span.delay {
+	  color: red;
+	  font-style: bold;
+	}
+	td.sortup {
+	  background-color: #eee;
+	  background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#ccc));
+	  background: -moz-linear-gradient(top,  #fff,  #ccc);
+	  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#cccccc');
+	}
+	td.sortdown {
+	  background-color: #eee;
+	  background: -webkit-gradient(linear, left top, left bottom, from(#ccc), to(#fff));
+	  background: -moz-linear-gradient(top,  #ccc,  #fff);
+	  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#cccccc', endColorstr='#ffffff');
+	}
+	td.sortup:after {
+		content: " ▲";
+		line-height: 0.6em;
+	}
+	td.sortdown:after {
+		content: " ▼";
+		line-height: 0.6em;
+	}
+</style>
+</head>
+<body>
+<div id="head"></div>
+<div id="out"></div>
+<script type="text/javascript" src="fids.js"></script>
+<noscript>
+<iframe src="http://www.flightstats.com/go/weblet?guid=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&weblet=status&action=AirportFlightStatus&airportCode=PDX&airportQueryType=0"
+    frameborder="0" scrolling="auto" width=480px height=620px></iframe>
+</noscript>
+</body>
+</html>

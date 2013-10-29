@@ -368,7 +368,11 @@
 
   $(document).ready(function() {
 
-    $('#demo').delay(2000).fadeOut(3000).hide(1);
+    if (appId === default_appId && appKey === default_appKey) {
+      $('#demo').delay(2000).fadeOut(3000).hide(1);
+    } else {
+      $('#demo').hide();
+    }
     
     transform_prop = testStyleProperty('transform'); // test for transform CSS property
     if (view === '3D') {

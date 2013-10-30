@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<title>Zat Airport Delays</title>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+	<style>
+	body {
+		width: 100%;
+		height: 100%;
+		margin: 0 0;
+		overflow: hidden;
+		border: none;
+	}
+	#header {
+		position: absolute;
+		top: 0;
+		width: 100%;
+		height: 40px;
+		font-size: 30px;
+		font-family: sans-serif;
+		text-align: center;
+		margin-bottom: 0.5em;
+	}
+	#tab {
+		position: absolute;
+		top: 40px;
+		width: 100%;
+		bottom: 0;
+	}
+	#tab td, #tab th {
+		text-align: center;
+		font-size: 20px;
+	}
+	#tab th {
+		font-family: sans-serif;
+	}
+	#tab #flcol {
+		width: 30%;
+		background-color: #DDD;
+	}
+	#tab tr:nth-child(even) {
+		background-color: #DDD;
+	}
+	#tab td.score {
+		width: 100px;
+		text-align: left;
+	}
+	#tab td.score span {
+		height: 100%;
+		margin-left: 10px;
+		border: 1px gray solid;
+	}
+	</style>
+</head>
+<body>
+<div id="header">Airports with Significant Delays</div>
+<table id="tab"></table>
+<script type="text/javascript">
+(function($){
+	var bounds = [[24.3, -125], [49.5, -66.8]];	// Continental US
+	var default_appId='23d80adf', default_appKey='ebc0894e85d4ef2435d40914a285f956';
+	var airportSize = 2;
+	var minDelay = 1.0;
+	var airports;
+	var colors = [ 'lightgreen', 'yellow', 'orange', 'red', 'red' ];
+
+	$.ajax({
+        url: 'https://api.flightstats.com/flex/delayindex/rest/v2/jsonp/within/'+
+        bounds[0][0]+'/'+bounds[0][1]+'/'+bounds[1][0]+'/'+bounds[1][1],
+        data: { appId: default_appId, appKey: default_appKey, classification: airportSize, score: minDelay  },
+        dataType: 'jsonp',
+        success: getDelays,
+        error: badajax
+      });
+
+	function badajax(jqXHR, textStatus, errorThrown) {
+    if (console && console.log) {
+      console.log('AJAX JSONP Timeout', jqXHR, textStatus, errorThrown);
+    }
+  }
+
+  function getDelays(data, status, xhr) {
+    if (!data || data.error) {
+      if (console && console.log) {
+        console.log('data request error:', data.error.errorMessage, data);
+      } else {
+        if (data.error) { alert(data.error.errorMessage); }
+      }
+      return;
+    }
+    console.log('data:', data);
+  	var el, dfl, ap, score;
+  	airports = getAppendix(data.appendix.airports);
+    // airports = getAppendix(data.appendix.airports);
+    var di = data.delayIndexes;
+    di.sort(cp);
+    $('<tr><th></th><th></th><th></th><th id="flcol" colspan="3" align="center">Flights</th><th></th><tr>'+
+    	'<tr><th>Airport</th><th>City</th><th>Severity</th><th>Delayed</th><th>Canceled</th><th>Total</th><th>Trending</th></tr>').
+    		appendTo('#tab');
+    for (var i = 0; i < di.length; i++) {
+    	el = di[i];
+    	ap = airports[el.airportFsCode];
+    	if (ap.countryCode !== 'US' && ap.countryCode !== 'CA') { continue; }
+    	dfl = el.observations - el.onTime - el.canceled;
+    	score = el.normalizedScore;
+    	$('<tr><td>'+el.airportFsCode+'</td><td>'+ap.city+', '+ap.stateCode+
+    			'</td><td class="score"><span style="background-color:'+colors[Math.floor(score)-1]+';padding:0 '+(score * 8)+'px;"></span></td><td>'+
+    			(dfl > 0 ? dfl+' ('+(100*dfl/el.observations).toFixed(0)+'%)' : '')+'</td><td>'+
+    			(el.canceled > 0 ? el.canceled+' ('+(100*el.canceled/el.observations).toFixed(0)+'%)' : '')+'</td><td>'+
+    			el.observations+'</td><td>'+
+    			(el.delta !== 0 ? Math.abs(el.delta)+'% '+(el.delta > 0 ? '<font color="green">better</font>' : '<font color="red">worse</font>') : '')+
+    			'</td></tr>').appendTo('#tab');
+    }
+  }
+
+  function cp(a, b) {
+  	if (a.normalizedScore === b.normalizedScore) {
+  		return b.onTime - a.onTime;
+  	}
+  	return b.normalizedScore - a.normalizedScore
+  }
+
+  function getAppendix(data) { // read in data from appendix and convert to dictionary
+    var ret = {};
+    if (data) {
+      for (var i = 0; i<data.length; i++) {
+        var v = data[i];
+        ret[v.fs] = v;
+      }
+    }
+    return ret;
+  }
+
+
+}(jQuery));
+</script>
+</body>
+</html>

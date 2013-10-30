@@ -91,7 +91,7 @@
   
   // process URL parameters --------------------------------------------------------------
 
-  var airportSize, minDelay, mapType, zoomLevel, mapCenter,
+  var airportSize, minDelay, mapType, zoomLevel, mapCenter, mapArea,
       showHeat, showIcons, showRoutes, color, showLegend, ontimeIcon,
       showWeather, weatherOpacity, showWunder,
       updateRate, timestamp, timeFormat, timeOffset,
@@ -112,6 +112,7 @@
       var n = params.mapCenter.split(',', 2);
       mapCenter = L.latLng(+n[0], +n[1]);
     }
+    if (params.mapArea) { mapArea = params.mapArea; }
     if (params.showHeat) { showHeat = params.showHeat==='true'; }
     if (params.showIcons) { showIcons = params.showIcons==='true'; }
     if (params.showRoutes) { showRoutes = params.showRoutes==='true'; }
@@ -139,6 +140,7 @@
     mapType = 'blue'; // keys from tilesinfo
     zoomLevel = 3;
     mapCenter = L.latLng(20, 0); // World
+    mapArea = null;
     showHeat = true;
     showIcons = true;
     showRoutes = true;
@@ -167,6 +169,7 @@
     setCookie('mapType', mapType);
     setCookie('zoomLevel', zoomLevel);
     setCookie('mapCenter', mapCenter.lat+','+mapCenter.lng);
+    setCookie('mapArea', mapArea);    
     setCookie('showHeat', showHeat);
     setCookie('showIcons', showIcons);
     setCookie('showRoutes', showRoutes);
@@ -220,7 +223,6 @@
 
   var originalZoom = zoomLevel;
   var originalCenter = mapCenter;
-  // var USbounds = new L.LatLngBounds(new L.LatLng(24, -127), new L.LatLng(49, -66.5)); // US
 
   var transform_prop = testStyleProperty('transform'); // test for transform CSS property
   var prefix = (transform_prop && transform_prop !== 'transform') ? // CSS browser prefix  
@@ -254,7 +256,12 @@
       maxBounds: [[-85,-360],[85, 180]],  // west -380?
       worldCopyJump: false
     }).on({load: mapReady});
-    map.setView(mapCenter, zoomLevel);
+
+    if (mapArea !== null && mapArea.toLowerCase() === 'conus') {
+      map.fitBounds([[24.3, -125], [49.5, -66.8]]);  // zoom to Continental US
+    } else {
+      map.setView(mapCenter, zoomLevel);      
+    }
 
     function mapReady() {
       reload();

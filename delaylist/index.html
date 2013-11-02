@@ -17,45 +17,46 @@
 		position: absolute;
 		top: 0;
 		width: 100%;
-		height: 40px;
-		font-size: 30px;
+		height: 60px;
+		font-size: 40px;
+		font-weight: bold;
 		font-family: sans-serif;
 		text-align: center;
-		margin-bottom: 0.5em;
+		margin-top: 10px;
 	}
 	#tab {
 		position: absolute;
-		top: 40px;
+		top: 60px;
 		width: 100%;
 		bottom: 0;
 	}
 	#tab td, #tab th {
 		text-align: center;
-		font-size: 20px;
+		font-size: 30px;
+		padding: 4px 0;
 	}
 	#tab th {
 		font-family: sans-serif;
 	}
 	#tab #flcol {
-		width: 30%;
-		background-color: #DDD;
+		background-color: #D8D8D8;
+		border-radius: 14px 
 	}
 	#tab tr:nth-child(even) {
-		background-color: #DDD;
+		background-color: #D8D8D8;
 	}
 	#tab td.score {
-		width: 100px;
+		width: 140px;
 		text-align: left;
 	}
 	#tab td.score span {
-		height: 100%;
-		margin-left: 10px;
+		margin: 2px 24px;
 		border: 1px gray solid;
 	}
 	</style>
 </head>
 <body>
-<div id="header">Airports with Significant Delays</div>
+<div id="header">US Airports with Significant Delays</div>
 <table id="tab"></table>
 <script type="text/javascript">
 (function($){
@@ -64,7 +65,7 @@
 	var airportSize = 2;
 	var minDelay = 1.0;
 	var airports;
-	var colors = [ 'lightgreen', 'yellow', 'orange', 'red', 'red' ];
+	var colors = [ 'lightgreen', 'yellow', 'orange', 'red', 'darkred' ];
 
 	$.ajax({
         url: 'https://api.flightstats.com/flex/delayindex/rest/v2/jsonp/within/'+
@@ -93,26 +94,24 @@
     console.log('data:', data);
   	var el, dfl, ap, score;
   	airports = getAppendix(data.appendix.airports);
-    // airports = getAppendix(data.appendix.airports);
     var di = data.delayIndexes;
     di.sort(cp);
-    $('<tr><th></th><th></th><th></th><th id="flcol" colspan="3" align="center">Flights</th><th></th><tr>'+
-    	'<tr><th>Airport</th><th>City</th><th>Severity</th><th>Delayed</th><th>Canceled</th><th>Total</th><th>Trending</th></tr>').
-    		appendTo('#tab');
-    for (var i = 0; i < di.length; i++) {
+    for (var i = di.length - 1; i >= 0 ; i--) {
     	el = di[i];
     	ap = airports[el.airportFsCode];
     	if (ap.countryCode !== 'US' && ap.countryCode !== 'CA') { continue; }
     	dfl = el.observations - el.onTime - el.canceled;
     	score = el.normalizedScore;
-    	$('<tr><td>'+el.airportFsCode+'</td><td>'+ap.city+', '+ap.stateCode+
-    			'</td><td class="score"><span style="background-color:'+colors[Math.floor(score)-1]+';padding:0 '+(score * 8)+'px;"></span></td><td>'+
-    			(dfl > 0 ? dfl+' ('+(100*dfl/el.observations).toFixed(0)+'%)' : '')+'</td><td>'+
-    			(el.canceled > 0 ? el.canceled+' ('+(100*el.canceled/el.observations).toFixed(0)+'%)' : '')+'</td><td>'+
-    			el.observations+'</td><td>'+
-    			(el.delta !== 0 ? Math.abs(el.delta)+'% '+(el.delta > 0 ? '<font color="green">better</font>' : '<font color="red">worse</font>') : '')+
-    			'</td></tr>').appendTo('#tab');
+    	$('<tr><td>'+el.airportFsCode+'</td><td>'+ap.city+' '+ap.stateCode+
+    			'</td><td class="score"><span style="background-color:'+colors[Math.round(score)-1]+';padding:0 '+(score * 9)+'px;"></span></td><td>'+
+    			(dfl > 0 ? dfl+' ('+Math.ceil(100*dfl/el.observations)+'%)' : '')+'</td><td>'+
+    			(el.canceled > 0 ? el.canceled+' ('+Math.ceil(100*el.canceled/el.observations)+'%)' : '')+'</td><td>'+
+    			(el.delta !== 0.0 ? (el.delta > 0 ? '<font color="green">improving</font>' : '<font color="red">worsening</font>') : '')+
+    			'</td></tr>').prependTo('#tab').find('span').attr('title', score);
     }
+    $('<tr><th></th><th></th><th></th><th id="flcol" colspan="2" align="center">Flights</th><th></th><tr>'+
+    	'<tr><th>Airport</th><th>City</th><th>Severity</th><th>Delayed</th><th>Canceled</th><th>Trend</th></tr>').
+    		prependTo('#tab');
   }
 
   function cp(a, b) {

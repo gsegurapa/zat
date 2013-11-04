@@ -3,81 +3,61 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<title>Zat Delay Rotation</title>
+	<title>Zat Airport Delays</title>
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+  <script type="text/javascript" src="delaylist.js"></script>
 	<style>
-	body,
-	#top,
-	#top iframe {
+	body {
 		width: 100%;
 		height: 100%;
 		margin: 0 0;
 		overflow: hidden;
 		border: none;
 	}
+	#header {
+		position: absolute;
+		top: 0;
+		width: 100%;
+		height: 60px;
+		font-size: 40px;
+		font-weight: bold;
+		font-family: sans-serif;
+		text-align: center;
+		margin-top: 10px;
+	}
+	#tab {
+		position: absolute;
+		top: 60px;
+		width: 100%;
+		bottom: 0;
+	}
+	#tab td, #tab th {
+		text-align: center;
+		font-size: 30px;
+		padding: 4px 0;
+	}
+	#tab th {
+		font-family: sans-serif;
+	}
+	#tab #flcol {
+		background-color: #D8D8D8;
+		border-radius: 14px 
+	}
+	#tab tr:nth-child(even) {
+		background-color: #D8D8D8;
+	}
+	#tab td.score {
+		width: 140px;
+		text-align: left;
+	}
+	#tab td.score span {
+		margin: 2px 24px;
+		border: 1px gray solid;
+	}
 	</style>
 </head>
 <body>
-<div id="top"></div>
-<script type="text/javascript">
-(function($){
-
-	var fliptime = 60000;	// one minute per airport
-	var airports = ['ATL', 'BOS', 'CLT', 'DEN', 'DFW', 'EWR', 'HNL', 'IAD', 'IAH',
-			'JFK', 'LAS', 'LAX', 'MCO', 'MIA', 'ORD', 'PDX', 'PHX', 'SEA', 'SFO', 'SLC',
-			'BKK', 'CDG', 'DXB', 'HKG', 'HND', 'LHR', 'NRT', 'PEK'];	// international
-	var curport;
-	var len = location.search === '?US' ? 20 : airports.length;
-	var fixport = location.search.length >= 4 ? location.search.slice(1) : null;	// single airport only
-	var $frame;
-
-	var appId = '9543a3e8',
-			appKey = '91d511451d9dbf38ede3efafefac5f09';
-
-	setInterval(mainloop, fliptime);
-	mainloop();
-
-	function mainloop() {
-		if (fixport === null) {
-			var newport = airports[Math.floor(Math.random() * len)];
-			if (newport === curport) {
-				return;
-			} else {
-				curport = newport;
-			}
-		} else {
-			curport = fixport;
-		}
-		var direction = Math.random() < 0.5 ? '/dep' : '/arr';
-		$.ajax({  // airport tracks departures
-      url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + curport + direction,
-      data: { appId: appId, appKey: appKey, maxPositions: 2 },
-      dataType: 'jsonp',
-      success: getFlights
-    });
-	}	// end mainloop
-
-	function getFlights(data, status, xhr) {
-		if (!data || data.error) { return; }
-		var numflights = data.flightTracks.length;
-		if (numflights === 0) { return; }
-		var flight = data.flightTracks[Math.floor(Math.random() * numflights)];
-		if (flight === undefined) { return; }
-		if ($frame) {	// frame exists, delete
-			$frame.remove();
-		}
-		var mapType = Math.random() < 0.4 ? 'map' : 'sat';
-		var terrain = Math.random() < 0.5;
-		var labels = Math.random() < 0.5;
-		var arc = Math.random() < 0.4;
-		$frame = $('<iframe />', {
-				src: 'index.html?demo=true&autoHide=true&zoomControl=false&mapType='+mapType+
-					'&showTerrain='+terrain+'&showLabels='+labels+'&showArc='+arc+
-					'&id='+flight.flightId+'&airline='+flight.carrierFsCode+'&flight='+flight.flightNumber
-			}).appendTo('#top');
-	}	// end getFlights
-
-}(jQuery));
-</script>
+<div id="header"></div>
+<table id="tab"></table>
 </body>
 </html>

@@ -6,6 +6,7 @@
 	var airportSize = 2; // size of airports to display (1 is primary hub)
 	var minDelay = 1.0;  // min airport delay (0 - 5)
   var minDelayTime = 15;  // min flight delay in minutes
+  var flipTime = 60000; // one minute per screen
 
   $(document).ready(function() {
 

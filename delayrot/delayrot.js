@@ -2,7 +2,7 @@
   "use strict";
 
 	var airport_appId='23d80adf', airport_appKey='ebc0894e85d4ef2435d40914a285f956';
-	var flight_appId='368357de', flight_appKey='03072013'
+  var flight_appId='368357de', flight_appKey='03072013';
 	var airportSize = 2; // size of airports to display (1 is primary hub)
 	var minDelay = 1.0;  // min airport delay (0 - 5)
   var minDelayTime = 15;  // min flight delay in minutes
@@ -12,7 +12,7 @@
 
     var airport, arrDep, airports;
     var bounds = [[24.3, -125], [49.5, -66.8]]; // Continental US
-    var colors = [ 'lightgreen', 'yellow', 'orange', 'red', 'darkred' ];
+    var colors = [ 'lightgreen', 'yellow', 'darkorange', 'red', 'darkred' ];
   
   	if (window.location.search.length > 4) {	// delayed flights by airport
   		window.location.href.replace(/[?&;]\s?([^=&;]+)=([^&;]*)/gi,
@@ -56,7 +56,7 @@
         return;
       }
       console.log('flight data:', data);
-      var el, ap, c;
+      var el, ap, c, d;
       airports = getAppendix(data.appendix.airports);
       var t = data.flightTracks;
       t.sort(cpf);
@@ -64,10 +64,13 @@
       		appendTo('#tab');
       for (var i = 0; i < t.length; i++) {
       	el = t[i];
-      	if (el.delayMinutes === undefined || el.delayMinutes < minDelayTime) { break; }
+        d = +el.delayMinutes;
+        if (el.delayMinutes === undefined || d < minDelayTime) { break; }
       	ap = arrDep === 'arr' ? el.departureAirportFsCode : el.arrivalAirportFsCode;
       	c = airports[ap].countryCode;
-      	$('<tr><td>'+el.carrierFsCode+' '+el.flightNumber+'</td><td>'+el.delayMinutes+'</td><td>'+
+        $('<tr><td>'+el.carrierFsCode+' '+el.flightNumber+'</td><td>'+
+            '<span style="color:'+colors[Math.min(4, Math.floor(d/15)+1)]+'">'+
+            (d >= 60 ? (d/60).toFixed(0)+':'+(d%60 < 10 ? '0' : '')+ d%60 : d+' min')+'</span></td><td>'+
       			ap+'</td><td>'+airports[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airports[ap].stateCode)+'</td></tr>').
       			appendTo('#tab');
       }
@@ -113,7 +116,7 @@
     	if (a.normalizedScore === b.normalizedScore) {
     		return b.onTime - a.onTime;
     	}
-    	return b.normalizedScore - a.normalizedScore
+    	return b.normalizedScore - a.normalizedScore;
     }
 
     function getAppendix(data) { // read in data from appendix and convert to dictionary

@@ -27,16 +27,6 @@ a:visited { color: #400040;}
 	height: 70px;
 	margin: 0 auto;
 }
-@media only screen and (min-width: 320px) and (max-width: 480px) {
-	html {
-		-webkit-text-size-adjust: none;
-		text-size-adjust: none;
-	}
-	#logo {
-		width: 302px;
-		height: 50px;
-	}
-}
 #logo.show {
 	display: block;
 }
@@ -51,6 +41,9 @@ a:visited { color: #400040;}
 	width: 99.5%;
 	clear: both;
 	margin: 3px 0;
+}
+#usertime {
+	font-style: italic;
 }
 div.msgdiv {
 	border-top: solid gray 1px;
@@ -68,12 +61,6 @@ div.msgdiv img.avatar.show {
 }
 div.msgdiv div.msgbody {
 	margin-top: 1em;
-}
-#status {
-	color: red;
-}
-#usertime {
-	font-style: italic;
 }
 #formatbuttons {
 	float: right;
@@ -208,6 +195,20 @@ tr.uoffline {
 	padding: 15px;
 	z-index: 1000;
 }
+@media only screen and (min-width: 320px) and (max-width: 480px) {
+	html {
+		-webkit-text-size-adjust: none;
+		text-size-adjust: none;
+	}
+	#logo {
+		width: 302px;
+		height: 50px;
+	}
+	#usertime {
+		max-width: 64px;
+		overflow: hidden;
+	}
+}
 </style>
 </head>
 <body>
@@ -218,7 +219,6 @@ tr.uoffline {
 	<div id="shame"></div>
 	<textarea id="messageInput" placeholder="Message" rows="3"></textarea>
 	<span id="kibbitz" class="button small" title="Kibbitz">+</span>
-	<span id="status"></span>
 	<span id="usertime" class="button">Loading...</span>
 	<span id="formatbuttons">
 		<span id="fileup" class="button" title="File Upload">File</span>

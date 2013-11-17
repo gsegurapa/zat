@@ -150,13 +150,14 @@
       if (snap.val() === true) {  // online
         online = true;
         $('#kibbitz').css('opacity', 1.0);
-        $('#status').text('');
+        $('#usertime').text('').css('color','black');
         myonoffdb.onDisconnect().update({ offline: Firebase.ServerValue.TIMESTAMP });  // disconnect
         myonoffdb.update({ online: Firebase.ServerValue.TIMESTAMP }); // I am online now
+        uptime();
       } else {  // offline
         online = false;
         $('#kibbitz').css('opacity', 0.3);  // dim kibbitz button
-        $('#status').text('offline');
+        $('#usertime').text('Offline').css('color','red');
       }
     }
 
@@ -543,7 +544,9 @@
       var el = $(this);
       el.html('<br /><time>'+deltaTime(now-el.data('mts'))+' ago</time>');
     });
-    $('#usertime').html('<time>'+now.toLocaleTimeString()+'</time>').attr('title', now.toLocaleDateString());
+    if ($('#usertime').text() !== 'Offline') {
+      $('#usertime').html('<time>'+now.toLocaleTimeString()+'</time>').attr('title', now.toLocaleDateString());
+    }
     // console.log('num messages:', $('.msgtime').length, Object.keys(messageBodies).length);
   }
 

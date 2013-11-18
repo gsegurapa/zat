@@ -113,8 +113,10 @@
     }
 
     function cpa(a, b) {
+      var delayed;
     	if (a.normalizedScore === b.normalizedScore) {
-    		return b.onTime - a.onTime;
+    		delayed = (b.observations - b.onTime) - (a.observations - a.onTime);
+        return delayed === 0 ?  b.canceled - a.canceled : delayed;
     	}
     	return b.normalizedScore - a.normalizedScore;
     }

@@ -7,7 +7,7 @@
 	var airportSize = 2; // size of airports to display (1 is primary hub)
 	var minDelay = 1.0;  // min airport delay (0 - 5)
   var minDelayTime = 15;  // min flight delay in minutes
-  var flipTime = 15000; // one minute per screen
+  var flipTime = 20000; // 20 seconds per screen
 
   $(document).ready(function() {
 
@@ -25,7 +25,7 @@
       switch(state) {
         case 0: // delay map
           $frame = $('<iframe />', {
-            src: '../delay/index.html?mapArea=conus'
+            src: '../delay/index.html?mapArea=conus&showWeather=true&mapType=acetate'
           }).appendTo('#top');
           state++;
         break;
@@ -35,7 +35,7 @@
         break;
         case 2: // airport tracker departures
           $frame = $('<iframe />', {
-            src: '../airtrack/index.html?zoomLevel=7&arrDep=dep&airportCode='+dair+
+            src: '../airtrack/index.html?zoomLevel=7&arrDep=dep&flightMarkerScale=55&weatherFrames=3&airportCode='+dair+
                 '&appId='+tracker_appId+'&appKey='+tracker_appKey
           }).appendTo('#top');
           state++;
@@ -47,7 +47,7 @@
         break;
         case 4: // airport tracker arrivals
           $frame = $('<iframe />', {
-            src: '../airtrack/index.html?zoomLevel=7&arrDep=arr&airportCode='+dair+
+            src: '../airtrack/index.html?zoomLevel=7&arrDep=arr&flightMarkerScale=55&weatherFrames=3&airportCode='+dair+
                 '&appId='+tracker_appId+'&appKey='+tracker_appKey
           }).appendTo('#top');
           state++;
@@ -81,7 +81,7 @@
         }
         return;
       }
-      console.log('airport data:', data);
+      // console.log('airport data:', data);
       var el, dfl, ap, score;
       airportDict = getAppendix(data.appendix.airports);
       var di = data.delayIndexes;
@@ -147,7 +147,7 @@
         }
         return;
       }
-      console.log('flight data:', data);
+      // console.log('flight data:', data);
       var el, ap, c, d;
       airportDict = getAppendix(data.appendix.airports);
       var t = data.flightTracks;

@@ -3,19 +3,20 @@
 
 	var airport_appId='23d80adf', airport_appKey='ebc0894e85d4ef2435d40914a285f956';
   var flight_appId='368357de', flight_appKey='03072013';
+  var tracker_appId='368357de', tracker_appKey='26901bf7d1f3534aa1e7a5a3be111b39';
 	var airportSize = 2; // size of airports to display (1 is primary hub)
 	var minDelay = 1.0;  // min airport delay (0 - 5)
   var minDelayTime = 15;  // min flight delay in minutes
-  var flipTime = 10000; // one minute per screen
+  var flipTime = 15000; // one minute per screen
 
   $(document).ready(function() {
 
-    var airport, arrDep, airportDict;
+    var airport, airportDict;
     var bounds = [[24.3, -125], [49.5, -66.8]]; // Continental US
     var colors = [ 'lightgreen', 'yellow', 'darkorange', 'red', 'darkred' ];
     var $frame;
     var state = 0;
-    var dair;
+    var dair, arr;
   
     setInterval(mainloop, flipTime);
     mainloop();
@@ -34,24 +35,26 @@
         break;
         case 2: // airport tracker departures
           $frame = $('<iframe />', {
-            src: '../airtrack/index.html?arrDep=dep&airportCode='+dair+
-                '&appId='+airport_appId+'&appKey='+airport_appKey
+            src: '../airtrack/index.html?zoomLevel=7&arrDep=dep&airportCode='+dair+
+                '&appId='+tracker_appId+'&appKey='+tracker_appKey
           }).appendTo('#top');
           state++;
         break;
         case 3: // list of delayed departures
-          flightDelays('dep', dair);
+          arr = false;
+          flightDelays(dair);
           state++;
         break;
         case 4: // airport tracker arrivals
           $frame = $('<iframe />', {
-            src: '../airtrack/index.html?arrDep=arr&airportCode='+dair+
-                '&appId='+airport_appId+'&appKey='+airport_appKey
+            src: '../airtrack/index.html?zoomLevel=7&arrDep=arr&airportCode='+dair+
+                '&appId='+tracker_appId+'&appKey='+tracker_appKey
           }).appendTo('#top');
           state++;
         break;
         case 5: // list of delayed arrivals
-          flightDelays('arr', dair);
+          arr = true;
+          flightDelays(dair);
           state = 0;
         break;
       }
@@ -83,7 +86,6 @@
       airportDict = getAppendix(data.appendix.airports);
       var di = data.delayIndexes;
       di.sort(cpa);
-      if (di.length > 0) { dair = di[0].airportFsCode; }
       $('#tab').empty();
       $('<tr><th></th><th></th><th></th><th id="flcol" colspan="2" align="center">Flights</th><th></th><tr>'+
         '<tr><th>Airport</th><th>City</th><th>Severity</th><th>Delayed</th><th>Canceled</th><th>Trend</th></tr>').
@@ -104,6 +106,10 @@
       if ($frame) { // frame exists, delete
         $frame.remove();
       }
+      if (di.length > 0) {
+        di.sort(cpd);
+        dair = di[0].airportFsCode;
+      }
     }
 
     function cpa(a, b) {
@@ -115,10 +121,16 @@
       return b.normalizedScore - a.normalizedScore;
     }
 
-    function flightDelays(arrDep, airport) {
-      $('#header').text(airport + ' Delayed '+(arrDep==='arr' ? 'Arrivals' : 'Departures'));
+    function cpd(a, b) {
+      var delayed = (b.observations - b.onTime - b.canceled) - (a.observations - a.onTime - a.canceled);
+      return delayed === 0 ? b.normalizedScore - a.normalizedScore : delayed;
+    }
+
+    function flightDelays(airport) {
+      $('#header').text(airport + ' Delayed '+(arr ? 'Arrivals' : 'Departures'));
       $.ajax({
-            url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airport + '/' + arrDep,
+            url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airport + '/' +
+              (arr ? 'arr' : 'dep'),
             data: { maxPositions: 1, appId: flight_appId, appKey: flight_appKey, includeFlightPlan: false },
             dataType: 'jsonp',
             success: getFlights,
@@ -141,13 +153,13 @@
       var t = data.flightTracks;
       t.sort(cpf);
       $('#tab').empty();
-      $('<tr><th>Flight</th><th>Delay</th><th>'+(arrDep === 'arr' ? 'Origin' : 'Destination')+'</th><th>City</th></tr>').
+      $('<tr><th>Flight</th><th>Delay</th><th>'+(arr ? 'Origin' : 'Destination')+'</th><th>City</th></tr>').
       		appendTo('#tab');
       for (var i = 0; i < t.length; i++) {
       	el = t[i];
         d = +el.delayMinutes;
         if (el.delayMinutes === undefined || d < minDelayTime) { break; }
-      	ap = arrDep === 'arr' ? el.departureAirportFsCode : el.arrivalAirportFsCode;
+      	ap = arr ? el.departureAirportFsCode : el.arrivalAirportFsCode;
       	c = airportDict[ap].countryCode;
         $('<tr><td>'+el.carrierFsCode+' '+el.flightNumber+'</td><td>'+
             '<span style="color:'+colors[Math.min(4, Math.floor(d/15)+1)]+'">'+

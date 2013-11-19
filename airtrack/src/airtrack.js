@@ -188,7 +188,7 @@
     if (params.airportCode) { airportCode = params.airportCode.toUpperCase(); }
     if (params.mapType) { mapType = params.mapType; }
     if ($.isNumeric(params.zoomLevel)) { zoomLevel = +params.zoomLevel; }
-    if (params.showLabels) { showLabels = params.showLabels==='true'; }
+    if (params.showLabels) { showLabels = params.showLabels === 'delay' ? 'delay' : params.showLabels==='true'; }
     if ($.isNumeric(params.labelSize) && labelmargin[+params.labelSize]) { labelSize = +params.labelSize; }
     if (params.showAirlineLogos) { showAirlineLogos = params.showAirlineLogos==='true'; }
     if (params.showOtherAirport) { showOtherAirport = params.showOtherAirport==='true'; }
@@ -1427,7 +1427,7 @@
         this.sdiv_ = $('<div>', { 'class': 'shadow' }).appendTo(this.div_); // shadow of plane
         this.sicon_ = Raphael(this.sdiv_[0], 150, 150).image(shadowicon, 0, 0, 150, 150);
       }
-      if (showLabels) { this.addLabel_(); }  // airplane info label
+      if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) { this.addLabel_(); }  // airplane info label
       map.getPanes().overlayPane.appendChild(this.div_[0]);
       // $('#overlay_div').append(this.div_);
       this.draw_();
@@ -1457,7 +1457,7 @@
         this.sdiv_.css({ left: ((this.curpos_.x - 75)+off)+'px', top: ((this.curpos_.y - 75)+off)+'px' });
         this.sicon_.transform('').scale(this.scale_ * p).rotate(this.currot_);
       }
-      if (showLabels) {
+      if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) {
         // var $delaytext = this.fidiv_.find('.delay');
         this.fidiv_.css({ 'z-index': 700+curalt,
             left: Math.round(this.info_.x - this.fidiv_.outerWidth() * 0.5),
@@ -1713,7 +1713,7 @@
       this.div_ = null;
       this.icon_ = null;
       this.sicon_ = null;
-      if (showLabels) {
+      if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) {
         this.fidiv_ = null;
         this.line_.remove(); // line
         this.line_ = null;

@@ -35,8 +35,8 @@
         break;
         case 2: // airport tracker departures
           $frame = $('<iframe />', {
-            src: '../airtrack/index.html?zoomLevel=7&arrDep=dep&flightMarkerScale=55&weatherFrames=3&airportCode='+dair+
-                '&appId='+tracker_appId+'&appKey='+tracker_appKey
+            src: '../airtrack/index.html?arrDep=dep&zoomLevel=7&showLabels=delay&airportCode='+dair+
+                '&flightMarkerScale=55&weatherFrames=3&appId='+tracker_appId+'&appKey='+tracker_appKey
           }).appendTo('#top');
           state++;
         break;
@@ -47,8 +47,8 @@
         break;
         case 4: // airport tracker arrivals
           $frame = $('<iframe />', {
-            src: '../airtrack/index.html?zoomLevel=7&arrDep=arr&flightMarkerScale=55&weatherFrames=3&airportCode='+dair+
-                '&appId='+tracker_appId+'&appKey='+tracker_appKey
+            src: '../airtrack/index.html?arrDep=arr&zoomLevel=7&showLabels=delay&airportCode='+dair+
+                '&flightMarkerScale=55&weatherFrames=3&appId='+tracker_appId+'&appKey='+tracker_appKey
           }).appendTo('#top');
           state++;
         break;

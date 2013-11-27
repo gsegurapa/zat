@@ -422,12 +422,15 @@
       // Plane.paper.path('M0,0L'+line.width()+','+line.height());
     }
 
-    if (flip) {
+    if (flip || showLabels==='delay') {
       $('#legend').empty().css({'font-size': '36px', 'text-align': 'center'});
       if (flip==='US') { flipLength = 24; }
-      setInterval(doflip, flipTime * 1000);
-      airportCode = flipairports[0].ac;
-      $('#legend').text(airportCode + ' - ' + flipairports[0].loc);
+      if (flip) {
+        setInterval(doflip, flipTime * 1000);
+        airportCode = flipairports[0].ac;
+      }
+      $('#legend').text(airportCode + (flip ? ' - ' + flipairports[0].loc :
+          ' Delayed ' + (arrDep==='arr' ? 'Arrivals' : 'Departures')));
     }
 
     function doflip() {
@@ -512,7 +515,7 @@
       }
 
       var tracks = data.flightTracks;
-      if (showLegend && !flip) { $('#takeoff').html(''); }
+      if (showLegend && !flip && showLabels !== 'delay') { $('#takeoff').html(''); }
       if (bounds) {
         // avgerr = 0; avgcnt = 0, maxerr = 0; // DEBUG
         $.each(tracks, function(key, v) {
@@ -568,7 +571,7 @@
                 // if (takeoff > 1000) { // DEBUG
                 //   console.log('takeoff: '+flight, takeoff.toFixed(0)+'m', pos.toString());
                 // }
-                if (showLegend && !flip && takeoff < 3000) {
+                if (showLegend && !flip && takeoff < 3000 && showLabels !== 'delay') {
                   var th = $('#takeoff').html();
                   if (th !== null) {
                     $('#takeoff').html(th+(th.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>');
@@ -634,7 +637,7 @@
         setAirportLoc(ap); // set location of airport
       }
       var tracks = data.flightTracks;
-      if (showLegend && !flip) { $('#landing').html(''); }
+      if (showLegend && !flip && showLabels !== 'delay') { $('#landing').html(''); }
       if (bounds) {
         // avgerr = 0; avgcnt = 0, maxerr = 0; // DEBUG
         $.each(tracks, function(key, v) {
@@ -721,7 +724,7 @@
           //   console.log('landing: '+h.flight(), touchdown.toFixed(0)+'m', map.layerPointToLatLng(h.getXY()).toString());
           // }
           showplanes--;
-          if (showLegend && !flip && touchdown < 5000) {
+          if (showLegend && !flip && touchdown < 5000 && showLabels !== 'delay') {
             var t = $('#landing').html();
             if (t !== null) {
               $('#landing').html(t+(t.length>0?', ':' ')+'<span style="white-space:nowrap">'+h.flight()+'&laquo;'+h.city()+'</span>');

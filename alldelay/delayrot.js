@@ -23,38 +23,38 @@
 
     function mainloop() {
       switch(state) {
-        case 0: // delay map
+        case 0: // list of delayed airports
+          airportDelays();
+          state++;
+        break;
+        case 1: // delay map
           $frame = $('<iframe />', {
             src: '../delay/index.html?mapArea=conus&showWeather=true&mapType=acetate'
           }).appendTo('#top');
           state++;
         break;
-        case 1: // list of delayed airports
-          airportDelays();
+        case 2: // list of delayed departures
+          arr = false;
+          flightDelays(dair);
           state++;
         break;
-        case 2: // airport tracker departures
+        case 3: // airport tracker departures
           $frame = $('<iframe />', {
             src: '../airtrack/index.html?arrDep=dep&zoomLevel=7&showLabels=delay&airportCode='+dair+
                 '&flightMarkerScale=55&weatherFrames=3&appId='+tracker_appId+'&appKey='+tracker_appKey
           }).appendTo('#top');
           state++;
         break;
-        case 3: // list of delayed departures
-          arr = false;
+        case 4: // list of delayed arrivals
+          arr = true;
           flightDelays(dair);
           state++;
         break;
-        case 4: // airport tracker arrivals
+        case 5: // airport tracker arrivals
           $frame = $('<iframe />', {
             src: '../airtrack/index.html?arrDep=arr&zoomLevel=7&showLabels=delay&airportCode='+dair+
                 '&flightMarkerScale=55&weatherFrames=3&appId='+tracker_appId+'&appKey='+tracker_appKey
           }).appendTo('#top');
-          state++;
-        break;
-        case 5: // list of delayed arrivals
-          arr = true;
-          flightDelays(dair);
           state = 0;
         break;
       }
@@ -87,7 +87,7 @@
       var di = data.delayIndexes;
       di.sort(cpa);
       $('#tab').empty();
-      $('<tr><th></th><th></th><th></th><th id="flcol" colspan="2" align="center">Flights</th><th></th><tr>'+
+      $('<tr><th></th><th></th><th></th><th id="flcol" colspan="2" align="center">&mdash; Flights &mdash;</th><th></th><tr>'+
         '<tr><th>Airport</th><th>City</th><th>Severity</th><th>Delayed</th><th>Canceled</th><th>Trend</th></tr>').
           appendTo('#tab');    
       for (var i = 0; i < di.length ; i++) {

@@ -6,7 +6,7 @@
 (function($) {
 	"use strict";
 
-  var DATABASE = 'https://jrslims.firebaseIO.com/';
+  var DATABASE = 'https://zat.firebaseIO.com/';
   var KEEPNUM = 250;  // number of posts to keep
   var KEEPTIME = 86400000;  // keep posts for one day
 
@@ -42,16 +42,12 @@
   $(document).ready(function() {
 
     // determine user id
-    while (id.search(/^[\w ]{1,}$/) !== 0) {
-      var t = $.trim(prompt('Enter your ID (containing A-Z a-z 0-9 _ space):', id));
-      if (t.length === 0) {
-        t = 'INVALID';
-        window.location.href = 'http://jrslims.com';
-      }
-      id = t;
-    }
-
-    $('#user').text(id);  // profile button label
+    if (id.search(/^[\w ]{1,}$/) !== 0) {
+      id = 'passenger';
+      $('#user, #others, #messageInput, #kibbitz, #usertime, #formatbuttons').hide();
+    } else {
+      $('#user').text(id);  // profile button label
+    } 
 
     // firebase references
     var firebasedb = new Firebase(DATABASE);
@@ -71,7 +67,7 @@
       if (me === null) {  // new user
         var t = $.trim(prompt('ID "'+id+'" doesn\'t exist. Retype to create it or switch to different name.'));
         if (t.length === 0) {
-          window.location.href = 'http://jrslims.com';
+          id = 'passenger';
           return;
         }
         if (t !== id) {

@@ -97,6 +97,14 @@ div#brand {
   font-size: 20px;
   overflow: hidden;
 }
+img#fsimg {
+  display: block;
+  position: absolute;
+  visibility: hidden;
+  margin-left: 12px;
+  padding-top: 4px;
+  cursor: default;
+}
 #logo {
   position: absolute;
   margin-left: 10px;
@@ -264,10 +272,11 @@ output, #actualStation {
 <div id="map_div"></div>
 <div id="brand">
   <div id="logo"></div>
+  <img id="fsimg" src="http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/img/flightstats_logo_dk_bkgd.png" />
   <div id="legend">
     <table>
-      <tr><td><span style="color:#FAA71A;align:left">Landed:</span><span id="landing"></span></td>
-      <td><span style="color:#94C1E7">Taking Off:</span><span id="takeoff"></span></td></tr>
+      <tr><td><span style="color:#94C1E7">Taking Off:</span><span id="takeoff"></span></td>
+      <td><span style="color:#FAA71A">Landed:</span><span id="landing"></span></td></tr>
     </table>
   </div>
   <div id="delayed"><span>Delay in Minutes</span></div>

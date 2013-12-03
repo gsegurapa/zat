@@ -176,7 +176,7 @@
   var airportCode, mapType, zoomLevel,
     showLabels, labelSize, showAirlineLogos, showOtherAirport, showDelays, // showOperatorAirlines,
     flightMarker, flightMarkerScale, airportMarker, airportMarkerScale, arrDep,
-    showLegend, weatherFrames, weatherStation, weatherRadar, weatherOpacity, logo,
+    showLegend, weatherFrames, weatherStation, weatherRadar, weatherOpacity, logo, fslogo,
     appId, appKey;
 
   function getParams(p) {
@@ -206,6 +206,7 @@
     if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
     // not saved yet
     if (params.logo) { logo = params.logo; }
+    if (params.fslogo) { fslogo = params.fslogo==='true'; }
     if ($.isNumeric(params.updateRate)) { updateRate = 1000 * +params.updateRate; }
     // not savable
     if (params.airlines !== undefined) { airlines = params.airlines; }
@@ -238,6 +239,8 @@
     weatherStation = 'automatic';
     weatherRadar = 'NCR'; // N0R, N1P, NTP, N0V, N0S, NCR, (N0Z)
     weatherOpacity = 30;
+    logo = false;
+    fslogo = false;
     appId = ''; // app ID
     appKey = ''; // app key
   }
@@ -385,8 +388,10 @@
     if (!showLegend) { $('#brand').hide(); }
     if (logo) {
       $('#logo').append(decodeURI(logo));
-      var logowidth = $('#logo').width();
-      $('#legend').css('left', (30 + logowidth)+'px');
+      $('#legend').css('left', (30 + $('#logo').width())+'px');
+    } else if (fslogo) {
+      $('#fsimg').css('visibility', 'visible');
+      $('#legend').css('left', '215px');
     }
     if (!showDelays) {
       $('#delayed').hide();
@@ -573,6 +578,7 @@
                 // }
                 if (showLegend && !flip && takeoff < 3000 && showLabels !== 'delay') {
                   var th = $('#takeoff').html();
+                  console.log('takeoff', th, typeof th);
                   if (th !== null) {
                     $('#takeoff').html(th+(th.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>');
                   }
@@ -726,6 +732,7 @@
           showplanes--;
           if (showLegend && !flip && touchdown < 5000 && showLabels !== 'delay') {
             var t = $('#landing').html();
+            console.log('landing', t, typeof t);
             if (t !== null) {
               $('#landing').html(t+(t.length>0?', ':' ')+'<span style="white-space:nowrap">'+h.flight()+'&laquo;'+h.city()+'</span>');
             }

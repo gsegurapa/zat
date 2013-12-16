@@ -1,9 +1,9 @@
 // Track airplanes for a specified airport, for signage
 // Also has animated weather
 // See help.html for documentation
-/*jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true,
+/* jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true,
   strict:true, undef:true, unused:true, curly:true, indent:false */
-/*global jQuery:false, L:false, city:false, bBox:false, Raphael: false, BigScreen: false, document:false */
+/* global alert:false, console:false, jQuery:false, L:false, city:false, bBox:false, Raphael:false, BigScreen:false, document:false */
 
 (function($){
   "use strict";
@@ -222,7 +222,7 @@
   function setDefaults() {
     airportCode = 'PDX'; // default is Portland
     mapType = 'automatic'; // keys from tilesinfo
-    zoomLevel = 9;    
+    zoomLevel = 9;
     showLabels = true;
     labelSize = 24;
     showAirlineLogos = true;
@@ -422,7 +422,9 @@
     if (!transform_prop) {
       var mapsize = map.getSize();
       var $overlay = $('.leaflet-overlay-pane'); // $('#overlay_div');
+      /* jshint newcap:false */
       Plane.paper = Raphael($overlay[0], mapsize.x, mapsize.y);
+      /* jshint newcap:true */
       $overlay.find('svg, div').css({position: 'absolute', 'z-index': 30, clip: '', left: 0, top: 0});
       // Plane.paper.path('M0,0L'+line.width()+','+line.height());
     }
@@ -578,7 +580,6 @@
                 // }
                 if (showLegend && !flip && takeoff < 3000 && showLabels !== 'delay') {
                   var th = $('#takeoff').html();
-                  console.log('takeoff', th, typeof th);
                   if (th !== null) {
                     $('#takeoff').html(th+(th.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>');
                   }
@@ -590,7 +591,7 @@
                 if (alt > 5000) { alt = airportalt; } // fix data error
                 if (a && a > 5000) { a = airportalt; }
               }
-              var np = new Plane({ id: +v.flightId, fno: flight, airline: alname, 
+              var np = new Plane({ id: +v.flightId, fno: flight, airline: alname,
                   airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt),
                   heading: (v.heading ? +v.heading : +v.bearing),
                   delay: delay, scale: flightMarkerScale * 0.01, depart: true, stamp: dstamp, time: (t ? t : ts) });
@@ -703,8 +704,8 @@
                 // console.log(flight+' distance in meters: '+pos.distanceTo(p));
                 p = undefined; a = undefined; t = undefined;
               }
-              var np = new Plane({ id: +v.flightId, fno: flight, airline: alname, 
-                  airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt), 
+              var np = new Plane({ id: +v.flightId, fno: flight, airline: alname,
+                  airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt),
                   heading: (v.heading ? +v.heading : +v.bearing),
                   delay: delay, scale: flightMarkerScale * 0.01, depart: false, stamp: astamp, time: (t ? t : ts) });
               planes.push(np);
@@ -819,7 +820,7 @@
             break;
           case 13: // return
             map.setZoom(originalZoom);
-            // NO BREAK!
+            /* falls through */
           case 32: // space
             map.panTo(airportLoc);
             break;
@@ -1360,7 +1361,7 @@
               // $(el).attr('src', 'http://www.srh.noaa.gov/'+img[i]);
               $(el).attr('src', 'http://radar.weather.gov/'+img[Math.min(i,maximg)]);
           });
-      });    
+      });
     },
 
     setOpacity: function(opc) {
@@ -1433,9 +1434,13 @@
             css: { opacity: 0.6, position: 'absolute' }}).appendTo(this.div_);
       } else { // use VML for IE
         this.pdiv_ = $('<div>', { 'class': 'plane', title: this.title_ }).appendTo(this.div_); // plane icon
+        /* jshint newcap:false */
         this.icon_ = Raphael(this.pdiv_[0], 120, 120).image(planeicon, 0, 0, 120, 120);
+        /* jshint newcap:true */
         this.sdiv_ = $('<div>', { 'class': 'shadow' }).appendTo(this.div_); // shadow of plane
+        /* jshint newcap:false */
         this.sicon_ = Raphael(this.sdiv_[0], 150, 150).image(shadowicon, 0, 0, 150, 150);
+        /* jshint newcap:true */
       }
       if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) { this.addLabel_(); }  // airplane info label
       map.getPanes().overlayPane.appendChild(this.div_[0]);
@@ -1689,7 +1694,7 @@
       if (this.info_.y < edge && this.info_.y < this.curpos_.y + edge) { this.info_.vy += force; }
       if (this.info_.y > map.getSize().y - (edge + (showLegend?44:0)) && this.info_.y > this.curpos_.y - edge) {
         this.info_.vy -= force;
-      }    
+      }
   
       // move label
       // var bias = this.depart_ ? 1.1 : 0.9;
@@ -1788,7 +1793,7 @@
         this.fidiv_.find('.delay').text(this.delay_).css({'background-color': 'yellow',
             color: 'rgb('+Math.min(this.delay_ - 15, 255)+',0,0)'});
       } else {
-        this.fidiv_.find('.delay').text('').css('background-color', 'transparent');          
+        this.fidiv_.find('.delay').text('').css('background-color', 'transparent');
       }
     },
     setFlightMarker: function(name) {
@@ -1934,7 +1939,7 @@
           layerControl.addOverlay(layer, v.name);
         }
       });
-*/ 
+*/
       
       /* if (interactive) {
         layerControl.addOverlay( // Flightstats NEXRAD Radar

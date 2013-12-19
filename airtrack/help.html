@@ -68,7 +68,7 @@ When in full screen mode the mouse cursor is hidden when over the map (you can s
 <tr><td>airportCode</td><td>PDX</td><td>(any airport code)</td><td>Three letter airport code.
 Note that flight position information is less reliable in some areas, or for smaller airports or airplanes.</td></tr>
 <tr><td>mapType</td><td>automatic</td>
-  <td>see table below for all map types</td><td>"automatic" uses the "US terrain" map in the continental US, and the "terrain" map elsewhere</td></tr>
+  <td>see below for all map types</td><td>"automatic" uses the "US terrain" map in the continental US, and the "terrain" map elsewhere</td></tr>
 <tr><td>zoomLevel</td><td>9</td><td>0 to 12</td><td>Lower numbers show a larger area. Different maps have different zoomLevel ranges (see "Map Types" below).</td></tr>
 <tr><td>showLabels</td><td>true</td><td>true, false</td><td>Label each airplane with flight info (carrier, flight number, delay)</td></tr>
 <tr><td>labelSize</td><td>24</td><td>12, 16, 24, 32</td><td>Height of the labels in pixels</td></tr>
@@ -76,7 +76,7 @@ Note that flight position information is less reliable in some areas, or for sma
 <tr><td>showOtherAirport</td><td>true</td><td>true, false</td><td>Show code of other airport in labels</td></tr>
 <tr><td>showDelays</td><td>true</td><td>true, false</td><td>Show flight delays in minutes</td></tr>
 <!-- <tr><td>showOperatorAirlines</td><td>false</td><td>true, false</td><td>If true show operator for flight, otherwise show main (ticketing) carrier</td></tr> -->
-<tr><td>flightMarker</a></td><td>smooth</td><td>smooth, shadow, stripe, icon</td><td>Style of airplane marker (append '-lights' for navigation lights)</td></tr>
+<tr><td>flightMarker</a></td><td>smooth</td><td>smooth, shadow, icon</td><td>Style of airplane marker</td></tr>
 <tr><td>flightMarkerScale</td><td>70</td><td>8 to 100</td><td>Size of airplane marker</td></tr>
 <!-- <tr><td>flightLabelScale</td><td>100</td><td>1-100</td><td>(not implemented) Size of label</td></tr> -->
 <tr><td>airportMarker</td><td>classic</td>
@@ -90,6 +90,10 @@ Note that flight position information is less reliable in some areas, or for sma
 <tr><td>weatherRadar</a></td><td>NCR</td>
   <td>NCR, N0R, N0Z, NTP, N1P, N0S, N0V</td><td>NWS weather radar product - see below (US only)</td></tr>
 <tr><td>weatherOpacity</td><td>30</td><td>1 to 100</td><td>Opacity of weather overlay (100 is opaque)</td></tr>
+<tr><td>logo</td><td></td><td>(any string)</td><td>Custom logo.
+If specified in the URL, special characters like spaces must be encoded.
+For example, to set the logo to "Zat Air" specify "logo=Zat%20Air" in the URL.</td></tr>
+<tr><td>airlines</td><td>&ndash;</td><td>(list of airline codes)</td><td>Which airlines to show (see below)</td><tr>
 <!-- <tr><td>interactive</td><td>false</td><td>true</td><td>Interactive mode (scrolling enabled)</td></tr> -->
 <!-- <tr><td>view</td><td></td><td>3D</td><td>fake 3D mode</td></tr> -->
 </table>
@@ -132,15 +136,37 @@ This can be useful if the closest station doesn't have the best weather coverage
 <tr><td>N0S</td><td>Storm Relative Motion (second letter is number 0)</td></tr>
 <tr><td>N0V</td><td>Base Velocity (second letter is number 0)</td></tr>
 </table>
-<p>(More information on National Weather Service products at <a href="http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm" target="_blank">http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm</a>).</p>
+<p>More information on National Weather Service products at <a href="http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm" target="_blank">http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm</a>.</p>
+
+<h2>Airlines List</h2>
+<p>The airlines parameter specifies a list of airline codes, separated by commas.
+The list is used to determine which flights to display.
+For example, "<code>airlines=AA,DL</code>" specifies that only flights operated by American Airlines and Delta Airlines should be displayed.
+The list can optionally begin with a single dash (minus sign), which reverses the test so that "<code>airlines=-AA,DL</code>"
+specifies that flights from all airlines should be displayed <em>except</em> for American and Delta.</p>
+<p>In addition, each airline code in the list can be optionally followed by a dash and another airline code.
+For example, "<code>airlines=AS,QX-AS</code>" specifies that only flights operated by AS (Alaska Airlines),
+or by QX (Horizon Airlines) should be shown, but QX should be displayed as AS.
+Likewise, "<code>airlines=-QX-AS</code>" specifies that all flights should be shown, but to change QX (Horizon) to AS (Alaska).
+This is very useful for flights that are ticketed by one airline, but operated by a different (operating) airline.
+This app normally displays the operating airline, but you can use this option to display the ticketing airline.
+Here are some additional examples:</p>
+<table>
+  <tr><td><code>airlines=-</code></td><td>Show all flights (the default)</td></tr>
+  <tr><td><code>airlines=UA</code></td><td>Show only flights operated by United</td></tr>
+  <tr><td><code>airlines=-FX,1I</code></td><td>Show all flights except any flights operated by FedEx or Net Jets</td></tr>
+  <tr><td><code style="white-space: nowrap;">airlines=-OO-UA,QX-AS,MQ-AA</code></td><td>Show all flights, but change SkyWest to United, Horizon to Alaska, and American Eagle to American</td></tr>
+  <tr><td><code>airlines=OO-UA,QX-AS,MQ-AA</code></td><td>Show only SkyWest, Horizon, and American Eagle, but change their airline codes to<br />United, Alaska, and American, respectively</td></tr>
+  <tr><td><code>airlines=-JIA-US</code></td><td>Show all flights, but change PSA to US Airways</td></tr>
+  <tr><td><code>airlines=</code></td><td>Show no flights (not very useful)</td></tr>
+</table>
 
 <h2>Browser Compatibility</h2>
-<p>The app has been tested on recent versions of Chrome, Firefox, Safari, and on IE 8 and 9. If you encounter any problems, please let us know.</p>
-<p>There is a known issue with Safari that occasionally causes the airplanes to jiggle around on the screen
-(this might have been fixed in the most recent version of Safari).</p>
+<p>The app has been tested on recent versions of Chrome, Firefox, Safari, and on IE 8 and above. If you encounter any problems, please let us know.</p>
 
 <h2>Advanced/Experimental Options</h2>
-<p>These options must be specified in the URL, and are not available in the configurator and cannot be saved in a cookie.</p>
+<p>These options must be specified in the URL, and are not available in the configurator and cannot be saved in a cookie.
+Some of them may not work on all platforms.</p>
 <h4>interactive=true</h4>
 <p>Setting interactive to true allows you to drag the map using your mouse pointer and to zoom in by double clicking.
 It also enables the following keyboard shortcuts:
@@ -166,10 +192,6 @@ To show only US airports, use flip=US instead.
 The current airport is displayed in the legend.
 You can also adjust the number of seconds between airport changes using the flipTime parameter.
 For example, flipTime=120 displays each airport for 2 minutes.</p>
-<h4>logo=<i>string</i></h4>
-<p>You can put an arbitrary string in the legend of the app using the logo parameter.
-Note that special characters like spaces must be encoded.
-For example, to put the string "Zat LLC" in the legend, specify "logo=Zat%20LLC" in the URL.</p>
 <h4>updateRate=<i>number</i></h4>
 <p>By default, the app makes an API call to get positional data every 15 seconds.
 You can override this using the updateRate parameter.
@@ -180,28 +202,6 @@ You can experiment, but values greater than 60 seconds may not look very good.</
 <h4>view=3D</h4>
 <p>Setting view to 3D displays the map in psuedo-3D. Note that this does not work in all browsers.
 It also sets interactive mode to true, so you can drag the map around in 3D.</p>
-<h4>airlines=<em>list</em></h4>
-<p>The airlines parameter specifies a list of airline codes, separated by commas.
-The list is used to determine which flights to display.
-For example, "<code>airlines=AA,DL</code>" specifies that only flights operated by American Airlines and Delta Airlines should be displayed.
-The list can optionally begin with a single minus sign, which reverses the test so that "<code>airlines=-AA,DL</code>"
-specifies that flights from all airlines should be displayed <em>except</em> for American and Delta.</p>
-<p>In addition, each airline code can be followed by a minus sign and another airline code.
-For example, "<code>airlines=AS,QX-AS</code>" specifies that only flights operated by AS (Alaska Airlines),
-or by QX (Horizon Airlines) should be shown, but QX should be displayed as AS.
-Likewise, "<code>airlines=-QX-AS</code>" specifies that all flights should be shown, but to change QX (Horizon) to AS (Alaska).
-This is very useful for flights that are ticketed by one airline, but operated by a different (operating) airline.
-This app normally displays the operating airline, but you can use this option to display the ticketing airline.
-Here are some additional examples:</p>
-<table>
-  <tr><td><code>airlines=UA</code></td><td>Show only flights operated by United</td></tr>
-  <tr><td><code>airlines=-FX,1I</code></td><td>Show all flights except any flights operated by FedEx or Net Jets</td></tr>
-  <tr><td><code style="white-space: nowrap;">airlines=-OO-UA,QX-AS,MQ-AA</code></td><td>Show all flights, but change SkyWest to United, Horizon to Alaska, and American Eagle to American</td></tr>
-  <tr><td><code>airlines=OO-UA,QX-AS,MQ-AA</code></td><td>Show only SkyWest, Horizon, and American Eagle, but change their airline codes to<br />United, Alaska, and American, respectively</td></tr>
-  <tr><td><code>airlines=-JIA-US</code></td><td>Show all flights, but change PSA to US Airways</td></tr>
-  <tr><td><code>airlines=-</code></td><td>Show all flights (the default)</td></tr>
-  <tr><td><code>airlines=</code></td><td>Show no flights (not very useful)</td></tr>
-</table>
 
 <hr />
 <h3><a href="http://zat.com" target="_blank">Zat LLC</a></h3>

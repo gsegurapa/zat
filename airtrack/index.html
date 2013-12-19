@@ -105,7 +105,7 @@ img#fsimg {
   padding-top: 4px;
   cursor: default;
 }
-#logo {
+#logotxt {
   position: absolute;
   margin-left: 10px;
   margin-top: 4px;
@@ -168,6 +168,7 @@ div#legend {
 #configurl {
   padding: 3px;
   word-wrap: break-word;
+  font-family: monospace;
 }
 #config td {
   padding: 1px 4px;
@@ -271,7 +272,7 @@ output, #actualStation {
 <body>
 <div id="map_div"></div>
 <div id="brand">
-  <div id="logo"></div>
+  <div id="logotxt"></div>
   <img id="fsimg" src="http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/img/flightstats_logo_dk_bkgd.png" />
   <div id="legend">
     <table>
@@ -312,7 +313,7 @@ output, #actualStation {
       </td><td>9</td><td>0-12 (depends on map)</td></tr>
 
     <tr><td>showLabels</td><td><input id="showLabels" class="bool" type="button" value="true" /></td>
-      <td>true</td><td>label airplane with flight info</td></tr>
+      <td>true</td><td>show flight info</td></tr>
     <tr><td>labelSize</td><td><select id="labelSize">
       <option value="12">12</option>
       <option value="16">16</option>
@@ -331,11 +332,11 @@ output, #actualStation {
     <tr><td>flightMarker</td><td><select id="flightMarker">
       <option value="smooth" selected="true">smooth</option>
       <option value="shadow">shadow</option>
-      <option value="stripe">stripe</option>
       <option value="icon">icon</option>
+      <!-- <option value="stripe">stripe</option>
       <option value="smooth-lights">smooth-lights</option>
       <option value="shadow-lights">shadow-lights</option>
-      <option value="stripe-lights">stripe-lights</option>
+      <option value="stripe-lights">stripe-lights</option> -->
     </select></td><td>smooth</td><td>airplane image</td></tr>
     <tr><td>flightMarkerScale</td>
       <td><input id="flightMarkerScale" type="range" size="4" value="70" min="8" max="100" step="1" /></td>
@@ -344,18 +345,19 @@ output, #actualStation {
     <tr><td>airportMarker</td><td><select id="airportMarker">
       <option value="classic" selected="true">classic</option>
       <option value="modern">modern</option>
+      <option value="pointy">pointy</option>
       <option value="darktower">darktower</option>
       <option value="boston">Boston</option>
     </select></td><td>classic</td><td>control tower image</td></tr>
     <tr><td>airportMarkerScale</td>
       <td><input id="airportMarkerScale" type="range" size="4" value="55" min="10" max="150" step="1" /></td>
-      <td>55</td><td>size of control tower (10-150)</td></tr>
+      <td>55</td><td>size of tower (10-150)</td></tr>
 
     <tr><td>arrDep</td><td><select id="arrDep">
       <option value="both" selected="true">both</option>
       <option value="arr">arriving</option>
       <option value="dep">departing</option>
-    </select></td><td>both</td><td>show arriving or departing flights</td></tr>
+    </select></td><td>both</td><td>arriving or departing</td></tr>
 
     <tr><td>showLegend</td><td><input id="showLegend" class="bool" type="button" value="true" /></td>
       <td>true</td><td>show legend at bottom</td></tr>
@@ -376,6 +378,8 @@ output, #actualStation {
     <tr><td>weatherOpacity</td>
       <td><input id="weatherOpacity" type="range" size="4" value="30" min="1" max="100" step="1" /></td>
         <td>30</td><td>100 is opaque</td></tr>
+    <tr><td>logo</td><td><input id="logo" type="text" size="15" /></td><td></td><td>custom logo</td></tr>
+    <tr><td>airlines</td><td><input id="airlines" type="text" size="25" /></td><td>&ndash; (all)</td><td>airlines to be shown</td></tr>
   </table>
 </div>
 <div id="demo">

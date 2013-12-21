@@ -179,44 +179,44 @@
     showLegend, weatherFrames, weatherStation, weatherRadar, weatherOpacity, logo, fslogo, airlines,
     appId, appKey;
 
-  function getParams(p) {
+  function getParams(st) {
     
-    var params = {}; // parameters
-    p.replace(/[?&;]\s?([^=&;]+)=([^&;]*)/gi,
-        function(m,key,value) { params[key] = value; });
+    var p = {}; // parameters
+    st.replace(/[?&;]\s?([^=&;]+)=([^&;]*)/gi,
+        function(m,key,value) { p[key] = value; });
 
-    if (params.airportCode) { airportCode = params.airportCode.toUpperCase(); }
-    if (params.mapType) { mapType = params.mapType; }
-    if ($.isNumeric(params.zoomLevel)) { zoomLevel = +params.zoomLevel; }
-    if (params.showLabels) { showLabels = params.showLabels === 'delay' ? 'delay' : params.showLabels==='true'; }
-    if ($.isNumeric(params.labelSize) && labelmargin[+params.labelSize]) { labelSize = +params.labelSize; }
-    if (params.showAirlineLogos) { showAirlineLogos = params.showAirlineLogos==='true'; }
-    if (params.showOtherAirport) { showOtherAirport = params.showOtherAirport==='true'; }
-    if (params.showDelays) { showDelays = params.showDelays==='true'; }
-    // if (params.showOperatorAirlines) { showOperatorAirlines = params.showOperatorAirlines==='true'; }
-    if (params.flightMarker) { flightMarker = params.flightMarker; }
-    if ($.isNumeric(params.flightMarkerScale)) { flightMarkerScale = +params.flightMarkerScale; }
-    if (params.airportMarker) { airportMarker = params.airportMarker; }
-    if ($.isNumeric(params.airportMarkerScale)) { airportMarkerScale = +params.airportMarkerScale; }
-    if (params.arrDep) { arrDep = params.arrDep; }
-    if (params.showLegend) { showLegend = params.showLegend==='true'; }
-    if ($.isNumeric(params.weatherFrames)) { weatherFrames = +params.weatherFrames; }
-    if (params.weatherStation) { weatherStation = (params.weatherStation&&params.weatherStation !== 'automatic')?params.weatherStation.toUpperCase():'automatic'; }
-    if (params.weatherRadar) { weatherRadar = params.weatherRadar.toUpperCase(); }
-    if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
-    if (params.logo) { logo = decodeURI(params.logo); }
-    if (params.airlines !== undefined) { airlines = params.airlines; }
+    if (p.airportCode) { airportCode = p.airportCode.toUpperCase(); }
+    if (p.mapType) { mapType = p.mapType; }
+    if ($.isNumeric(p.zoomLevel)) { zoomLevel = +p.zoomLevel; }
+    if (p.showLabels) { showLabels = p.showLabels === 'delay' ? 'delay' : p.showLabels==='true'; }
+    if ($.isNumeric(p.labelSize) && labelmargin[+p.labelSize]) { labelSize = +p.labelSize; }
+    if (p.showAirlineLogos) { showAirlineLogos = p.showAirlineLogos==='true'; }
+    if (p.showOtherAirport) { showOtherAirport = p.showOtherAirport==='true'; }
+    if (p.showDelays) { showDelays = p.showDelays==='true'; }
+    // if (p.showOperatorAirlines) { showOperatorAirlines = p.showOperatorAirlines==='true'; }
+    if (p.flightMarker) { flightMarker = p.flightMarker; }
+    if ($.isNumeric(p.flightMarkerScale)) { flightMarkerScale = +p.flightMarkerScale; }
+    if (p.airportMarker) { airportMarker = p.airportMarker; }
+    if ($.isNumeric(p.airportMarkerScale)) { airportMarkerScale = +p.airportMarkerScale; }
+    if (p.arrDep) { arrDep = p.arrDep; }
+    if (p.showLegend) { showLegend = p.showLegend==='true'; }
+    if ($.isNumeric(p.weatherFrames)) { weatherFrames = +p.weatherFrames; }
+    if (p.weatherStation) { weatherStation = (p.weatherStation&&p.weatherStation !== 'automatic')?p.weatherStation.toUpperCase():'automatic'; }
+    if (p.weatherRadar) { weatherRadar = p.weatherRadar.toUpperCase(); }
+    if ($.isNumeric(p.weatherOpacity)) { weatherOpacity = +p.weatherOpacity; }
+    if (p.logo) { logo = decodeURI(p.logo); }
+    if (p.airlines !== undefined) { airlines = p.airlines; }
     // not saved yet
-    if (params.fslogo) { fslogo = params.fslogo==='true'; }
-    if ($.isNumeric(params.updateRate)) { updateRate = 1000 * +params.updateRate; }
+    if (p.fslogo) { fslogo = p.fslogo==='true'; }
+    if ($.isNumeric(p.updateRate)) { updateRate = 1000 * +p.updateRate; }
     // not savable
-    if (params.interactive) { interactive = params.interactive==='true'; }
-    if (params.view) { view = params.view.toUpperCase(); }
-    if (params.flip) { flip = params.flip; }
-    if ($.isNumeric(params.flipTime)) { flipTime = +params.flipTime; }
-    if (params.jump) { jump = params.jump==='true'; }
-    if (params.appId) { appId = params.appId; }
-    if (params.appKey) { appKey = params.appKey; }
+    if (p.interactive) { interactive = p.interactive==='true'; }
+    if (p.view) { view = p.view.toUpperCase(); }
+    if (p.flip) { flip = p.flip; }
+    if ($.isNumeric(p.flipTime)) { flipTime = +p.flipTime; }
+    if (p.jump) { jump = p.jump==='true'; }
+    if (p.appId) { appId = p.appId; }
+    if (p.appKey) { appKey = p.appKey; }
   }
 
   function setDefaults() {
@@ -277,10 +277,10 @@
     // setCookie('interactive', interactive.toString());
     // setCookie('view', view);
 
+    console.log('cookie:', document.cookie);
     $('#configurl').width($('#config table').width()).
       text(window.location.href.replace(/\?.*$/, '')+'?'+
-        document.cookie.replace(/;\s__.*$/, '').
-        replace(/;\s_ga.*[^;]/, ''). // google analytics
+        document.cookie.replace(/(?:;|^)\s*(?:_|helpSession)[^;]+/g, ''). // google analytics
         replace(/;\s*/g, '&'));
   }
 
@@ -342,7 +342,6 @@
 
   if (flightMarker.match(/[^\w-]/)) { flightMarker = 'smooth'; }
   if (airportMarker.match(/[^\w-]/)) { airportMarker = 'classic'; }
-  // var flightLabelScale = params.flightLabelScale/100 || 1.0;
   if (view === '3D') { interactive = true; }
   if (jump) { showLabels = false; }
 

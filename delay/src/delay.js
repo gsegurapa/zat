@@ -169,7 +169,7 @@
     setCookie('mapType', mapType);
     setCookie('zoomLevel', zoomLevel);
     setCookie('mapCenter', mapCenter.lat+','+mapCenter.lng);
-    setCookie('mapArea', mapArea);    
+    setCookie('mapArea', mapArea);
     setCookie('showHeat', showHeat);
     setCookie('showIcons', showIcons);
     setCookie('showRoutes', showRoutes);
@@ -186,7 +186,8 @@
 
     $('#configurl').width($('#config table').width()).
     text(window.location.href.replace(/\?.*$/, '')+'?'+
-      document.cookie.replace(/;\s__.*$/, '').replace(/;\s*/g, '&'));
+      document.cookie.replace(/(?:;|^)\s*(?:_|helpSession)[^;]+/g, ''). // google analytics
+        replace(/^;\s*/, '').replace(/;\s*/g, '&'));
 }
 
   var view = null;  // 2D or 3D
@@ -226,7 +227,7 @@
 
   var transform_prop = testStyleProperty('transform'); // test for transform CSS property
   var prefix = (transform_prop && transform_prop !== 'transform') ? // CSS browser prefix  
-    '-'+(/^[A-Z][a-z]*/.exec(transform_prop).toString().toLowerCase())+'-' : '';   
+    '-'+(/^[A-Z][a-z]*/.exec(transform_prop).toString().toLowerCase())+'-' : '';
 
   $(document).ready(function() {
 
@@ -260,7 +261,7 @@
     if (mapArea !== null && mapArea.toLowerCase() === 'conus') {
       map.fitBounds([[24.3, -125], [49.5, -66.8]]);  // zoom to Continental US
     } else {
-      map.setView(mapCenter, zoomLevel);      
+      map.setView(mapCenter, zoomLevel);
     }
 
     function mapReady() {
@@ -337,8 +338,8 @@
         }
       });
     } else {
-        BigScreen.onenter = function() { $('#map_div').css('cursor', 'none'); }
-        BigScreen.onexit = function() { $('#map_div').css('cursor', ''); }      
+        BigScreen.onenter = function() { $('#map_div').css('cursor', 'none'); };
+        BigScreen.onexit = function() { $('#map_div').css('cursor', ''); };
     }  // end if (interactive)
 
     // map has changed --------------------------------------
@@ -867,8 +868,8 @@
       this.map_ = map;
       var that = this;
       this.timer_ = setInterval(function() {
-        that.$img_.attr('src', that.url_+(new Date).getTime());
-      }, this.updateRate_); 
+        that.$img_.attr('src', that.url_+(new Date()).getTime());
+      }, this.updateRate_);
 
       map.on('viewreset', that.draw_, that).on('moveend', that.draw_, that);
       this.draw_();
@@ -883,7 +884,7 @@
           ne.lat+'&maxlon='+ne.lng+'&minlat='+sw.lat+'&minlon='+sw.lng+'&width='+size.x+'&height='+size.y+
           '&gtt=109&frame=0&num=1&delay=25&key=sat_ir4&proj=me&rand=';
       if (this.$img_) { this.$img_.remove(); }
-      this.$img_ = $('<img>', { src: this.url_+(new Date).getTime(),
+      this.$img_ = $('<img>', { src: this.url_+(new Date()).getTime(),
         css: { position: 'absolute', width: '100%', height: '100%', opacity: this.opacity_ }
         }).appendTo('#map_div');
     },
@@ -900,7 +901,7 @@
   L.TileLayer.FSWeather = L.TileLayer.extend({
   
     initialize: function(options) {
-      L.Util.setOptions(this, options);    
+      L.Util.setOptions(this, options);
     },
     
     getTileUrl: function(xy) {
@@ -908,7 +909,7 @@
       var de = L.TileLayer.FSWeather.weather_tiles_range[z];
       return (de && xy.x >= de.x.min & xy.x <= de.x.max && xy.y >= de.y.min && xy.y <= de.y.max) ?
         ['http://www.flightstats.com/googlemaptiles/weather/noaa/radar/z', z,
-            '/radar_tile_z', z, 'x', xy.x, 'y', xy.y, '.png?nocache='+(new Date).getTime()].join('') : '';
+            '/radar_tile_z', z, 'x', xy.x, 'y', xy.y, '.png?nocache='+(new Date()).getTime()].join('') : '';
     }
   
   });
@@ -983,7 +984,7 @@
   }
 
   function formatDate(fm) {
-    var d = new Date;
+    var d = new Date();
     if (timeOffset) { d.addHours(timeOffset); }
     // $('#datetime').text(fm ? (new Date).toString(fm) : (new Date).toJSON().substring(0,16)).show();
     $('#datetime').text(fm ? unidecode(d.toString(fm)) : d.toJSON().substring(0,16)).show();

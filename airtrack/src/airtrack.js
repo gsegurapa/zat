@@ -277,11 +277,10 @@
     // setCookie('interactive', interactive.toString());
     // setCookie('view', view);
 
-    console.log('cookie:', document.cookie);
     $('#configurl').width($('#config table').width()).
       text(window.location.href.replace(/\?.*$/, '')+'?'+
         document.cookie.replace(/(?:;|^)\s*(?:_|helpSession)[^;]+/g, ''). // google analytics
-        replace(/;\s*/g, '&'));
+        replace(/^;\s*/, '').replace(/;\s*/g, '&'));
   }
 
   var allAirlines, exceptions;  // processed airline list

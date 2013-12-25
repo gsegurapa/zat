@@ -35,7 +35,7 @@
 
 	window.viewDidAppear = function() {
 		window.location = the_url;	// restart app
-	}
+	};
 
 	window.viewWillDisappear = function() {
 		clearInterval(maintimer);
@@ -166,7 +166,7 @@
 
 	if (flightID === undefined) { // setup tool -- remove for production
 		window.location = 'flight.html?debug='+debug+'&autoHide='+autoHide+'&zoomControl='+zoomControl;
-	} 
+	}
 
 	if (debug) {	// interactive debug mode
 
@@ -246,7 +246,7 @@
 					if (v === layer) {
 						maxZoom = layer.options.maxZoom;
 						if (m.getZoom() > maxZoom) { m.setZoom(maxZoom); }
-						return false;	
+						return false;
 					}
 				});
 			}).
@@ -257,8 +257,8 @@
 				if (trackcontrol.isTracking()) { map.panTo(curpos); }
 				zooming = false;
 				if (debug) { console.log('zoom: ', this.getZoom()); }
-				if (dmarker !== undefined) { 
-					var icon = scaleTowers(this);
+				if (dmarker !== undefined) {
+					var icon = scaleTowers(this.getZoom());
 					dmarker.setIcon(icon);
 					amarker.setIcon(icon);
 				}
@@ -294,7 +294,7 @@
 				hidecontrols();
 			} else {
 				fullscreentimer = setTimeout(hidecontrols, 10000);
-				map.on('click', unhidecontrols);				
+				map.on('click', unhidecontrols);
 			}
 		}
 
@@ -365,7 +365,7 @@
 
 				if (data_off !== 0) {	// simulate data loss for testing
 					if (data_on === 0) {	// data is dead
-						actualposs.splice(0, numpos-data_off);					
+						actualposs.splice(0, numpos-data_off);
 					} else {	// data is back on
 						actualposs.splice(-data_on, data_on-data_off);
 					}
@@ -401,7 +401,7 @@
 							taxi = false;
 						}
 															// no data for two minutes OR last data point is more than 10 minutes old
-						if (!nodata && (timestamp - newdate > 120000 || diff > 600)) {	
+						if (!nodata && (timestamp - newdate > 120000 || diff > 600)) {
 							showNote('The flight is temporarily beyond the range of our tracking network');
 							nodata = true;
 							// if (layers.path) { setFlightPath(true); }	// draw entire flight history
@@ -460,7 +460,7 @@
 						airline = flightData.carrierFs;
 					}
 					if (flightnum === undefined) {
-						flightnum = flightData.carrierFlightId;						
+						flightnum = flightData.carrierFlightId;
 					}
 
 					// load mini-tracker
@@ -527,14 +527,14 @@
 						$('#map_div').addClass('threed');
 					}
 
-					var ticon = scaleTowers(this);	// generate and scale tower icon
+					var ticon = scaleTowers(map.getZoom());	// generate and scale tower icon
 
 					// departing airport marker
 					dmarker = L.marker(dpos, {
 							icon: ticon
 						}).addTo(map).on('click', function() {
 							drawercontrol.content(function() { return airportinfo(true); });
-						});								
+						});
 
 					// arriving airport marker
 					amarker = L.marker(apos, {
@@ -554,7 +554,7 @@
 						layers.plan = L.polyline(positions, { color: '#362F2D', weight: 8 , opacity: 0.6, clickable: false });
 						if (showPlan) {	// show plan
 							layers.planHalo.addTo(map);
-							layers.plan.addTo(map);							
+							layers.plan.addTo(map);
 						}
 					} else {	// no plan
 						layercontrol.noPlan();	// disable flight plan button
@@ -642,7 +642,7 @@
 
 					// number of frames to move that distance at current speed (s)
 					if (debug) { console.log('curspeed: '+curspeed, 'speedMph: '+pos.speedMph, 'turn: '+turn.toFixed(2)); }
-					frames = $.isNumeric(curspeed) ? Math.floor(curpos.distanceTo(p) * 2236.936292 / (curspeed * aniRate)) : 0;						
+					frames = $.isNumeric(curspeed) ? Math.floor(curpos.distanceTo(p) * 2236.936292 / (curspeed * aniRate)) : 0;
 					if (frames <= 0) {
 						curpos = p;
 						return;
@@ -666,7 +666,7 @@
 					// only continue on after loss of data if plane is at altitude and speed
 					if (curspeed > 250 && a > 10000) {
 						frames += fminute; // plus one more minute of frames
-					}	
+					}
 
 					// animation timer
 					if (!anitimer) {
@@ -678,7 +678,7 @@
 							curpos = apos;
 							frames = 0;
 						} else {
-							curpos = createLatLng(curpos.lat + vlat, curpos.lng + vlng, wrap);							
+							curpos = createLatLng(curpos.lat + vlat, curpos.lng + vlng, wrap);
 						}
 						currot += vrot;
 						if (!zooming && !panning) {	// don't update position while zooming or panning animation is in progress
@@ -990,7 +990,7 @@
 			} else { // street map
 				// $('#layer-map').attr('checked', 'checked');
 				document.getElementById('layer-map').checked = true;
-				$('#layer-overlay-name').text('TERRAIN');				
+				$('#layer-overlay-name').text('TERRAIN');
 				if (showTerrain) {
 					// $('#layer-overlay').prop('checked', 'checked');
 					document.getElementById('layer-overlay').checked = true;
@@ -1080,7 +1080,7 @@
 						this._map.removeLayer(this._layers.terrain);
 						showTerrain = false;
 						this._notify('showTerrain','false');
-					}					
+					}
 				}
 			}, this);
 
@@ -1092,7 +1092,7 @@
 				if (showPath) {
 					this._map.addLayer(this._layers.pathHalo).addLayer(this._layers.path);
 					this._layers.pathHalo.bringToFront();
-					this._layers.path.bringToFront();						
+					this._layers.path.bringToFront();
 				} else {
 					this._map.removeLayer(this._layers.pathHalo);
 					this._map.removeLayer(this._layers.path);
@@ -1107,7 +1107,7 @@
 				if (showPlan) {
 					this._map.addLayer(this._layers.planHalo).addLayer(this._layers.plan);
 					this._layers.plan.bringToBack();
-					this._layers.planHalo.bringToBack();						
+					this._layers.planHalo.bringToBack();
 				} else {
 					this._map.removeLayer(this._layers.planHalo);
 					this._map.removeLayer(this._layers.plan);
@@ -1189,7 +1189,7 @@
 			unhidecontrols();
 			if (this._expanded) {
 				$('#control-layer-list').hide(100,'linear');
-				this._toggle.style.backgroundImage = 'url(img/layers@2x.png)';				
+				this._toggle.style.backgroundImage = 'url(img/layers@2x.png)';
 			}
 			this._expanded = false;
 			if (drawerwasopen) {
@@ -1245,7 +1245,7 @@
 				this._tracking = 1;
 				this._link.style.backgroundColor = '';
 				this._link.style.backgroundImage = 'url(img/tracking-icon@2x.png)';
-			}			
+			}
 		},
 
 		isTracking: function() {
@@ -1435,9 +1435,9 @@
 
 	var towerscale = [ 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1 ];
 
-	function scaleTowers(m) {	// scale tower icon based on zoom of map m
+	function scaleTowers(zoom) {	// scale tower icon based on zoom of map
 		var opts = $.extend({}, towerproto);	// copy
-		var scale = towerscale[Math.min(m.getZoom(), towerscale.length-1)];
+		var scale = towerscale[Math.min(zoom, towerscale.length-1)];
 		opts.iconSize = [opts.iconSize[0] * scale, opts.iconSize[1] * scale];
 		opts.iconAnchor = [opts.iconAnchor[0] * scale, opts.iconAnchor[1] * scale];
 		return L.icon(opts);
@@ -1446,7 +1446,7 @@
 	// Flightstats weather tiles -----------------------------------------------------------
   L.TileLayer.FSWeather = L.TileLayer.extend({
     initialize: function(options) {
-      L.Util.setOptions(this, options);    
+      L.Util.setOptions(this, options);
     },
     getTileUrl: function(xy) {
       var z = this._getZoomForUrl();

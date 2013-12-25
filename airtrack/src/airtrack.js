@@ -1472,6 +1472,12 @@
       }
       if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) { this.addLabel_(); }  // airplane info label
       map.getPanes().overlayPane.appendChild(this.div_[0]);
+      if (interactive) {
+        var title = this.title_;
+        this.div_.click(function() {
+          $('#popup').clearQueue().text(title).fadeIn(100).delay(5000).fadeOut(1000);
+        });
+      }
       // $('#overlay_div').append(this.div_);
       this.draw_();
     },

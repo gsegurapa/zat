@@ -546,6 +546,7 @@
           var positions = v.positions;
           var curpos = positions[0];
           var pos = L.latLng(+curpos.lat, +curpos.lon);
+          var curspeed = curpos.speedMph;
           // console.log(curpos.date, (new Date(curpos.date)).valueOf(), Date.parse(curpos.date));
           var lastpos, p, a, t;
           if (positions.length >= 2) {
@@ -578,7 +579,7 @@
               //     '('+pos.lat.toFixed(3)+','+pos.lng.toFixed(3)+')', 
               //     curpos.source, curpos.altitudeFt+'ft', curpos.speedMph+'mph', v.heading.toFixed(3)+'deg');
               // }
-              planes[fx].update({ position: pos, altitude: alt, stamp: dstamp, delay: delay, fno: flight, time: ts });
+              planes[fx].update({ position: pos, altitude: alt, stamp: dstamp, delay: delay, fno: flight, time: ts, speed: curspeed });
             } else { // add flight
               var oairport = v.arrivalAirportFsCode;
               var ocity = airports[oairport].city;
@@ -603,7 +604,7 @@
               }
               var np = new Plane({ id: +v.flightId, fno: flight, airline: alname,
                   airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt),
-                  heading: (v.heading ? +v.heading : +v.bearing),
+                  heading: (v.heading ? +v.heading : +v.bearing), speed: curspeed,
                   delay: delay, scale: flightMarkerScale * 0.01, depart: true, stamp: dstamp, time: (t ? t : ts) });
               planes.push(np);
               map.addLayer(np);
@@ -668,6 +669,7 @@
           var positions = v.positions;
           var curpos = positions[0];
           var pos = L.latLng(+curpos.lat, +curpos.lon);
+          var curspeed = curpos.speedMph;
           var lastpos, p, a, t;
           if (positions.length >= 2) {
             lastpos = positions[1];
@@ -700,7 +702,7 @@
               //     curpos.source, curpos.altitudeFt+'ft', curpos.speedMph+'mph', v.heading.toFixed(3)+'deg');
               //   // console.log(curpos.date === debug[flight] ? '-' : '+', flight, curpos.date, curpos.lat, curpos.lon, curpos.source, curpos.altitudeFt, curpos.speedMph, v.heading);
               // }
-              planes[fx].update({ position: pos, altitude: alt, stamp: astamp, delay: delay, fno: flight, time: ts });
+              planes[fx].update({ position: pos, altitude: alt, stamp: astamp, delay: delay, fno: flight, time: ts, speed: curspeed });
             } else { // add flight
               var oairport = v.departureAirportFsCode;
               var ocity = airports[oairport].city;
@@ -716,7 +718,7 @@
               }
               var np = new Plane({ id: +v.flightId, fno: flight, airline: alname,
                   airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt),
-                  heading: (v.heading ? +v.heading : +v.bearing),
+                  heading: (v.heading ? +v.heading : +v.bearing), speed: curspeed,
                   delay: delay, scale: flightMarkerScale * 0.01, depart: false, stamp: astamp, time: (t ? t : ts) });
               planes.push(np);
               map.addLayer(np);
@@ -1429,6 +1431,7 @@
       this.delay_ = args.delay; // flight delay in minutes
       this.airport_ = args.airport; // code of other airport
       this.city_ = args.city;  // name of other city
+      this.speed_ = args.speed; // current speed of airplane
       
       this.move_ = 0; // number of times plane has moved (between updates)
       this.curpos_ = null; // current pixel position (Point)
@@ -1450,7 +1453,7 @@
       this.curpos_ = this.map_.latLngToLayerPoint(this.llpos_); // convert position to pixels
       this.currot_ = this.rot_;
       this.curalt_ = this.alt_;
-      this.title_ = this.airline_ + ' ' + this.fno_ + (this.depart_?' to ':' from ')+this.city_ + '/' + this.airport_;
+      this.title_ = this.airline_ + ' ' + this.fno_ + (this.depart_?' to ':' from ')+this.airport_ + ' - ' + this.city_;
       // airplane icon and shadow
       var planeicon = 'http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/airplane/' + flightMarker +
           (this.depart_ ? '-blue.png' : '-orange.png');
@@ -1473,9 +1476,9 @@
       if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) { this.addLabel_(); }  // airplane info label
       map.getPanes().overlayPane.appendChild(this.div_[0]);
       if (interactive) {
-        var title = this.title_;
+        var pop = this.title_ + ', speed: '+this.speed_+' mph' + ', altitude: '+this.alt_+' feet' + (this.delay_ >= 15 ? ', delay: '+this.delay_+' mins' : '');
         this.div_.click(function() {
-          $('#popup').clearQueue().text(title).fadeIn(100).delay(5000).fadeOut(1000);
+          $('#popup').clearQueue().text(pop).fadeIn(100).delay(5000).fadeOut(1000);
         });
       }
       // $('#overlay_div').append(this.div_);
@@ -1547,6 +1550,7 @@
     update: function(args) {  // update position and altitude
       args = args || {};
       this.stamp_ = args.stamp; // time of last update
+      this.speed_ = args.speed; // current speed of airplane
       var newalt = +args.altitude;
       var newpos = args.position;
       var newtime = args.time;

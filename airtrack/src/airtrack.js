@@ -399,7 +399,11 @@
       $('#fsimg').css('visibility', 'visible');
       $('#legend').css('left', '215px');
     } else if (logo) {
-      $('#logotxt').text(logo);
+      if (interactive && logo === 'Zat') {
+        $('#logotxt').html('<a href="http://zat.com" target="_blank">Zat</a>');
+      } else {
+        $('#logotxt').text(logo);
+      }
       $('#legend').css('left', (30 + $('#logotxt').width())+'px');
     }
     if (!showDelays) {

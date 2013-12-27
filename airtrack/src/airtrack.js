@@ -531,7 +531,7 @@
       }
 
       var tracks = data.flightTracks;
-      if (showLegend && !flip && showLabels !== 'delay') { $('#takeoff').html(''); }
+      if (showLegend && !flip && showLabels !== 'delay') { $('#takeoff').html('').prev().text('Departing'); }
       if (bounds) {
         // avgerr = 0; avgcnt = 0, maxerr = 0; // DEBUG
         $.each(tracks, function(key, v) {
@@ -589,10 +589,11 @@
                 // if (takeoff > 1000) { // DEBUG
                 //   console.log('takeoff: '+flight, takeoff.toFixed(0)+'m', pos.toString());
                 // }
-                if (showLegend && !flip && takeoff < 3000 && showLabels !== 'delay') {
+                if (showLegend && !flip && takeoff < 20000 && showLabels !== 'delay') {
                   var th = $('#takeoff').html();
                   if (th !== null) {
-                    $('#takeoff').html(th+(th.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>');
+                    $('#takeoff').html(th+(th.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>').
+                      prev().text('Taking Off:');
                   }
                 }
                 if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
@@ -655,7 +656,7 @@
         setAirportLoc(ap); // set location of airport
       }
       var tracks = data.flightTracks;
-      if (showLegend && !flip && showLabels !== 'delay') { $('#landing').html(''); }
+      if (showLegend && !flip && showLabels !== 'delay') { $('#landing').html('').prev().text('Arriving'); }
       if (bounds) {
         // avgerr = 0; avgcnt = 0, maxerr = 0; // DEBUG
         $.each(tracks, function(key, v) {
@@ -747,7 +748,8 @@
             var t = $('#landing').html();
             // console.log('landing', t, typeof t);
             if (t !== null) {
-              $('#landing').html(t+(t.length>0?', ':' ')+'<span style="white-space:nowrap">'+h.flight()+'&laquo;'+h.city()+'</span>');
+              $('#landing').html(t+(t.length>0?', ':' ')+'<span style="white-space:nowrap">'+h.flight()+'&laquo;'+h.city()+'</span>').
+                prev().text('Landed:');
             }
           }
           h.remove();
@@ -1453,7 +1455,7 @@
       this.curpos_ = this.map_.latLngToLayerPoint(this.llpos_); // convert position to pixels
       this.currot_ = this.rot_;
       this.curalt_ = this.alt_;
-      this.title_ = this.airline_ + ' ' + this.fno_ + (this.depart_?' to ':' from ')+this.airport_ + ' - ' + this.city_;
+      this.title_ = this.airline_ + ' ' + this.fno_ + (this.depart_?' to ':' from ')+this.airport_ + ' ('+this.city_+')';
       // airplane icon and shadow
       var planeicon = 'http://dem5xqcn61lj8.cloudfront.net/Signage/AirportTracker/airplane/' + flightMarker +
           (this.depart_ ? '-blue.png' : '-orange.png');
@@ -1476,9 +1478,12 @@
       if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) { this.addLabel_(); }  // airplane info label
       map.getPanes().overlayPane.appendChild(this.div_[0]);
       if (interactive) {
-        var pop = this.title_ + ', speed: '+this.speed_+' mph' + ', altitude: '+this.alt_+' feet' + (this.delay_ >= 15 ? ', delay: '+this.delay_+' mins' : '');
+        var pop = this.title_ + ', speed: '+this.speed_+' mph' + ', alt: '+this.alt_+' ft, ' +
+          (this.delay_ >= 15 ? this.delay_+' min delay' : 'on time');
+        var pdata = { id: this.id_, fno: this.fno_ };
         this.div_.click(function() {
-          $('#popup').clearQueue().text(pop).fadeIn(100).delay(5000).fadeOut(1000);
+          $('#popup').clearQueue().text(pop).fadeIn(100).delay(14000).fadeOut(1000).
+            append('&nbsp;<span class="trackme">Live Track</span>').find('span').click(function() { livetrack(pdata); return false; });
         });
       }
       // $('#overlay_div').append(this.div_);
@@ -1910,6 +1915,11 @@
     // if (document.documentMode === 9) { return '-ms-transform'; } // HACK! for IE9
     if (window.msPerformance) { return '-ms-transform'; } // HACK! for IE9
     // IE9 returns undefined for document.documentElement.style.MsTransform!
+  }
+
+  function livetrack(d) {
+    var m = d.fno.match(/^(\w+)\s(\w+)$/);
+    window.location.href = '../flick/index.html?autoHide=false&id='+d.id+'&airline='+m[1]+'&flight='+m[2];
   }
   
 /*  // Flightstats weather tiles -----------------------------------------------------------

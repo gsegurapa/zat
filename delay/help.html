@@ -70,7 +70,6 @@ In full screen mode the cursor is hidden when over the map.</p>
 <tr><th>Name</th><th>Default</th><th>Range</th><th>Description</th></tr>
 <tr><td>airportSize</td><td>3</td><td>1-5</td><td>Minimum size of airports to show</td></tr>
 <tr><td>minDelay</td><td>0</td><td>0-5</td><td>Only show airports with at least this much delay</td></tr>
-<tr><td>mapArea</td><td><i>none</i></td><td>CONUS</td><td>Zoom map to show Continental US</td></tr>
 <tr><td>zoomLevel</td><td>4</td><td>0 to 12</td><td>See map types table</td></tr>
 <tr><td>mapType</td><td>blue</td><td>(String)</td><td>See map types table</td></tr>
 <tr><td>showHeat</td><td>true</td><td>(Boolean)</td><td>Show airport delays as heat map</td></tr>
@@ -179,13 +178,19 @@ This is not adjusted for Daylight Savings Time.</p>
 
 <h2>Advanced and Experimental Options</h2>
 <p>Advanced options are not available in the interactive configuration tool.
-They must be specified using URL parameters, and are not saved.</p> 
+They must be specified using URL parameters, and are not saved.</p>
+<h3>mapArea</h3>
+<p>Setting mapArea=CONUS fits the continental US into the map display on startup.</p>
 <h3>interactive</h3>
 <p>The app is normally in interactive mode, which allows you to scroll and zoom the map using the mouse and keyboard (see below).
 Setting interactive=false turns off interactive mode.
 When interactive is false and you put the app into full screen mode, the mouse cursor is hidden when over the map.</p>
 <h3>view</h3>
 <p>Setting view=3D puts the app into 3D mode. This does not work on all browsers.</p>
+<h3>color</h3>
+<p>The color parameter lets you specify the color of the heat map (for both airports and routes).
+The color must be specified as three numbers (for red, green, and blue) between 0 and 255, separated by commas.
+The default color is 255,10,10.  For example, to change the color to light orange, specify "color=255,155,0".</p>
 
 <h2>Interactive mode</h2>
 <p>When interactive=true (currently the default) you can drag the map using your mouse pointer and to zoom in by double clicking.
@@ -199,11 +204,6 @@ It also enables the following keyboard shortcuts:</p>
   <tr><td>C</td><td>open/close the configuration tool</td></tr>
   <tr><td>F</td><td>enter/exit full screen (if supported by the browser)</td></tr>
 </table>
-
-<h2>Color</h2>
-<p>The color parameter lets you specify the color of the heat map (for both airports and routes).
-The color must be specified as three numbers (for red, green, and blue) between 0 and 255, separated by commas.
-The default color is 255,10,10.  For example, to change the color to light orange, specify "color=255,155,0".</p>
 
 <h2>Browser Compatibility</h2>
 <p>The app has been tested on recent versions of Chrome, Safari, and Firefox. If you encounter any problems, please let us know.</p>

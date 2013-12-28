@@ -92,23 +92,23 @@
     if ($.isNumeric(params.minDelay)) { minDelay = +params.minDelay; }
     if ($.isNumeric(params.zoomLevel)) { zoomLevel = +params.zoomLevel; }
     if (params.mapType) { mapType = params.mapType; }
-    if (params.mapCenter) {
-      var n = params.mapCenter.split(',', 2);
-      mapCenter = L.latLng(+n[0], +n[1]);
-    }
     if (params.mapArea) { mapArea = params.mapArea; }
     if (params.showHeat) { showHeat = params.showHeat==='true'; }
     if (params.showIcons) { showIcons = params.showIcons==='true'; }
     if (params.showRoutes) { showRoutes = params.showRoutes==='true'; }
-    if (params.color) { color = params.color; }
-    if (params.showLegend) { showLegend = params.showLegend==='true'; }
     if (params.ontimeIcon) { ontimeIcon = params.ontimeIcon==='true'; } // use green circle instead of plus sign
+    if (params.showLegend) { showLegend = params.showLegend==='true'; }
     if (params.showWeather) { showWeather = params.showWeather; }
     if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
     if (params.timestamp) { timestamp = params.timestamp==='true'; }
     if (params.timeFormat) { timeFormat = decodeURIComponent(params.timeFormat); }
     if (params.timeOffset) { timeOffset = +params.timeOffset; }
+    if (params.mapCenter) {
+      var n = params.mapCenter.split(',', 2);
+      mapCenter = L.latLng(+n[0], +n[1]);
+    }
     // don't save
+    if (params.color) { color = params.color; }
     if (params.interactive) { interactive = params.interactive==='true'; }
     if (params.view) { view = params.view.toUpperCase(); }
     if (params.appId) { appId = params.appId; }
@@ -120,23 +120,24 @@
   function setDefaults() {
     airportSize = 3;
     minDelay = 0; // minimum delay to show
-    mapType = 'blue'; // keys from tilesinfo
     zoomLevel = 3;
-    mapCenter = L.latLng(20, 0); // World
-    mapArea = null;
+    mapType = 'blue'; // keys from tilesinfo
     showHeat = true;
     showIcons = true;
     showRoutes = true;
-    color = '255,10,10';
-    showLegend = true;
     ontimeIcon = true;
+    showLegend = true;
     showWeather = 'false';
     weatherOpacity = 20;
-    updateRate = 15;  // 15 minutes
     timestamp = false;
     timeFormat = '';
     timeOffset = 0;
+    mapCenter = L.latLng(20, 0); // World
+    
+    updateRate = 15;  // 15 minutes
+    mapArea = null;
     capture = false;
+    color = '255,10,10';
   }
 
   function setCookie(name, value) {
@@ -148,21 +149,21 @@
   function saveCookies() {
     setCookie('airportSize', airportSize);
     setCookie('minDelay', minDelay);
-    setCookie('mapType', mapType);
     setCookie('zoomLevel', zoomLevel);
-    setCookie('mapCenter', mapCenter.lat+','+mapCenter.lng);
-    setCookie('mapArea', mapArea);
+    setCookie('mapType', mapType);
     setCookie('showHeat', showHeat);
     setCookie('showIcons', showIcons);
     setCookie('showRoutes', showRoutes);
-    setCookie('color', color);
-    setCookie('showLegend', showLegend);
     setCookie('ontimeIcon', ontimeIcon);
+    setCookie('showLegend', showLegend);
     setCookie('showWeather', showWeather);
+    setCookie('weatherOpacity', weatherOpacity);
     setCookie('timestamp', timestamp);
     setCookie('timeFormat', encodeURIComponent(timeFormat));
     setCookie('timeOffset', timeOffset);
-    setCookie('weatherOpacity', weatherOpacity);
+    setCookie('mapCenter', mapCenter.lat+','+mapCenter.lng);
+    // setCookie('mapArea', mapArea);
+    // setCookie('color', color);
     // setCookie('interactive', interactive.toString());
     // setCookie('view', view);
 

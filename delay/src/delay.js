@@ -71,29 +71,13 @@
       attribution: '&copy; Mapbox, ISM contributors',
       minZoom: 0, maxZoom: 11
     }
-    // mapboxterrain: {  // http://mapbox.com/tour/#maps
-    //   group: 'MapBox',
-    //   name: 'Mapbox Terrain',
-    //   url: 'http://{s}.tiles.mapbox.com/v3/examples.map-4l7djmvo/{z}/{x}/{y}.png',
-    //   subdomains: 'abcd',
-    //   attribution: 'Mapbox',
-    //   minZoom: 0, maxZoom: 17
-    // },
-    // justinterrain: {  // http://mapbox.com/tour/#maps
-    //   group: 'MapBox',
-    //   name: 'Justin Terrain',
-    //   url: 'http://{s}.tiles.mapbox.com/v3/justin.map-iw8x00lm/{z}/{x}/{y}.png',
-    //   subdomains: 'abcd',
-    //   attribution: 'Mapbox',
-    //   minZoom: 0, maxZoom: 17
-    // }
   };
   
   // process URL parameters --------------------------------------------------------------
 
   var airportSize, minDelay, mapType, zoomLevel, mapCenter, mapArea,
       showHeat, showIcons, showRoutes, color, showLegend, ontimeIcon,
-      showWeather, weatherOpacity, showWunder,
+      showWeather, weatherOpacity,
       updateRate, timestamp, timeFormat, timeOffset,
       capture;  // requires node server to be running
   var appId, appKey;
@@ -119,10 +103,8 @@
     if (params.color) { color = params.color; }
     if (params.showLegend) { showLegend = params.showLegend==='true'; }
     if (params.ontimeIcon) { ontimeIcon = params.ontimeIcon==='true'; } // use green circle instead of plus sign
-    if (params.showWeather) { showWeather = params.showWeather==='true'; }
-    if (params.showWunder) { showWunder = params.showWunder==='true'; }
+    if (params.showWeather) { showWeather = params.showWeather; }
     if ($.isNumeric(params.weatherOpacity)) { weatherOpacity = +params.weatherOpacity; }
-    if ($.isNumeric(params.updateRate)) { updateRate = +params.updateRate; }
     if (params.timestamp) { timestamp = params.timestamp==='true'; }
     if (params.timeFormat) { timeFormat = decodeURIComponent(params.timeFormat); }
     if (params.timeOffset) { timeOffset = +params.timeOffset; }
@@ -132,6 +114,7 @@
     if (params.appId) { appId = params.appId; }
     if (params.appKey) { appKey = params.appKey; }
     if (params.capture) { capture = params.capture==='true'; }
+    if ($.isNumeric(params.updateRate)) { updateRate = +params.updateRate; }
   }
 
   function setDefaults() {
@@ -147,13 +130,12 @@
     color = '255,10,10';
     showLegend = true;
     ontimeIcon = true;
-    showWeather = false;
-    weatherOpacity = 35;
+    showWeather = 'false';
+    weatherOpacity = 20;
     updateRate = 15;  // 15 minutes
     timestamp = false;
-    timeFormat = null;
+    timeFormat = '';
     timeOffset = 0;
-    showWunder = false;
     capture = false;
   }
 
@@ -213,7 +195,7 @@
   // }
 
   if (view === '3D') { interactive = true; }
-  
+
   var map; // Leaflet map object
   var bounds = null;  // only request airports inside this boundary
   var airports;
@@ -280,27 +262,10 @@
     });
     map.addLayer(basemaps[tilesinfo[mapType].name]);
 
-    if (showWunder) { // !!!!
-      var layer = new Wsat({ // Wunderground satellite
-        opacity: 0.28,
-        attribution: 'Weather Underground'
-      });
-      map.addLayer(layer);
-    }
-
-    // var fdl = new RouteDelayLine();
-    // if (showRoutes) { map.addLayer(fdl); }
-
     var airportdelay = new AirportDelay();
     if (showHeat || showIcons || showRoutes) { map.addLayer(airportdelay); }
-    var fsweather = new L.TileLayer.FSWeather({ opacity: weatherOpacity/100,
-        attribution: "Weather data © 2012 IEM Nexrad" });
-    if (showWeather) {
-      map.addLayer(fsweather);
-      weathertimer = setInterval(function() {
-        fsweather.redraw();
-      }, updateRate * 60000);
-    }
+
+    var weatherLayer = new Weather(showWeather);
 
     if (interactive) {
       $('body').keydown(function(e) {
@@ -433,7 +398,7 @@
         break;
        case 'weatherOpacity':
         weatherOpacity = +$el.val();
-        fsweather.setOpacity(weatherOpacity/100);
+        weatherLayer.setOpacity(weatherOpacity/100);
         break;
        case 'timeOffset':
         timeOffset = +$el.val();
@@ -461,10 +426,6 @@
       $('#timestamp').val(timestamp.toString());
       $('#timeFormat').val(timeFormat);
       $('#timeOffset').val(timeOffset);
-
-      // if ($('#weatherOpacity').prop('type') !== 'range') {
-      //   $('#config input[type="range"]').next().hide();
-      // }
     }
 
     var $config = $('#config');
@@ -681,22 +642,14 @@
         }
         break;
        case 'showWeather':
-        showWeather = $el.val() === 'true';
-        if (showWeather) {
-          map.addLayer(fsweather);
-          weathertimer = setInterval(function() {
-            fsweather.redraw();
-          }, updateRate * (300000));  // 5 minutes
-        } else {
-          map.removeLayer(fsweather);
-          clearInterval(weathertimer);
-        }
+        showWeather = $el.val();
+        weatherLayer.update(showWeather);
         break;
        case 'weatherOpacity':
         v = $el.val();
         if ($.isNumeric(v) && +v >= 0 && +v <= 100) {
           weatherOpacity = +v;
-          fsweather.setOpacity(weatherOpacity / 100);
+          weatherLayer.setOpacity(weatherOpacity / 100);
         } else {
           alert('bad value: '+v);
           $('#weatherOpacity').val(weatherOpacity);
@@ -712,8 +665,7 @@
         }
         break;
        case 'timeFormat':
-        timeFormat = $el.val();
-        if ($.trim(timeFormat).length === 0) { timeFormat = null; }
+        timeFormat = $.trim($el.val());
         formatDate(timeFormat);
         break;
        case 'timeOffset':
@@ -856,6 +808,67 @@
   });
 
   AirportDelay.icons = ['1','1','2a','3c','4','5c'];
+
+  // manage weather layers --------------------------------------------------------------
+  function Weather(wt) {
+    this.layer = null;  // current weather layer
+    this.timer = null;  // update timer
+    this.fsw = null;
+    this.wunder = null;
+    this.owm = null;
+    var that = this;
+
+    update(wt);
+
+    return {
+      update: update,
+      setOpacity: function(no) {
+        if (that.layer) {
+          that.layer.setOpacity(no);
+        }
+      }
+    };
+
+    function update(nwt) {
+      if (that.timer) { clearInterval(that.timer); }
+      if (that.layer) { map.removeLayer(that.layer); }
+      that.layer = null;
+
+      if (nwt !== 'false') {
+        if (nwt === 'US' || nwt === 'true') { // US radar
+          if (!that.fsw) {
+            that.fsw = new L.TileLayer.FSWeather({ opacity: weatherOpacity/100,
+                attribution: "© 2012 IEM Nexrad" });
+          }
+          that.layer = that.fsw;
+        } else if (nwt === 'wunderground') { // undocumented
+          if (!that.wunder) {
+            that.wunder = new Wsat({ // Wunderground satellite
+              opacity: weatherOpacity/100,
+              attribution: 'Weather Underground'
+            });
+          }
+          that.layer = that.wunder;
+        } else {
+          that.owm = new L.TileLayer(
+            'http://{s}.tile.openweathermap.org/map/'+nwt+'/{z}/{x}/{y}.png',
+            { maxZoom: 18, attribution: 'OpenWeatherMap', subdomains: 'abcd', opacity: weatherOpacity/100 }
+            );
+          that.layer = that.owm;
+        }
+        map.addLayer(that.layer);
+        that.timer = setInterval(function() {
+          if (that.layer === that.wunder) {
+            map.removeLayer(that.layer);
+            map.addLayer(that.layer);
+          } else {
+            that.layer.redraw();
+          }
+        }, updateRate * 60000); // 15 minutes
+      }
+    } // end update
+
+  } // end Weather
 
   // Weather Underground IR satellite ---------------------------------------------------- !!!!
   var Wsat = L.Class.extend({

@@ -230,10 +230,23 @@ output {
       <td>true</td><td>show icon for ontime</td></tr>
     <tr><td>showLegend</td><td><input id="showLegend" class="bool" type="button" value="true" /></td>
       <td>true</td><td>show airport delay legend</td></tr>
-    <tr><td>showWeather</td><td><input id="showWeather" class="bool" type="button" value="false" /></td>
-      <td>false</td><td>show US weather</td></tr>
+    <tr><td>showWeather</td><td><select id="showWeather">
+      <option value="false" selected="true">none</option>
+      <option value="US">US radar</option>
+      <option value="clouds">clouds</option>
+      <option value="clouds_cls">clouds classic</option>
+      <option value="precipitation">precipitation</option>
+      <option value="precipitation_cls">precipitation classic</option>
+      <option value="rain">rain</option>
+      <option value="rain_cls">rain classic</option>
+      <option value="snow">snow</option>
+      <option value="pressure">pressure</option>
+      <option value="pressure_cntr">pressure contours</option>
+      <option value="wind">wind</option>
+      <option value="temp">temperature</option>
+    </select></td><td>none</td><td>show weather layer</td></tr>
     <tr><td>weatherOpacity</td>
-      <td><input id="weatherOpacity" type="range" size="4" value="35" min="1" max="100" step="1" /></td>
+      <td><input id="weatherOpacity" type="range" size="4" value="20" min="1" max="100" step="1" /></td>
       <td>35</td><td>100 is opaque</td></tr>
     <tr><td>timestamp</td><td><input id="timestamp" class="bool" type="button" value="false" /></td>
       <td>false</td><td>show date and time</td></tr>
@@ -242,7 +255,6 @@ output {
     <tr><td>timeOffset</td>
       <td><input id="timeOffset" type="range" size="4" value="0" min="-12" max="12" step="1" /></td>
       <td>0</td><td>adjust time in hours</td></tr>
-
   </table>
 </div>
 

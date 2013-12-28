@@ -34,10 +34,11 @@ table td {
 or press the "Help" button in the configuration tool.</p>
 <p>To open the app in a new window: <a class="link" href="" target="_blank"><span class="url"></span></a></p>
 <p>The delay map app is used to show world-wide delays by airport and route.
-It can also show weather (US only). There are three map layers that show delays.
-These layers (along with the US weather layer) can be turned on and off individually.
+It can also show various kinds of weather. There are three map layers that show delays.
+These layers (along with the weather) can be turned on and off individually.
 </p>
-<ul><li>The Icons layer shows icons at each airport indicating the delay index for that airport.
+<ul>
+<li>The Icons layer shows icons at each airport indicating the delay index for that airport.
 You can choose between showing an airport with a very low delay index using a green circle or as a plus sign.
 You can also turn the legend for the icons on and off.</li>
 <li>The Heat layer is a heat map. For each airport a fuzzy red-colored blob is drawn.
@@ -49,14 +50,14 @@ and the intensity of the color is the percentage of flights on that route that a
 </ul>
 <h2>Configuration</h2>
 <p>The app can be configured using the interactive configuration tool.
-Open the configuration tool by clicking on the Flightstats logo at the bottom of the map.
+Open the configuration tool by typing the "C" key on your keyboard.
 When open, you can drag the configuration tool around the map by its title bar.
 You can change any configuration parameter and see the results immediately.</p>
 <p>Once you have configured the app, you can save your configuration by clicking on the "Save" button.
 Once saved, the app will always start up with your configuration.
 You can also reset the app back to the default configuration using the "Reset" button.
 Configurations are saved using a cookie on your local machine, so they are specific to that machine and browser.</p>
-<p>Once you click the "Save" button and save the configuration, a URL is displayed.
+<p>Once you click the "Save" button to save the configuration, a URL is displayed.
 This URL can be used to start the app with the same configuration on a different computer or browser.
 Note that the appKey and appId are not saved as part of the configuration, and must be added to the startup URL.</p>
 <p>The "Help" button brings up this help page in a new window.</p>
@@ -71,15 +72,15 @@ In full screen mode the cursor is hidden when over the map.</p>
 <tr><td>minDelay</td><td>0</td><td>0-5</td><td>Only show airports with at least this much delay</td></tr>
 <tr><td>mapArea</td><td><i>none</i></td><td>CONUS</td><td>Zoom map to show Continental US</td></tr>
 <tr><td>zoomLevel</td><td>4</td><td>0 to 12</td><td>See map types table</td></tr>
-<tr><td>mapType</td><td>blue</td><td></td><td>See map types table</td></tr>
+<tr><td>mapType</td><td>blue</td><td>(String)</td><td>See map types table</td></tr>
 <tr><td>showHeat</td><td>true</td><td>(Boolean)</td><td>Show airport delays as heat map</td></tr>
 <tr><td>showRoutes</td><td>true</td><td>(Boolean)</td><td>Show route delays as linear heat map</td></tr>
 <tr><td>showIcons</td><td>true</td><td>(Boolean)</td><td>Show airport delays as icons</td></tr>
 <tr><td>ontimeIcon</td><td>true</td><td>(Boolean)</td><td>Use green icon instead of + for ontime</td></tr>
 <tr><td>showLegend</td><td>true</td><td>(Boolean)</td><td>Show icon legend at bottom of screen</td></tr>
-<tr><td>showWeather</td><td>false</td><td>(Boolean)</td><td>Show US weather</td></tr>
-<tr><td>weatherOpacity</td><td>35</td><td>1 to 100</td><td>Opacity of weather overlay (100 is opaque)</td></tr>
-<tr><td>timestamp</td><td>false</td><td>(Boolean)0</td><td>Show timestamp</td></tr>
+<tr><td>showWeather</td><td>none</td><td>(String)</td><td>Show weather (see below)</td></tr>
+<tr><td>weatherOpacity</td><td>20</td><td>1 to 100</td><td>Opacity of weather overlay (100 is opaque)</td></tr>
+<tr><td>timestamp</td><td>false</td><td>(Boolean)</td><td>Show timestamp</td></tr>
 <tr><td>timeFormat</td><td><i>empty</i></td><td>(string)0</td><td>Format string for timestamp</td></tr>
 <tr><td>timeOffset</td><td>0</td><td>-12 to 120</td><td>Adjust timestamp hours</td></tr>
 <!-- <tr><td>interactive</td><td>false</td><td>true</td><td>Interactive mode (scrolling enabled)</td></tr> -->
@@ -102,8 +103,24 @@ In full screen mode the cursor is hidden when over the map.</p>
 </table>
 
 <h2>Weather Options</h2>
-<p>The app can optionally show ground-based weather radar from the US National Weather Service (US only).
-To show the current weather radar, set showWeather to true. You can also adjust the opacity of the weather layer.</p>
+<p>The app can optionally display one of a number of weather layers:</p>
+<table border="1">
+<tr><th>Name</th><th>Description</th></tr>
+<tr><td>none</td><td>don't show weather (the default)</td></tr>
+<tr><td>US radar</td><td>ground-based radar (US only)</td></tr>
+<tr><td>clouds</td><td>cloud layer</td></tr>
+<tr><td>clouds classic</td><td>alternate cloud layer</td></tr>
+<tr><td>precipitation</td><td>precipitation layer</td></tr>
+<tr><td>precipitation classic</td><td>alternate precipitation layer</td></tr>
+<tr><td>rain</td><td>rain layer</td></tr>
+<tr><td>rain classic</td><td>alternate rain layer</td></tr>
+<tr><td>snow</td><td>snow layer</td></tr>
+<tr><td>pressure</td><td>barometric pressure layer</td></tr>
+<tr><td>pressure contours</td><td>contour lines for pressure</td></tr>
+<tr><td>wind</td><td>wind layer</td></tr>
+<tr><td>temperature</td><td>temperature layer</td></tr>
+</table>
+</p>You can also adjust the opacity of the weather layer.</p>
 
 <h2>Timestamp</h2>
 <p>The app can optionally show a timestamp by setting timestamp to true.
@@ -162,7 +179,7 @@ This is not adjusted for Daylight Savings Time.</p>
 
 <h2>Advanced and Experimental Options</h2>
 <p>Advanced options are not available in the interactive configuration tool.
-They must be specified using URL parameters.</p> 
+They must be specified using URL parameters, and are not saved.</p> 
 <h3>interactive</h3>
 <p>The app is normally in interactive mode, which allows you to scroll and zoom the map using the mouse and keyboard (see below).
 Setting interactive=false turns off interactive mode.
@@ -192,7 +209,7 @@ The default color is 255,10,10.  For example, to change the color to light orang
 <p>The app has been tested on recent versions of Chrome, Safari, and Firefox. If you encounter any problems, please let us know.</p>
 
 <hr />
-<div class="footer"><a href="http://flightstats.com" target="_blank">Flightstats Inc.</a></div>
+<h3><a href="http://zat.com" target="_blank"><img border="2" src="img/zatscript.jpg" /></a></h3>
 
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script type="text/javascript">

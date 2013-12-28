@@ -395,15 +395,14 @@
     $(window).resize(recenter);
     $('#brand').click(configurator);
     if (!showLegend) { $('#brand').hide(); }
-    if (fslogo) {
-      $('#fsimg').css('visibility', 'visible');
+    if (fslogo || logo === 'FlightStats') {
+      $('#logoimg').css('visibility', 'visible');
       $('#legend').css('left', '215px');
+    } else if (logo === 'Zat') {
+      $('#logoimg').attr('src', 'img/zatscript.jpg').css({visibility: 'visible', height: '40px'});
+      $('#legend').css('left', '122px');
     } else if (logo) {
-      if (interactive && logo === 'Zat') {
-        $('#logotxt').html('<a href="http://zat.com" target="_blank">Zat</a>');
-      } else {
-        $('#logotxt').text(logo);
-      }
+      $('#logotxt').text(logo);
       $('#legend').css('left', (30 + $('#logotxt').width())+'px');
     }
     if (!showDelays) {

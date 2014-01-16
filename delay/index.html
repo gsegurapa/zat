@@ -35,14 +35,15 @@ div.lineseg {
 #airportdelay div, #airportdelay img {
   position: absolute;
 }
-img#fsimg {
+img#logo {
   position: absolute;
   padding: 6px;
-  background-color: #362F2D;
-  background-color: rgba(54, 47, 45, 0.7);
+  background-color: rgb(47, 47, 47);
+  background-color: rgba(47, 47, 47, 0.75);
   left: 10px;
   bottom: 10px;
   z-index: 1000;
+  border-radius: 3px;
 }
 div#datetime {
   display: none;
@@ -63,7 +64,7 @@ div#datetime {
   font-size: 12px;
   position: absolute;
   padding: 2px;
-  background-color: white;
+  background-color: rgb(220, 220, 220);
   background-color: rgba(220, 220, 220, 0.75);
   right: 10px;
   bottom: 6px;
@@ -174,6 +175,7 @@ output {
 </head>
 <body>
 <div id="map_div"></div>
+<img id="logo" src="img/headerlogo.png" />
 <div id="datetime"></div>
 <table id="legend">
   <tr><td>Delay Index</td><td></td></tr>

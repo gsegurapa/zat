@@ -445,7 +445,7 @@
       }
     }
 
-    $('#fsimg').click(configurator);
+    $('#logo').click(configurator);
 
     // drag configurator
     $('#ctitle', $config).mousedown(function(e) {

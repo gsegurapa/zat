@@ -1,0 +1,28 @@
+arrivalAirportFsCode: "TPE"
+bearing: 262.6842273890084
+callsign: "CAL5"
+carrierFsCode: "CI"
+delayMinutes: 14
+departureAirportFsCode: "LAX"
+departureDate: Object
+	dateLocal: "2013-12-24T14:30:00.000"
+	dateUtc: "2013-12-24T22:30:00.000Z"
+equipment: "B744"
+flightId: 319411128
+flightNumber: "5"
+heading: 270.09447106405605
+positions: Array[2]
+	0: Object
+		altitudeFt: 34000
+		date: "2013-12-25T04:46:23.000Z"
+		lat: 55.22999954223633
+		lon: -176.3800048828125
+		source: "ASDI"
+		speedMph: 564
+	1: Object
+		altitudeFt: 34000
+		date: "2013-12-25T04:45:23.000Z"
+		lat: 55.22999954223633
+		lon: -176.14999389648438
+		source: "ASDI"
+		speedMph: 564

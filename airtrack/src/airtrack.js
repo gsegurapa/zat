@@ -399,8 +399,8 @@
       $('#logoimg').css('visibility', 'visible');
       $('#legend').css('left', '215px');
     } else if (logo === 'Zat') {
-      $('#logoimg').attr('src', 'img/zatscript.jpg').css({visibility: 'visible', height: '40px'});
-      $('#legend').css('left', '122px');
+      $('#logoimg').attr('src', 'img/headerlogo@2.png').css({visibility: 'visible', height: '40px'});
+      $('#legend').css('left', '156px');
     } else if (logo) {
       $('#logotxt').text(logo);
       $('#legend').css('left', (30 + $('#logotxt').width())+'px');

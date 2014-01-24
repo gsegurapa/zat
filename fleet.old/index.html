@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Zat Fleet Map</title>
+<meta charset="utf-8">
+<style type="text/css">
+
+body {
+   /*background-image: url('sky.jpg'); */
+  width: 100%;
+  height: 100%;
+}
+
+svg {
+	width: 100%;
+	height: 100%;
+}
+
+path.country {
+	fill: #bbb;
+	stroke: #fff;
+}
+
+path.land {
+  background-color: red;
+}
+
+.subunit-boundary {
+  fill: none;
+  stroke: #777;
+  stroke-dasharray: 2,2;
+  stroke-linejoin: round;
+}
+
+.subunit-boundary.IRL {
+  stroke: #aaa;
+}
+
+.subunit-label {
+  fill: #777;
+  fill-opacity: .5;
+  font-size: 20px;
+  font-weight: 300;
+  text-anchor: middle;
+}
+
+.place,
+.place-label {
+  fill: #444;
+}
+
+text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  pointer-events: none;
+}
+
+</style>
+</head>
+<body id="bod">
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="d3.geo.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="d3jsonp.js"></script>
+<script src="fleet.js"></script>
+
+</body>
+</html>

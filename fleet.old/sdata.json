@@ -26,3 +26,5 @@ positions: Array[2]
 		lon: -176.14999389648438
 		source: "ASDI"
 		speedMph: 564
+
+<polygon points="0 , 10 1 , 8 1 , 2 9 , -3 1 , -2 1 , -7 3 , -10 0 , -9 -3 , -10 -1 , -7 -1 , -2 -9 , -3 -1 , 2 -1 , 8 0 , 10" transform="rotate(305 0 0)"></polygon>

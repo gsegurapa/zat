@@ -13,10 +13,11 @@
   var auto = 'false';
   var duration = 5;  // five seconds
   var zoomFactor = 1.0;
-  var airplaneIcon = 'triangle';
+  var airplaneIcon = 'plane';
   var appId = '', appKey = '';
 
   var airports;
+  var default_airport = 'AS';
 
   function getParams(st) {
     
@@ -32,6 +33,7 @@
     if (p.duration) { duration = +p.duration; }
     if (p.zoomFactor) { zoomFactor = +p.zoomFactor; }
     if (p.appId) { appId = p.appId; }
+    if (p.airplaneIcon) { airplaneIcon = p.airplaneIcon; }
     if (p.appKey) { appKey = p.appKey; }
   }
 
@@ -54,16 +56,9 @@
   if (airport.length > 0 && airline.length === 0) {
     $('#what').text(airport);
   } else {
-    if (airline.length === 0) { airline = 'AS'; }
+    if (airline.length === 0) { airline = default_airport; }
     $('#what').replaceWith('<img id="linelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
   }
-
-  // if (airport.length === 0) {
-  //   if (airline.length === 0) { airline = 'AS'; }
-  //   $('#what').replaceWith('<img id="linelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
-  // } else {
-  //   $('#what').text(airport);
-  // }
 
 	var earth = planetaryjs.planet();
 	earth.loadPlugin(planetaryjs.plugins.earth({
@@ -84,6 +79,9 @@
   if (auto === 'false') { // drag manually
     earth.loadPlugin(planetaryjs.plugins.drag());
     earth.projection.rotate([100, -20, 0]);
+  } else if (auto === 'rotate') {
+    earth.projection.rotate([100, -10, 0]);
+    earth.loadPlugin(autorotate(5));
   }
 
   earth.loadPlugin(flights());
@@ -181,7 +179,8 @@
     var flist = [];
     var airplaneIcons = {
       triangle: [ [0,0.5], [0.3,-0.5], [-0.3,-0.5], [0,0.5] ],
-      plane: [ [-0.2, -1], [0.2, -1] ]
+      plane: [ [0, 0.6], [0.1, 0.5], [0.1, 0.1], [0.7, -0.3], [0.1, -0.1], [0.1, -0.4], [0.2, -0.5],
+          [-0.2, -0.5], [-0.1, -0.4], [-0.1, -0.1], [-0.7, -0.3], [-0.1, 0.1], [-0.1, 0.5], [0, 0.6] ]
     };
     var icon = airplaneIcons[airplaneIcon];
     config = config || {};
@@ -228,7 +227,7 @@
         context.beginPath();
         pathcontext(plane);
         context.strokeStyle = 'black';
-        context.fillStyle = '#ddd';
+        context.fillStyle = '#eee';
         context.shadowColor = 'black';
         context.shadowBlur = 10;
         context.shadowOffsetX = 2;
@@ -251,24 +250,6 @@
     };
 
   }
-
-  // draw a set of arcs
-  // function arc(options) {
-  //   options = options || {};
-  //   var arclist = [];
-
-  //   return function(planet) {
-  //     planet.onDraw(function () {
-  //       planet.withSavedContext(function (context) {
-  //         var arc = {type: "LineString", coordinates: [[40, 30], [40, -50]]};
-  //         context.beginPath();
-  //         planet.path.context(context)(arc);
-  //         context.stroke();
-  //         context.closePath();
-  //       });
-  //     });
-  //   };
-  // }
 
 	// This plugin takes lake data from the special
   // TopoJSON we're loading and draws them on the map.
@@ -335,6 +316,26 @@
         var width  = window.innerWidth + (options.extraWidth || 0);
         var height = window.innerHeight + (options.extraHeight || 0);
         planet.projection.scale(zoomFactor * Math.min(width, height) / 2);
+      });
+    };
+  }
+
+  // rate is in degrees per second
+  function autorotate(rate) {
+    return function(planet) {
+      var tick = null;
+      planet.onDraw(function() {
+        if (!tick) {
+          tick = new Date();
+        } else {
+          var now = new Date();
+          var delta = now - tick;
+          var rotation = planet.projection.rotate();
+          rotation[0] += rate * delta * 0.001;
+          if (rotation[0] >= 180) { rotation[0] -= 360; }
+          planet.projection.rotate(rotation);
+          tick = now;
+        }
       });
     };
   }

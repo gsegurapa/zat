@@ -6,12 +6,14 @@
   var tracker_appId = '368357de';
   var tracker_appKey = '26901bf7d1f3534aa1e7a5a3be111b39';
 
-  var airline = 'AS'; // default is alaska
+  var airline = ''; // default is alaska
+  var codeshares = false;
   var airport = '';
   var arrDep = 'dep';
   var auto = 'false';
   var duration = 5;  // five seconds
   var zoomFactor = 1.0;
+  var airplaneIcon = 'triangle';
   var appId = '', appKey = '';
 
   var airports;
@@ -23,6 +25,7 @@
         function(m,key,value) { p[key] = value; });
 
     if (p.airline) { airline = p.airline; }
+    if (p.codeshares) { codeshares = p.codeshares === 'true'; }
     if (p.airport) { airport = p.airport; }
     if (p.arrDep) { arrDep = p.arrDep; }
     if (p.auto) { auto = p.auto; }
@@ -48,11 +51,19 @@
     alert('invalid appId and appKey');
   }
 
-  if (airport.length === 0) {
-    $('#what').replaceWith('<img id="linelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
-  } else {
+  if (airport.length > 0 && airline.length === 0) {
     $('#what').text(airport);
+  } else {
+    if (airline.length === 0) { airline = 'AS'; }
+    $('#what').replaceWith('<img id="linelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
   }
+
+  // if (airport.length === 0) {
+  //   if (airline.length === 0) { airline = 'AS'; }
+  //   $('#what').replaceWith('<img id="linelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
+  // } else {
+  //   $('#what').text(airport);
+  // }
 
 	var earth = planetaryjs.planet();
 	earth.loadPlugin(planetaryjs.plugins.earth({
@@ -80,15 +91,23 @@
   earth.draw(document.getElementById('globe'));
 
 
-
   function mainloop() {
     // https://developer.flightstats.com/api-docs/flightstatus/v2/fleet
     // https://developer.flightstats.com/api-docs/flightstatus/v2/airport
-    var url = airport.length === 0 ? 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/fleet/tracks/'+airline
-        : 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/'+airport+'/'+arrDep;
+    var url, data = { appId: appId, appKey: appKey, includeFlightPlan: false, maxPositions: 1 };
+    if (airport.length === 0) {
+      url = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/fleet/tracks/'+airline;
+      if (codeshares) { data.codeshares = true; }
+    } else {
+      url = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/'+airport+'/'+arrDep;
+      if (airline.length > 0) { data.carrier = airline; }
+    }
+
+    console.log('data', data);
+
     $.ajax({
       url: url,
-      data: { appId: appId, appKey: appKey, includeFlightPlan: false, maxPositions: 1 },
+      data: data,
       dataType: 'jsonp',
       success: getFlights
     });
@@ -132,7 +151,7 @@
               .tween('rotate', function() {
                 var p = a[i];
                 $mess.fadeOut(duration * 300, function() {
-                    $mess.text(p.carrierFsCode+p.flightNumber+': '+
+                    $mess.text(p.carrierFsCode+' '+p.flightNumber+': '+
                         airportname(airports[p.departureAirportFsCode])+
                         ' to '+airportname(airports[p.arrivalAirportFsCode]));
                   }).delay(duration * 200).fadeIn(duration * 300);
@@ -160,7 +179,11 @@
 
   function flights(config) {
     var flist = [];
-    var airplaneIcon = [ [0,0.5], [0.3,-0.5], [-0.3,-0.5], [0,0.5] ];
+    var airplaneIcons = {
+      triangle: [ [0,0.5], [0.3,-0.5], [-0.3,-0.5], [0,0.5] ],
+      plane: [ [-0.2, -1], [0.2, -1] ]
+    };
+    var icon = airplaneIcons[airplaneIcon];
     config = config || {};
     config.color = config.color || 'red';
     // color = "rgba(" + color.r + "," + color.g + "," + color.b + "," + alpha + ")";
@@ -197,17 +220,21 @@
         context.fillStyle = v.color;
         context.fill();
       });
-      $.each(flist, function(i, v) {  // airplane
+      $.each(flist, function(i, v) {  // airplanes
         // var plane = d3.geo.circle().origin(v.plane).angle(60 * v.size / planet.projection.scale())();
         // console.log(v.plane[0], v.plane[1], v.heading);
         var rotfun = d3.geo.rotation([-v.plane[0], -v.plane[1], v.heading]).invert;
-        var plane = { type: 'Polygon', coordinates: [airplaneIcon.map(rotfun)] };
+        var plane = { type: 'Polygon', coordinates: [icon.map(rotfun)] };
         context.beginPath();
         pathcontext(plane);
         context.strokeStyle = 'black';
-        context.fillStyle = 'white';
+        context.fillStyle = '#ddd';
+        context.shadowColor = 'black';
+        context.shadowBlur = 10;
+        context.shadowOffsetX = 2;
+        context.shadowOffsetY = 3;
         context.fill();
-        context.stroke();
+        // context.stroke();
       });
     };
   

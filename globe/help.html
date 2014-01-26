@@ -2,24 +2,28 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>Globe Tracker Documentation</title>
+	<title>Global Tracker Documentation</title>
 <style type="text/css">
 h1, h2, h3 {
   font-family: Helvetica, Arial, sans-serif;
 }
 h3 {
   width: 100%;
-  background-color: #eee;
+  background-color: #ddd;
   padding: 10px 10px;
   margin: 0 0;
+  font-family: monospace;
 }
 h4 {
-  margin: 12px 0 4px 0;
+  margin: 12px 0 6px 0;
   font-family: monospace;
   font-size: 114%;
+  padding: 4px 0 0 10px;
 }
-h4 + p {
-  margin: 3px 0;
+
+img {
+  background-color: rgb(47, 47, 47);
+  background-color: rgba(47, 47, 47, 0.75);
 }
 table {
   border-collapse:collapse;
@@ -30,33 +34,98 @@ table td {
 </style>
 </head>
 <body>
-<h1>Globe Tracker Documentation</h1>
+<h1>Global Tracker Documentation</h1>
+<p>This application is under development and will change without notice.</p>
 <p>To display this help page:
-<script>document.write('<a href="'+window.location.href+'" target="_blank">'+window.location.href+'</a>');</script>
-.</p>
+<script>document.write('<a href="'+window.location.href+'" target="_blank">'+window.location.href+'</a>');</script></p>
 <p>To open the app in a new window: <a class="link" href="" target="_blank"><span class="url"></span></a></p>
-<p>The globe tracker app is a flexible app that can display flights in a number of ways on a 3D globe.
+<p>The globe tracker app is a flexible app that can display airline flights in a number of ways on a 3D globe.
+  Note that only active flights (in the air, taking off, or landing) are displayed.</p>
+<p>You can zoom the globe in and out in several ways:
+  <ul><li>Double-click on the globe to zoom in. Hold down the shift key and double-click to zoom out.</li>
+    <li>Click on the Zat logo to zoom in. Hold down the shift key and click to zoom out.</li>
+    <li>If you have a mouse with a scroll wheel, use that to zoom in and out.</li>
+    <li>Use the zoomFactor parameter to set the initial zoom.</li>
+  </ul>
 </p>
+<p>If auto mode is off (not rotate, flights, or airports), then you can drag the globe with your mouse to rotate it.</p>
+
 <h2>Examples</h2>
-Display all flights for Alaska Airlines (the default) - <a class="link" href="" target="_blank"><span class="url"></span></a>
+
 <h2>Configuration</h2>
-<p>The app can be configured using the interactive configuration tool.
-You can change any configuration parameter and see the results immediately.</p>
-<p>Open the configuration tool by clicking on the legend below the map.
-In interactive mode, you can also open the configuration tool by pressing C on your keyboard.
-When open, you can drag the configuration tool around the map by dragging its title bar.
-To close the configuration tool, click on the "Hide" button, or click the Flightstats logo again.</p>
-<p>Once you have configured the app, you can save your configuration by clicking on the "Save" button.
-Once saved, the app will always start up with your configuration.
-You can also reset the app back to the default configuration using the "Reset" button.
-Configurations are saved using a cookie on your local computer, so they are specific to that computer and browser.</p>
-<p>Once you click the "Save" button and save the configuration, a URL is displayed.
-This URL can be used to start the app with the same configuration on a different computer or browser.
-Note that the appKey and appId are not saved as part of the configuration, and must be added to the startup URL.</p>
-<p>The "Help" button brings up this help page in a new window.</p>
-<p>The "Full" button puts the airport tracker into full screen mode, and if pushed again, back to windowed mode.
-Full screen mode is not supported on all browsers, so this button may not appear.
-When in full screen mode the mouse cursor is hidden when over the map (you can still see it over the legend).</p>
+<p>This app is currently configured using parameters in the URL (there is no interactive configuration tool yet).</p>
+<h3>airline=<i>XX</i></h3>
+<p>Display flights for a specific airline using its
+<a href="http://en.wikipedia.org/wiki/List_of_airline_codes" target="_blank">two character airline code</a>
+  (three letter ICAO codes for major airlines should also work).
+  If no airline is specified, then default to AS (Alaska Airlines).
+</p>
+<p>For example, to display all flights for Alaska Airlines (the default): <a class="link" href=""
+  target="_blank"><span class="url"></span></a></p>
+<p>To display all flights for United Airlines (UA): <a class="link" href="?airline=UA"
+  target="_blank"><span class="url"></span>?airline=UA</a></p>
+</p>
+<h4>codeshares=true</h4>
+<p>If <code>codeshares=true</code> is added, then also display all codeshare flights for this airline.</p>
+<p>To display all flights for Delta Airlines (DL) and its codeshares: <a class="link" href="?airline=DL&codeshares=true"
+  target="_blank"><span class="url"></span>?airline=DL&amp;codeshares=true</a></p>
+<h3>airport=<i>YYY</i></h3>
+<p>Display flights departing or arriving a specific airport using its
+  <a href="http://en.wikipedia.org/wiki/International_Air_Transport_Association_airport_code"
+  target="_blank">three character airport code</a>
+  (four letter ICAO codes for major airports should also work).
+<p>To display all flights departing Seattle (SEA): <a class="link" href="?airport=SEA"
+  target="_blank"><span class="url"></span>?airport=SEA</a></p>
+<h4>arrDep=arr</h4>
+<p>if <code>arrDep=arr</code> is added, then show arriving flights instead of departing ones.</p>
+<p>To display all flights arriving Los Angeles (LAX): <a class="link" href="?airport=LAX&arrDep=arr"
+  target="_blank"><span class="url"></span>?airport=LAX&amp;arrDep=arr</a></p>
+<h3>airline=<i>XX</i>&amp;airport=<i>YYY</i></h3>
+<p>If both airline and airport are specified, show only flights that match both.
+  The arrDep parameter can be added to specify whether departing (the default) or arriving flights are shown.
+  Note that when the airport parameter is specified, then the codeshares parameter does not work.</p>
+<p>To display all Delta flights arriving Atlanta: <a class="link" href="?airline=DL&airport=ATL&arrDep=arr"
+  target="_blank"><span class="url"></span>?airline=DL&amp;airport=ATL&amp;arrDep=arr</a></p>
+<h3>auto=<i>mode</i></h3>
+<p>The auto parameter controls automatic scrolling and display of data.
+  The default is <code>auto=off</code>, which allows manual panning of the globe by dragging it.</p>
+<h4>auto=rotate</h4>
+<p>Sets the globe spinning: <a class="link" href="?auto=rotate"
+  target="_blank"><span class="url"></span>?auto=rotate</a></p>
+<h4>auto=flights</h4>
+<p>Centers the globe on each flight one after another, and displays the flight information at the top of the screen:
+  <a class="link" href="?auto=flights"
+  target="_blank"><span class="url"></span>?auto=flights</a></p>
+<h4>auto=airports</h4>
+<p>Centers the globe on each airport one after another, and displays the airport name at the top of the screen:
+  <a class="link" href="?auto=airports"
+  target="_blank"><span class="url"></span>?auto=airports</a></p>
+<h4>duration=<i>time</i></h4>
+<p>For <code>auto=flights</code> or <code>auto=airports</code>,
+  the duration parameter controls how many seconds each flight or airport is displayed:
+  <a class="link" href="?auto=flights&duration=10"
+  target="_blank"><span class="url"></span>?auto=flights&amp;duration=10</a></p>
+<p>For <code>auto=rotate</code> the duration parameter controls the speed of rotation
+  (in degrees per second, so smaller numbers correspond to a slower rotation):
+  <a class="link" href="?auto=rotate&duration=0.5"
+  target="_blank"><span class="url"></span>?auto=rotate&amp;duration=0.5</a></p>
+<h3>airplaneIcon=triangle</h3>
+<p>The default airplane icon looks like an airplane. Specifying <code>airplaneIcon=triangle</code>
+  uses a simplified icon that looks like an arrowhead pointing in the direction the airplane is flying.
+This is faster to draw on some hardware.</p> 
+<h3>scaleIcon=<i>num</i></h3>
+<p>Scale the airplane icon. Default scale factor is 1.0: <a class="link" href="?scaleIcon=1.5"
+  target="_blank"><span class="url"></span>?scaleIcon=1.5</a></p>
+<h3>zoomFactor=<i>num</i></h3>
+<p>Sets the initial zoom of the globe.
+  The default zoomFactor is 1.0, which fits the globe exactly into the browser window.
+  To leave a border around the globe: <a class="link" href="?zoomFactor=0.9"
+  target="_blank"><span class="url"></span>?zoomFactor=0.9</a></p>
+<h3>appId=<i>ID</i>&amp;appKey=<i>Key</i></h3>
+<p>Specify the FlightStats application ID and application key.
+  Note that you must specifically request a key that can access Fleet status in order to see all flights for a carrier.
+  During development this key is not required, but it will be required upon release.</p>
+
 
 <h2>Complete List of Parameters</h2>
 <table border="1">
@@ -66,147 +135,30 @@ When in full screen mode the mouse cursor is hidden when over the map (you can s
   See <a href="https://developer.flightstats.com" target="_blank">https://developer.flightstats.com</a>
   to sign up for a free evaluation key.</td></tr>
 <tr><td>appKey</td><td></td><td>API key</td><td>Your FlightStats API application key.</td></tr>
-<tr><td>airportCode</td><td>PDX</td><td>(any airport code)</td><td>Three letter airport code.
-Note that flight position information is less reliable in some areas, or for smaller airports or airplanes.</td></tr>
-<tr><td>mapType</td><td>automatic</td>
-  <td>see below for all map types</td><td>"automatic" uses the "US terrain" map in the continental US, and the "terrain" map elsewhere</td></tr>
-<tr><td>zoomLevel</td><td>9</td><td>0 to 12</td><td>Lower numbers show a larger area. Different maps have different zoomLevel ranges (see "Map Types" below).</td></tr>
-<tr><td>showLabels</td><td>true</td><td>true, false, delay</td><td>Label each airplane with flight info (carrier, flight number, delay).
-  If 'delay' show labels only for flights that are delayed.</td></tr>
-<tr><td>labelSize</td><td>24</td><td>12, 16, 24, 32</td><td>Height of the labels in pixels</td></tr>
-<tr><td>showAirlineLogos</td><td>true</td><td>true, false</td><td>Show airline logos in labels</td></tr>
-<tr><td>showOtherAirport</td><td>true</td><td>true, false</td><td>Show code of other airport in labels</td></tr>
-<tr><td>showDelays</td><td>true</td><td>true, false</td><td>Show flight delays in minutes</td></tr>
-<!-- <tr><td>showOperatorAirlines</td><td>false</td><td>true, false</td><td>If true show operator for flight, otherwise show main (ticketing) carrier</td></tr> -->
-<tr><td>flightMarker</a></td><td>smooth</td><td>smooth, shadow, icon</td><td>Style of airplane marker</td></tr>
-<tr><td>flightMarkerScale</td><td>70</td><td>8 to 100</td><td>Size of airplane marker</td></tr>
-<!-- <tr><td>flightLabelScale</td><td>100</td><td>1-100</td><td>(not implemented) Size of label</td></tr> -->
-<tr><td>airportMarker</td><td>classic</td>
-  <td>classic, modern, darktower<td>Style of control tower marker</td></tr>
-<tr><td>airportMarkerScale</td><td>55</td><td>10 to 150</td><td>Size of control tower marker</td></tr>
-<tr><td>arrDep</td><td>both</td>
-  <td>arr, dep, both<td>Show arriving or departing flights, or both</td></tr>
-<tr><td>showLegend</td><td>true</td><td>true, false</td><td>Show legend at bottom of screen</td></tr>
-<tr><td>weatherFrames</td><td>0</td><td>0 to 25</td><td>US only. Number of frames to animate, each frame represents 10 minutes. 0 means no image, 1 means single (non-animated) image of current radar.</td></tr>
-<tr><td>weatherStation</td><td>automatic</td><td>(any US station code)</td><td>Specify weather radar station code - see below (US only)</td></tr>
-<tr><td>weatherRadar</a></td><td>NCR</td>
-  <td>NCR, N0R, N0Z, NTP, N1P, N0S, N0V</td><td>NWS weather radar product - see below (US only)</td></tr>
-<tr><td>weatherOpacity</td><td>30</td><td>1 to 100</td><td>Opacity of weather overlay (100 is opaque)</td></tr>
-<tr><td>logo</td><td></td><td>(any string)</td><td>Custom logo.
-If specified in the URL, special characters like spaces must be encoded.
-For example, to set the logo to "Zat Air" specify "logo=Zat%20Air" in the URL.</td></tr>
-<tr><td>airlines</td><td>&ndash;</td><td>(list of airline codes)</td><td>Which airlines to show (see below)</td><tr>
-<!-- <tr><td>interactive</td><td>false</td><td>true</td><td>Interactive mode (scrolling enabled)</td></tr> -->
-<!-- <tr><td>view</td><td></td><td>3D</td><td>fake 3D mode</td></tr> -->
-</table>
+<tr><td>airline</td><td>AS</td><td>(any airline code)</td><td>Two letter airline code.</td></tr>
+<tr><td>airport</td><td></td><td>(any airport code)</td><td>Three letter airport code.
+  Show departing (default) or arriving flights for this airport.</td></tr>
+<tr><td>codeshares</td><td>false</td><td>true, false</td><td>Include codeshare flights for an airline.
+  Ignored if the airport parameter is specified.</td></tr>
+<tr><td>arrDep</td><td>dep</td><td>arr, dep</td><td>Show arriving or departing flights.
+  Only used if the airport parameter is specified.</td></tr>
+<tr><td>auto</td><td>off</td><td>off, rotate, flights, airports</td><td>Automatically rotate globe, or scan through flights or airports.</td></tr>
+<tr><td>duration</td><td>5</td><td>(number)</td><td>Used with auto parameter.
+  Speed of rotation in degrees/second, or number of seconds to display each flight or airport.</td></tr>
+<tr><td>airplaneIcon</td><td>airplane</td><td>airplane, triangle</td><td>Icon to use for airplane.</td></tr>
+<tr><td>scaleIcon</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the airplane icon.</td></tr>
+<tr><td>zoomFactor</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the globe.</td></tr>
 
-<h2>Map Types</h2>
-<p>The "Zoom" value in the table indicates which zoom levels are available for this map.
-<table border="1">
-<tr><th>Name</th><th>Zoom</th><th>Description</th></tr>
-<tr><td>mapquestopen</td><td>0-11</td><td>MapQuest Open</td></tr>
-<tr><td>terrain</td><td>0-11</td><td>Terrain map with roads</td></tr>
-<tr><td>satellite</td><td>0-11</td><td>Satellite (zoomLevel 0 to 7) / Aerial (zoomLevel 8 to 11)</td></tr>
-<tr><td>road</td><td>0-11</td><td>Normal Road map</td></tr>
-<tr><td>acetate</td><td>0-10</td><td>Low contrast Terrain map</td></tr>
-<tr><td>blue</td><td>0-8</td><td>Simple blue map with political boundaries</td></tr>
-<tr><td>dark</td><td>0-8</td><td>Simple monochromatic map with political boundaries</td></tr>
-<tr><td>usterrain</td><td>4-12</td><td>High quality terrain (US only)</td></tr>
-<tr><td>usterrainbg</td><td>4-11</td><td>High quality terrain background (US only)</td></tr>
-</table>
-
-<h2>Weather Options</h2>
-<p>The app can optionally show ground-based weather radar from the US National Weather Service (US only).
-To show the current weather radar, set weatherFrames to "1".
-Alternatively, set weatherFrames between 2 and 25 to show an animation of the recent weather.
-The weather frames are updated approximately every 10 minutes.</p>
-<p>If weatherStation is set to "automatic"
-then the app automatically finds the closest radar station to the specified airport.
-You can override this by specifying a station code. See the bottom of
-<a href="http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm" target="_blank">
-http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm</a>
-for a list of stations and their locations.
-This can be useful if the closest station doesn't have the best weather coverage for the airport.</p>
-
-<h2>Values for weatherRadar</h2>
-<table>
-<tr><td>NCR</td><td>Composite Reflectivity (default)</td></tr>
-<tr><td>N0R</td><td>Base Reflectivity (second letter is number 0)</td></tr>
-<tr><td>N0Z</td><td>Long Range Base Reflectivity (second letter is number 0)</td></tr>
-<tr><td>NTP</td><td>Storm Total Precipitation</td></tr>
-<tr><td>N1P</td><td>One Hour Precipitation (second letter is number 1)</td></tr>
-<tr><td>N0S</td><td>Storm Relative Motion (second letter is number 0)</td></tr>
-<tr><td>N0V</td><td>Base Velocity (second letter is number 0)</td></tr>
-</table>
-<p>More information on National Weather Service products at <a href="http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm" target="_blank">http://www.srh.noaa.gov/jetstream/doppler/ridge_download.htm</a>.</p>
-
-<h2>Airlines List</h2>
-<p>The airlines parameter specifies a list of airline codes, separated by commas.
-The list is used to determine which flights to display.
-For example, "<code>airlines=AA,DL</code>" specifies that only flights operated by American Airlines and Delta Airlines should be displayed.
-The list can optionally begin with a single dash (minus sign), which reverses the test so that "<code>airlines=-AA,DL</code>"
-specifies that flights from all airlines should be displayed <em>except</em> for American and Delta.</p>
-<p>In addition, each airline code in the list can be optionally followed by a dash and another airline code.
-For example, "<code>airlines=AS,QX-AS</code>" specifies that only flights operated by AS (Alaska Airlines),
-or by QX (Horizon Airlines) should be shown, but QX should be displayed as AS.
-Likewise, "<code>airlines=-QX-AS</code>" specifies that all flights should be shown, but to change QX (Horizon) to AS (Alaska).
-This is very useful for flights that are ticketed by one airline, but operated by a different (operating) airline.
-This app normally displays the operating airline, but you can use this option to display the ticketing airline.
-Here are some additional examples:</p>
-<table>
-  <tr><td><code>airlines=-</code></td><td>Show all flights (the default)</td></tr>
-  <tr><td><code>airlines=UA</code></td><td>Show only flights operated by United</td></tr>
-  <tr><td><code>airlines=-FX,1I</code></td><td>Show all flights except any flights operated by FedEx or Net Jets</td></tr>
-  <tr><td><code style="white-space: nowrap;">airlines=-OO-UA,QX-AS,MQ-AA</code></td><td>Show all flights, but change SkyWest to United, Horizon to Alaska, and American Eagle to American</td></tr>
-  <tr><td><code>airlines=OO-UA,QX-AS,MQ-AA</code></td><td>Show only SkyWest, Horizon, and American Eagle, but change their airline codes to<br />United, Alaska, and American, respectively</td></tr>
-  <tr><td><code>airlines=-JIA-US</code></td><td>Show all flights, but change PSA to US Airways</td></tr>
-  <tr><td><code>airlines=</code></td><td>Show no flights (not very useful)</td></tr>
 </table>
 
 <h2>Browser Compatibility</h2>
-<p>The app has been tested on recent versions of Chrome, Firefox, Safari, and on IE 8 and above. If you encounter any problems, please let us know.</p>
-
-<h2>Advanced/Experimental Options</h2>
-<p>These options must be specified in the URL, and are not available in the configurator and cannot be saved in a cookie.
-Some of them may not work on all platforms.</p>
-<h4>interactive=true</h4>
-<p>Setting interactive to true allows you to drag the map using your mouse pointer and to zoom in by double clicking.
-It also enables the following keyboard shortcuts:
-<table border="1">
-  <tr><td>+ <em>or</em> =</td><td>zoom in</td></tr>
-  <tr><td>&ndash; <em>or</em> _</td><td>zoom out</td></tr>
-  <tr><td><em>arrow keys</em></td><td>scroll the map by 100 pixels</td></tr>
-  <tr><td><em>space bar</em></td><td>scroll back to original position (with the airport centered)</td></tr>
-  <tr><td><em>return key</em></td><td>return to original scroll and zoom</td></tr>
-  <tr><td>C</td><td>open/close the configuration tool</td></tr>
-  <tr><td>F</td><td>enter/exit full screen (if supported by the browser)</td></tr>
-  <tr><td>N</td><td>when flip=true, this advances to the next airport</td></tr>
-</table>
-When interactive is true, the mouse cursor does not hide when in full screen mode.
-</p>
-<h4>jump=true</h4>
-<p>Setting jump to true eliminates smooth airplane animation so that the map uses far fewer processor resources.
-The airplanes jump from one position to another, and the labels are turned off.</p>
-<h4>flip=true</h4>
-<p>Setting flip to true changes the airport every minute.
-Airports are displayed from west to east, around the world.
-To show only US airports, use flip=US instead.
-The current airport is displayed in the legend.
-You can also adjust the number of seconds between airport changes using the flipTime parameter.
-For example, flipTime=120 displays each airport for 2 minutes.</p>
-<h4>updateRate=<i>number</i></h4>
-<p>By default, the app makes an API call to get positional data every 15 seconds.
-You can override this using the updateRate parameter.
-For example, to make an API call every 60 seconds, specify "updateRate=60".</p>
-<p>The main purpose of this parameter is to reduce the cost of data calls.
-The downside is that the animation becomes less accurate, especially when airplanes are taking off and landing.
-You can experiment, but values greater than 60 seconds may not look very good.</p>
-<h4>view=3D</h4>
-<p>Setting view to 3D displays the map in psuedo-3D. Note that this does not work in all browsers.
-It also sets interactive mode to true, so you can drag the map around in 3D.</p>
+<p>The app has not yet been tested extensively.
+  It should work on recent versions of Chrome, Firefox, Safari, and on IE 9 and above.
+  It has not been tested at all on mobile browsers.
+  If you encounter any problems, please let us know.</p>
 
 <hr />
-<a href="http://zat.com" target="_blank"><img border="2" src="img/zatscript.jpg" /></a>
+<a href="http://zat.com" target="_blank"><img border="2" src="img/headerlogo.png" /></a>
 
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.js"></script>
 <script type="text/javascript">

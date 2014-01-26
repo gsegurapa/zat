@@ -6,17 +6,20 @@
   var tracker_appId = '368357de';
   var tracker_appKey = '26901bf7d1f3534aa1e7a5a3be111b39';
 
-  var airline = ''; // default is alaska
+  var airline = ''; // default is alaska airlines
   var codeshares = false;
   var airport = '';
   var arrDep = 'dep';
-  var auto = 'false';
+  var auto = 'off';
   var duration = 5;  // five seconds
   var zoomFactor = 1.0;
-  var airplaneIcon = 'plane';
+  var airplaneIcon = 'airplane';
+  var scaleIcon = 1.0;
+  var globe = 'regular';
   var appId = '', appKey = '';
 
-  var airports;
+  var earth;  // the globe
+  var airports; // airport information
   var default_airport = 'AS';
 
   function getParams(st) {
@@ -34,6 +37,8 @@
     if (p.zoomFactor) { zoomFactor = +p.zoomFactor; }
     if (p.appId) { appId = p.appId; }
     if (p.airplaneIcon) { airplaneIcon = p.airplaneIcon; }
+    if (p.scaleIcon) { scaleIcon = +p.scaleIcon; }
+    // if (p.globe) { globe = p.globe; }
     if (p.appKey) { appKey = p.appKey; }
   }
 
@@ -53,46 +58,59 @@
     alert('invalid appId and appKey');
   }
 
-  if (airport.length > 0 && airline.length === 0) {
-    $('#what').text(airport);
-  } else {
-    if (airline.length === 0) { airline = default_airport; }
-    $('#what').replaceWith('<img id="linelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
-  }
+  $(document).ready(function() {
 
-	var earth = planetaryjs.planet();
-	earth.loadPlugin(planetaryjs.plugins.earth({
-    topojson: { file: 'world-110m-withlakes.json' },
-    oceans: { fill: '#248'},
-    land: { fill: '#284', shadow: { shadowOffsetX: 2, shadowOffsetY: 2, shadowColor: 'black' } },
-    borders: { stroke: '#000'}
-	}));
-	earth.loadPlugin(lakes({
-    fill: '#348'
-  }));
-  earth.loadPlugin(autocenter());
-  earth.loadPlugin(autoscale());
-  earth.loadPlugin(planetaryjs.plugins.zoom({
-    scaleExtent: [100, 2500]
-  }));
+    if (airport.length > 0 && airline.length === 0) {
+      $('#what').text(airport);
+    } else {
+      if (airline.length === 0) { airline = default_airport; }
+      $('#what').replaceWith('<img id="linelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
+    }
 
-  if (auto === 'false') { // drag manually
-    earth.loadPlugin(planetaryjs.plugins.drag());
-    earth.projection.rotate([100, -20, 0]);
-  } else if (auto === 'rotate') {
-    earth.projection.rotate([100, -10, 0]);
-    earth.loadPlugin(autorotate(5));
-  }
+    $('#zatlogo').click(function(e) {
+      earth.projection.scale((e.shiftKey ? 0.9 : 1.11111) * earth.projection.scale());
+    });
 
-  earth.loadPlugin(flights());
+    var file = { regular: 'world-110m-withlakes.json', simple: 'world-50m.json' }[globe];
+    earth = planetaryjs.planet();
+    earth.loadPlugin(planetaryjs.plugins.earth({
+      topojson: { file: file },
+      oceans: { fill: '#248'},
+      land: { fill: '#284', shadow: { shadowOffsetX: 2, shadowOffsetY: 2, shadowColor: 'black' } },
+      borders: { stroke: '#000'}
+    }));
+    if (globe === 'regular') {
+      earth.loadPlugin(lakes({
+        fill: '#348'
+      }));
+    }
+    earth.loadPlugin(autocenter());
+    earth.loadPlugin(autoscale());
+    earth.loadPlugin(planetaryjs.plugins.zoom({
+      scaleExtent: [100, 2500]
+    }));
 
-  earth.draw(document.getElementById('globe'));
+    if (auto === 'off') { // drag manually
+      earth.loadPlugin(planetaryjs.plugins.drag());
+      earth.projection.rotate([100, -20, 0]);
+    } else if (auto === 'rotate') {
+      earth.projection.rotate([100, -10, 0]);
+      earth.loadPlugin(autorotate(duration));
+    }
 
+    earth.loadPlugin(flights());
 
+    earth.draw(document.getElementById('globe'));
+
+    mainloop();
+
+  }); // end document ready
+
+  // main API call
   function mainloop() {
     // https://developer.flightstats.com/api-docs/flightstatus/v2/fleet
     // https://developer.flightstats.com/api-docs/flightstatus/v2/airport
-    var url, data = { appId: appId, appKey: appKey, includeFlightPlan: false, maxPositions: 1 };
+    var url, data = { appId: appId, appKey: appKey, includeFlightPlan: false, maxPositions: 2 };
     if (airport.length === 0) {
       url = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/fleet/tracks/'+airline;
       if (codeshares) { data.codeshares = true; }
@@ -100,8 +118,6 @@
       url = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/'+airport+'/'+arrDep;
       if (airline.length > 0) { data.carrier = airline; }
     }
-
-    console.log('data', data);
 
     $.ajax({
       url: url,
@@ -111,7 +127,7 @@
     });
 
     function getFlights(data /* , status, xhr */) {
-      console.log(data);
+      // console.log('flightdata', data);
       // $('#what').text(data.appendix.airlines[0].name);
       airports = getAppendix(data.appendix.airports);
       earth.plugins.flights.add(data.flightTracks);
@@ -164,11 +180,9 @@
       }
 
     }
-  }
+  } // end mainloop
 
-  mainloop();
-
-  function airportname(p) {
+  function airportname(p) { // airport information: code, city, state or country
     return p.fs+' '+p.city+' '+(p.stateCode ? p.stateCode : p.countryName);
   }
 
@@ -179,10 +193,10 @@
     var flist = [];
     var airplaneIcons = {
       triangle: [ [0,0.5], [0.3,-0.5], [-0.3,-0.5], [0,0.5] ],
-      plane: [ [0, 0.6], [0.1, 0.5], [0.1, 0.1], [0.7, -0.3], [0.1, -0.1], [0.1, -0.4], [0.2, -0.5],
-          [-0.2, -0.5], [-0.1, -0.4], [-0.1, -0.1], [-0.7, -0.3], [-0.1, 0.1], [-0.1, 0.5], [0, 0.6] ]
+      airplane: [ [0, 0.6], [0.1, 0.5], [0.1, 0.1], [0.7, -0.3], [0.1, -0.1], [0.1, -0.4], [0.2, -0.5],
+          [-0.2, -0.5], [-0.1, -0.4], [-0.1, -0.1], [-0.7, -0.3], [-0.1, 0.1], [-0.1, 0.5], [0, 0.6] ],
     };
-    var icon = airplaneIcons[airplaneIcon];
+    var icon = airplaneIcons[airplaneIcon].map(function(v) { return [scaleIcon * v[0], scaleIcon * v[1]]; });
     config = config || {};
     config.color = config.color || 'red';
     // color = "rgba(" + color.r + "," + color.g + "," + color.b + "," + alpha + ")";

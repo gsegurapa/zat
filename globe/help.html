@@ -24,6 +24,7 @@ h4 {
 img {
   background-color: rgb(47, 47, 47);
   background-color: rgba(47, 47, 47, 0.75);
+  padding: 5px 8px;
 }
 table {
   border-collapse:collapse;
@@ -39,10 +40,10 @@ table td {
 <p>To display this help page:
 <script>document.write('<a href="'+window.location.href+'" target="_blank">'+window.location.href+'</a>');</script></p>
 <p>To open the app in a new window: <a class="link" href="" target="_blank"><span class="url"></span></a></p>
-<p>The globe tracker app is a flexible app that can display airline flights in a number of ways on a 3D globe.
+<p>The global tracker  is a flexible app that can display airline flights in a number of ways on a 3D globe.
   Note that only active flights (in the air, taking off, or landing) are displayed.</p>
 <p>You can zoom the globe in and out in several ways:
-  <ul><li>Double-click on the globe to zoom in. Hold down the shift key and double-click to zoom out.</li>
+  <ul><li>Double-click anywhere on the globe to zoom in. Hold down the shift key and double-click to zoom out.</li>
     <li>Click on the Zat logo to zoom in. Hold down the shift key and click to zoom out.</li>
     <li>If you have a mouse with a scroll wheel, use that to zoom in and out.</li>
     <li>Use the zoomFactor parameter to set the initial zoom.</li>
@@ -51,6 +52,19 @@ table td {
 <p>If auto mode is off (not rotate, flights, or airports), then you can drag the globe with your mouse to rotate it.</p>
 
 <h2>Examples</h2>
+<p>Show all active flights for Alaska (the default): <a class="link" href="?auto=rotate"
+  target="_blank"><span class="url"></span>?auto=rotate</a>. Rotate the globe manually by dragging it.</p>
+<p>Show all active flights for Alaska (the default) and rotate the globe automatically: <a class="link" href="?auto=rotate"
+  target="_blank"><span class="url"></span>?auto=rotate</a></p>
+<p>Show all active flights for United Airlines, and scroll between the current locations of the flights:
+<a class="link" href="?airline=UA&auto=flights"
+  target="_blank"><span class="url"></span>?airline=UA&amp;auto=flights</a></p>
+<p>Show all departing flights from Atlanta, and scroll between their destination airports, zoomed in:
+  <a class="link" href="?airport=ATL&auto=airports&zoomFactor=2"
+  target="_blank"><span class="url"></span>?airport=ATL&amp;auto=airports&amp;zoomFactor=2</a></p>
+<p>Show all arriving flights to Atlanta on Delta Airlines and their codeshares:
+  <a class="link" href="?airport=ATL&airline=DL&codeshares=true&arrDep=arr"
+  target="_blank"><span class="url"></span>?airport=ATL&amp;airline=DL&amp;codeshares=true&amp;arrDep=arr</a></p>
 
 <h2>Configuration</h2>
 <p>This app is currently configured using parameters in the URL (there is no interactive configuration tool yet).</p>
@@ -59,6 +73,7 @@ table td {
 <a href="http://en.wikipedia.org/wiki/List_of_airline_codes" target="_blank">two character airline code</a>
   (three letter ICAO codes for major airlines should also work).
   If no airline is specified, then default to AS (Alaska Airlines).
+  The airline logo is displayed in the lower right corner of the screen.
 </p>
 <p>For example, to display all flights for Alaska Airlines (the default): <a class="link" href=""
   target="_blank"><span class="url"></span></a></p>
@@ -74,6 +89,7 @@ table td {
   <a href="http://en.wikipedia.org/wiki/International_Air_Transport_Association_airport_code"
   target="_blank">three character airport code</a>
   (four letter ICAO codes for major airports should also work).
+  The airport code is displayed in the lower right corner of the screen.
 <p>To display all flights departing Seattle (SEA): <a class="link" href="?airport=SEA"
   target="_blank"><span class="url"></span>?airport=SEA</a></p>
 <h4>arrDep=arr</h4>
@@ -83,7 +99,8 @@ table td {
 <h3>airline=<i>XX</i>&amp;airport=<i>YYY</i></h3>
 <p>If both airline and airport are specified, show only flights that match both.
   The arrDep parameter can be added to specify whether departing (the default) or arriving flights are shown.
-  Note that when the airport parameter is specified, then the codeshares parameter does not work.</p>
+  Note that when the airport parameter is specified, then the codeshares parameter does not work.
+  The airline logo is displayed in the lower right corner of the screen.</p>
 <p>To display all Delta flights arriving Atlanta: <a class="link" href="?airline=DL&airport=ATL&arrDep=arr"
   target="_blank"><span class="url"></span>?airline=DL&amp;airport=ATL&amp;arrDep=arr</a></p>
 <h3>auto=<i>mode</i></h3>
@@ -114,41 +131,40 @@ table td {
   uses a simplified icon that looks like an arrowhead pointing in the direction the airplane is flying.
 This is faster to draw on some hardware.</p> 
 <h3>scaleIcon=<i>num</i></h3>
-<p>Scale the airplane icon. Default scale factor is 1.0: <a class="link" href="?scaleIcon=1.5"
+<p>Scale the airplane icon. Default scale factor is 1.0. Larger numbers make the icon larger: <a class="link" href="?scaleIcon=1.5"
   target="_blank"><span class="url"></span>?scaleIcon=1.5</a></p>
 <h3>zoomFactor=<i>num</i></h3>
 <p>Sets the initial zoom of the globe.
   The default zoomFactor is 1.0, which fits the globe exactly into the browser window.
-  To leave a border around the globe: <a class="link" href="?zoomFactor=0.9"
+  Larger numbers zoom in.
+  To leave a border around the globe, zoom out a bit: <a class="link" href="?zoomFactor=0.9"
   target="_blank"><span class="url"></span>?zoomFactor=0.9</a></p>
 <h3>appId=<i>ID</i>&amp;appKey=<i>Key</i></h3>
 <p>Specify the FlightStats application ID and application key.
   Note that you must specifically request a key that can access Fleet status in order to see all flights for a carrier.
   During development this key is not required, but it will be required upon release.</p>
 
-
 <h2>Complete List of Parameters</h2>
 <table border="1">
 <tr><th>Name</th><th>Default</th><th>Values</th><th>Description</th></tr>
-
 <tr><td>appId</td><td></td><td>API ID</td><td>Your FlightStats API application ID.
   See <a href="https://developer.flightstats.com" target="_blank">https://developer.flightstats.com</a>
   to sign up for a free evaluation key.</td></tr>
 <tr><td>appKey</td><td></td><td>API key</td><td>Your FlightStats API application key.</td></tr>
-<tr><td>airline</td><td>AS</td><td>(any airline code)</td><td>Two letter airline code.</td></tr>
+<tr><td>airline</td><td>AS</td><td>(any airline code)</td><td>Two letter airline code.
+  Show all active flights for this airline.</td></tr>
 <tr><td>airport</td><td></td><td>(any airport code)</td><td>Three letter airport code.
   Show departing (default) or arriving flights for this airport.</td></tr>
 <tr><td>codeshares</td><td>false</td><td>true, false</td><td>Include codeshare flights for an airline.
   Ignored if the airport parameter is specified.</td></tr>
 <tr><td>arrDep</td><td>dep</td><td>arr, dep</td><td>Show arriving or departing flights.
-  Only used if the airport parameter is specified.</td></tr>
+  Used only if the airport parameter is specified.</td></tr>
 <tr><td>auto</td><td>off</td><td>off, rotate, flights, airports</td><td>Automatically rotate globe, or scan through flights or airports.</td></tr>
 <tr><td>duration</td><td>5</td><td>(number)</td><td>Used with auto parameter.
   Speed of rotation in degrees/second, or number of seconds to display each flight or airport.</td></tr>
 <tr><td>airplaneIcon</td><td>airplane</td><td>airplane, triangle</td><td>Icon to use for airplane.</td></tr>
-<tr><td>scaleIcon</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the airplane icon.</td></tr>
-<tr><td>zoomFactor</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the globe.</td></tr>
-
+<tr><td>scaleIcon</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the airplane icon. Bigger numbers make the icon larger.</td></tr>
+<tr><td>zoomFactor</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the globe. Bigger numbers make the globe larger.</td></tr>
 </table>
 
 <h2>Browser Compatibility</h2>
@@ -158,7 +174,7 @@ This is faster to draw on some hardware.</p>
   If you encounter any problems, please let us know.</p>
 
 <hr />
-<a href="http://zat.com" target="_blank"><img border="2" src="img/headerlogo.png" /></a>
+<a href="http://zat.com" target="_blank"><img id="logo" src="img/headerlogo.png" /></a>
 
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.js"></script>
 <script type="text/javascript">
@@ -169,23 +185,3 @@ This is faster to draw on some hardware.</p>
 </script>
 </body>
 </html>
-
-<!-- 
-<p><strong>Examples:</strong></p>
-<ul><li><a class="link" href="" target="_blank"><span class="url"></span></a>
-<br />Displays with all defaults. The default airport is PDX (Portland, Oregon; the home of Flightstats).</li>
-<li><a class="link" href="?interactive=true" target="_blank"><span class="url"></span>?interactive=true</a>
-<br />Interactive mode lets you zoom and pan, change the base map, and add overlays. See below.</li>
-<li><a class="link" href="?airportCode=BOS&weatherAnimation=12&mapType=road"
-target="_blank"><span class="url"></span>?airportCode=BOS&weatherAnimation=12&mapType=road</a>
-<br />Show Boston airport, with 12 frames (about 2 hours) of weather radar data animated, over a road map.</li>
-<li><a class="link" href="?airportCode=SEA&zoomLevel=8&weatherStation=auto&mapType=acetate"
-target="_blank"><span class="url"></span>?airportCode=SEA&zoomLevel=8&weatherStation=auto&mapType=acetate</a>
-<br />Show Seattle/Tacoma airport, zoomed out a bit, with a low-saturation terrain map, and the current weather radar image (not animated).</li>
-<li><a class="link" href="?airportCode=ORD&flightMarkerScale=50&showAirlineLogos=false&showOtherAirport=false&mapType=satellite"
-target="_blank"><span class="url"></span>?airportCode=ORD&flightMarkerScale=50&showAirlineLogos=false&showOtherAirport=false&mapType=satellite</a>
-<br />Show a busy airport using satellite imagery, shrink the airplanes down, and show only the flight number in the label.</li>
-<li><a class="link" href="?airportCode=ATL&showLabels=false&mapType=terrainbg&showLegend=false"
-target="_blank"><span class="url"></span>?airportCode=ATL&showLabels=false&mapType=terrainbg&showLegend=false</a>
-<br />An even busier airport, but with simple terrain imagery, larger airplanes, no labels at all, and the legend turned off.
-</ul>

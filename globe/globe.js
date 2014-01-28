@@ -68,7 +68,7 @@
     }
 
     $('#zatlogo').click(function(e) {
-      earth.projection.scale((e.shiftKey ? 0.9 : 1.11111) * earth.projection.scale());
+      earth.projection.scale((e.shiftKey ? 0.91 : 1.0989) * earth.projection.scale());
     });
 
     var file = { regular: 'world-110m-withlakes.json', simple: 'world-50m.json' }[globe];
@@ -90,15 +90,17 @@
       scaleExtent: [100, 2500]
     }));
 
+    earth.loadPlugin(flights());
+
     if (auto === 'off') { // drag manually
       earth.loadPlugin(planetaryjs.plugins.drag());
       earth.projection.rotate([100, -20, 0]);
     } else if (auto === 'rotate') {
       earth.projection.rotate([100, -10, 0]);
       earth.loadPlugin(autorotate(duration));
+    } else if (auto === 'flights' || auto === 'airports') {
+      earth.loadPlugin(planetaryjs.plugins.pings());
     }
-
-    earth.loadPlugin(flights());
 
     earth.draw(document.getElementById('globe'));
 
@@ -146,7 +148,10 @@
                 var p = a[i];
                 $mess.fadeOut(duration * 300, function() {
                     $mess.text((airport.length > 0 ? (arrDep == 'dep' ? 'To ' : 'From ') : '')+airportname(p));
-                  }).delay(duration * 200).fadeIn(duration * 300);
+                  }).delay(duration * 200).fadeIn(duration * 300, function() {
+                    earth.plugins.pings.add(p.longitude, p.latitude,
+                        { color: 'white', angle: 3, ttl: duration * 500 });
+                  });
                 var r = d3.interpolate(earth.projection.rotate(), [-p.longitude, -p.latitude]);
                 return function(t) {
                   earth.projection.rotate(r(t));
@@ -168,7 +173,10 @@
                     $mess.text(p.carrierFsCode+' '+p.flightNumber+': '+
                         airportname(airports[p.departureAirportFsCode])+
                         ' to '+airportname(airports[p.arrivalAirportFsCode]));
-                  }).delay(duration * 200).fadeIn(duration * 300);
+                  }).delay(duration * 200).fadeIn(duration * 300, function() {
+                    earth.plugins.pings.add(p.positions[0].lon, p.positions[0].lat,
+                        { color: 'white', angle: 3, ttl: duration * 500 });
+                  });
                 var r = d3.interpolate(earth.projection.rotate(), [-p.positions[0].lon, -p.positions[0].lat]);
                 return function(t) {
                   earth.projection.rotate(r(t));

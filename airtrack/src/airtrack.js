@@ -1481,10 +1481,11 @@
       if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) { this.addLabel_(); }  // airplane info label
       map.getPanes().overlayPane.appendChild(this.div_[0]);
       if (interactive) {
-        var pop = this.title_ + ', speed: '+this.speed_+' mph' + ', alt: '+this.alt_+' ft, ' +
-          (this.delay_ >= 15 ? this.delay_+' min delay' : 'on time');
-        var pdata = { id: this.id_, fno: this.fno_ };
+        var that = this;
         this.div_.click(function() {
+          var pop = that.title_ + ', speed: '+that.speed_+' mph' + ', alt: '+that.alt_+' ft, ' +
+            (that.delay_ >= 15 ? that.delay_+' min delay' : 'on time');
+          var pdata = { id: that.id_, fno: that.fno_ };
           $('#popup').clearQueue().text(pop).fadeIn(100).delay(14000).fadeOut(1000).
             append('&nbsp;<span class="trackme">Live Track</span>').find('span').click(function() { livetrack(pdata); return false; });
         });

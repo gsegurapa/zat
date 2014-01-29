@@ -365,6 +365,7 @@
   // var debug = {};
   var avgerr = 0, avgcnt = 0, maxerr = 0;  // DEBUG
   var currentflip = 0;
+  var popupTimeout;
 
   function moveLabels() {
     for (var i = 0; i < planes.length; i++) {
@@ -1481,13 +1482,18 @@
       if (showLabels === true || (showLabels==='delay' && this.delay_ >= 15)) { this.addLabel_(); }  // airplane info label
       map.getPanes().overlayPane.appendChild(this.div_[0]);
       if (interactive) {
-        var that = this;
-        this.div_.click(function() {
-          var pop = that.title_ + ', speed: '+that.speed_+' mph' + ', alt: '+that.alt_+' ft, ' +
+        this.div_.on('click', this, function(e) {
+          var that = e.data;
+          var pop = that.title_ + ', speed: '+that.speed_+' mph' + ', alt: '+Math.round(that.curalt_)+' ft, ' +
             (that.delay_ >= 15 ? that.delay_+' min delay' : 'on time');
           var pdata = { id: that.id_, fno: that.fno_ };
-          $('#popup').clearQueue().text(pop).fadeIn(100).delay(14000).fadeOut(1000).
-            append('&nbsp;<span class="trackme">Live Track</span>').find('span').click(function() { livetrack(pdata); return false; });
+          clearTimeout(popupTimeout);
+          $('#popup').stop().text(pop).css('opacity', 1).show().
+            append(' <span class="trackme">Live&nbsp;Track</span>').
+            find('span').click(function() { livetrack(pdata); return false; });
+          popupTimeout = setTimeout(function() {
+            $('#popup').fadeOut(1000);
+          }, 14000);
         });
       }
       // $('#overlay_div').append(this.div_);

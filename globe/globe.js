@@ -185,7 +185,32 @@
               .transition()
                 .each('end', transition);
         })();
+      } else if (auto === 'off') {
+        $('#globe').on('click', clickplane);
+        $mess.show();
       }
+
+
+      function clickplane(e) {
+        var mp = earth.projection.invert([e.pageX, e.pageY]);
+        var mindist = 1000;
+        var flight = null;
+        $.each(data.flightTracks, function(i, v) {
+          var dist = d3.geo.distance(mp, [v.positions[0].lon, v.positions[0].lat]);
+          if (dist < mindist) {
+            mindist = dist;
+            flight = v;
+          }
+        });
+        if (mindist < 0.02 * scaleIcon) {
+          $mess.text(flight.carrierFsCode+' '+flight.flightNumber+': '+
+            airportname(airports[flight.departureAirportFsCode])+
+            ' to '+airportname(airports[flight.arrivalAirportFsCode]));
+        } else {
+          $mess.text('');
+        }
+      }
+
 
     }
   } // end mainloop

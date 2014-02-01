@@ -3,11 +3,11 @@
 
 	console.log('d3.geo',d3.geo);
 
-	var width = window.outerWidth || window.innerWidth;
-	var height = window.outerHeight || window.innerHeight ;
+	var width = window.innerWidth || window.outerWidth;
+	var height = window.innerHeight || window.outerHeight;
 
 	var projection = d3.geo.azimuthal()
-		.scale(380)
+		.scale(Math.min(width, height)/2)
 		.origin([0, 0])
 		.mode('orthographic')
 		.translate([width / 2, height / 2]);
@@ -38,21 +38,28 @@
 	//	.attr('class', 'graticule')
 	//	.attr('d', clippedpath);
 
-	var feature;
+	var feature, back;
 
-	d3.json("planet-110m.json", function(error, planet) {
+	d3.json("world-110m-withlakes.json", function(error, planet) {
 		var land = topojson.feature(planet, planet.objects.land),
-				countries = topojson.feature(planet, planet.objects.countries);
+				countries = topojson.feature(planet, planet.objects.countries),
+				lakes = topojson.feature(planet, planet.objects.ne_110m_lakes);
 
 		// svg.append('path')
 		//		.datum(land.geometry)
 		//		.attr('d', path)
 		//		.attr('class', 'land');
 
+
 		feature = svg.selectAll('.country').data(countries.features)
 			.enter().append('path')
 				.attr('class', function(d) { return 'country country-' + d.id; })
 				.attr('d', clippedpath);
+
+		lakef = svg.selectAll('.lake').data(lakes.features)
+			.enter().append('path')
+				.attr('class', 'lake')
+				.attr('d', path);
 
 		// var fs_url = 
 		// d3.jsonp(fs_url, function() {
@@ -93,6 +100,7 @@
 
 	function refresh() {
 		feature.attr('d', clippedpath);
+		lakef.attr('d', path);
 	}
 
 }());

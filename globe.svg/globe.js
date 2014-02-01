@@ -5,7 +5,6 @@
 
 	var width = window.outerWidth || window.innerWidth;
 	var height = window.outerHeight || window.innerHeight ;
-	// console.log('d3.geo:', d3.geo);
 
 	var projection = d3.geo.azimuthal()
 		.scale(380)

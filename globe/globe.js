@@ -69,20 +69,6 @@
       $('#what').replaceWith('<img id="airlinelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
     }
 
-    if (interactive) {
-      $('#zoomin').click(function() {
-        earth.projection.scale(1.0989 * earth.projection.scale());
-        return false;
-      });
-      $('#zoomout').click(function() {
-        earth.projection.scale(0.91 * earth.projection.scale());
-        return false;
-      });
-    } else {
-      $('#zoomin, #zoomout').hide();
-    }
-
-
     var file = { regular: 'world-110m-withlakes.json', simple: 'world-50m.json' }[globe];
     earth = planetaryjs.planet();
     earth.loadPlugin(planetaryjs.plugins.earth({

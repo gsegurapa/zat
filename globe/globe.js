@@ -16,6 +16,7 @@
   var airplaneIcon = 'airplane';
   var scaleIcon = 1.0;
   var globe = 'regular';
+  var interactive = true;
   var appId = '', appKey = '';
 
   var earth;  // the globe
@@ -39,6 +40,7 @@
     if (p.airplaneIcon) { airplaneIcon = p.airplaneIcon; }
     if (p.scaleIcon) { scaleIcon = +p.scaleIcon; }
     // if (p.globe) { globe = p.globe; }
+    if (p.interactive) { interactive = p.interactive === 'true'; }
     if (p.appKey) { appKey = p.appKey; }
   }
 
@@ -64,24 +66,34 @@
       $('#what').text(airport);
     } else {
       if (airline.length === 0) { airline = default_airport; }
-      $('#what').replaceWith('<img id="linelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
+      $('#what').replaceWith('<img id="airlinelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
     }
 
-    $('#zatlogo').click(function(e) {
-      earth.projection.scale((e.shiftKey ? 0.91 : 1.0989) * earth.projection.scale());
-    });
+    if (interactive) {
+      $('#zoomin').click(function() {
+        earth.projection.scale(1.0989 * earth.projection.scale());
+        return false;
+      });
+      $('#zoomout').click(function() {
+        earth.projection.scale(0.91 * earth.projection.scale());
+        return false;
+      });
+    } else {
+      $('#zoomin, #zoomout').hide();
+    }
+
 
     var file = { regular: 'world-110m-withlakes.json', simple: 'world-50m.json' }[globe];
     earth = planetaryjs.planet();
     earth.loadPlugin(planetaryjs.plugins.earth({
       topojson: { file: file },
-      oceans: { fill: '#248'},
-      land: { fill: '#284', shadow: { shadowOffsetX: 2, shadowOffsetY: 2, shadowColor: 'black' } },
+      oceans: { fill: '#13a'},
+      land: { fill: '#1a3', shadow: { shadowOffsetX: 2, shadowOffsetY: 2, shadowColor: 'black' } },
       borders: { stroke: '#000'}
     }));
     if (globe === 'regular') {
       earth.loadPlugin(lakes({
-        fill: '#348'
+        fill: '#24a'
       }));
     }
     earth.loadPlugin(autocenter());
@@ -95,6 +107,7 @@
     if (auto === 'off') { // drag manually
       earth.loadPlugin(planetaryjs.plugins.drag());
       earth.projection.rotate([100, -20, 0]);
+      if (interactive) { $('#automessage').text('Drag globe, click on flights'); }
     } else if (auto === 'rotate') {
       earth.projection.rotate([100, -10, 0]);
       earth.loadPlugin(autorotate(duration));
@@ -310,10 +323,13 @@
         // on its namespace on `planet.plugins`. We're loading a custom
         // TopoJSON file with an object called "ne_110m_lakes".
         var world = planet.plugins.topojson.world;
-        lakesf = topojson.feature(world, world.objects.ne_110m_lakes);
+        if (world.objects.ne_110m_lakes) {
+          lakesf = topojson.feature(world, world.objects.ne_110m_lakes);
+        }
       });
 
       planet.onDraw(function() {
+        if (lakesf === null) { return; }
         planet.withSavedContext(function(context) {
           context.beginPath();
           planet.path.context(context)(lakesf);

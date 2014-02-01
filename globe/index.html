@@ -17,7 +17,7 @@ body {
 }
 div#automessage {
   position: absolute;
-  top: 0;
+  bottom: 15px;
   width: 100%;
   z-index: 1000;
   padding: 4px 6px;
@@ -32,31 +32,62 @@ img#zatlogo {
   padding: 6px;
   background-color: rgb(47, 47, 47);
   background-color: rgba(47, 47, 47, 0.75);
-  left: 15px;
-  bottom: 25px;
+  left: 20px;
+  top: 20px;
   z-index: 1000;
+  border: solid gray 1px;
   border-radius: 3px;
+}
+a#zoomin, a#zoomout {
+  display: block;
+  position: absolute;
+  left: 20px;
+  line-height: 30px;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: center;
+  background-color: rgb(47, 47, 47);
+  background-color: rgba(47, 47, 47, 0.75);
+  border: solid gray 1px;
+  color: white;
+  width: 30px;
+  height: 30px;
+  text-decoration: none;
+  cursor: pointer;
+}
+a#zoomin {
+  top: 80px;
+  border-radius: 4px 4px 0 0;
+  border-bottom: none;
+}
+a#zoomout {
+  top: 111px;
+  border-radius: 0 0 4px 4px;
 }
 div#what {
   position: absolute;
-  right: 15px;
-  bottom: 25px;
+  right: 20px;
+  top: 20px;
   z-index: 1000;
   padding: 4px 6px;
   color: white;
   background-color: rgb(47, 47, 47);
   background-color: rgba(47, 47, 47, 0.75);
+  border: solid gray 1px;
   border-radius: 3px;
   font-size: 34px;
   font-family: Ariel, Helvetica, sans-serif;
 }
-img#linelogo {
+img#airlinelogo {
 	position: absolute;
-  right: 15px;
-  bottom: 25px;
+  right: 20px;
+  top: 20px;
   z-index: 1000;
 	padding: 0 5px;
 	background-color: white;
+  border-radius: 3px;
 }
 
 </style>
@@ -68,6 +99,7 @@ img#linelogo {
 <canvas id="globe"></canvas>
 <div id="automessage"></div>
 <img id="zatlogo" src="img/headerlogo.png" />
+<a id="zoomin">+</a><a id="zoomout">&minus;</a>
 <div id="what"></div>
 <script type="text/javascript" src="globe.js"></script>
 </body>

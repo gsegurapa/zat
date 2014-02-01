@@ -27,6 +27,7 @@ img#zatlogo {
   border-radius: 3px;
 }
 div#what {
+  display: none;
   position: absolute;
   right: 20px;
   top: 20px;
@@ -41,6 +42,7 @@ div#what {
   font-family: Ariel, Helvetica, sans-serif;
 }
 img#airlinelogo {
+  display: none;
 	position: absolute;
   right: 20px;
   top: 20px;
@@ -48,6 +50,16 @@ img#airlinelogo {
 	padding: 0 5px;
 	background-color: white;
   border-radius: 3px;
+}
+input#code {
+  display: none;
+  position: absolute;
+  right: 20px;
+  top: 18px;
+  padding: 4px 6px;
+  z-index: 1001;
+  font-size: 34px;
+  text-align: right;
 }
 div#automessage {
   display: none;
@@ -74,6 +86,8 @@ div#automessage {
 <canvas id="globe"></canvas>
 <img id="zatlogo" src="img/headerlogo.png" />
 <div id="what"></div>
+<img id="airlinelogo" />
+<input id="code" type="text" maxlength="3" size="3" />
 <div id="automessage"></div>
 </body>
 </html>

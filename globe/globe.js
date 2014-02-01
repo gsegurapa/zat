@@ -46,28 +46,23 @@
 
   getParams(window.location.href); // params from URL
 
-  if (appId.length === 0 || appKey.length === 0) {
-    if (airport.length === 0) {
-      appId = fleet_appId;
-      appKey = fleet_appKey;
-    } else {
-      appId = tracker_appId;
-      appKey = tracker_appKey;
-    }
-  } else if (appId === fleet_appId && appKey === fleet_appKey) {
-    appId = '';
-    appKey = '';
-    alert('invalid appId and appKey');
-  }
+  // if (appId.length === 0 || appKey.length === 0) {
+  //   if (airport.length === 0) {
+  //     appId = fleet_appId;
+  //     appKey = fleet_appKey;
+  //   } else {
+  //     appId = tracker_appId;
+  //     appKey = tracker_appKey;
+  //   }
+  // } else if (appId === fleet_appId && appKey === fleet_appKey) {
+  //   appId = '';
+  //   appKey = '';
+  //   alert('invalid appId and appKey');
+  // }
 
   $(document).ready(function() {
 
-    if (airport.length > 0 && airline.length === 0) {
-      $('#what').text(airport);
-    } else {
-      if (airline.length === 0) { airline = default_airport; }
-      $('#what').replaceWith('<img id="airlinelogo" src="http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif" />');
-    }
+    showcode();
 
     var file = { regular: 'world-110m-withlakes.json', simple: 'world-50m.json' }[globe];
     earth = planetaryjs.planet();
@@ -105,29 +100,72 @@
 
     mainloop();
 
+    $('#what, #airlinelogo').click(function() {
+      $('#what, #airlinelogo').hide();
+      $('#code').val(airline || airport).show().focus().select().keydown(keyf).blur(changecode);
+    });
+
+    function keyf(e) {
+      if (e.keyCode === 13) { // carriage return
+        changecode();
+      }
+    }
+
+    function changecode() {
+      var $code = $('#code');
+      $code.off('keydown', keyf).off('blur', changecode);
+      var val = $.trim($code.val().toUpperCase());
+      if (val.length > 2) {
+        airport = val;
+        airline = '';
+      } else {
+        airline = val;
+        airport = '';
+      }
+      console.log(airline, airport);
+      $code.hide();
+      showcode();
+      mainloop();
+      return false;
+    }
+
+    function showcode() { // display airport or airline code
+      if (airport.length > 0 && airline.length === 0) {
+        $('#what').text(airport).show();
+      } else {
+        if (airline.length === 0) { airline = default_airport; }
+        $('#airlinelogo').attr('src', 'http://dem5xqcn61lj8.cloudfront.net/logos/'+airline+'.gif').show();
+      }
+    }
+
   }); // end document ready
 
   // main API call
   function mainloop() {
     // https://developer.flightstats.com/api-docs/flightstatus/v2/fleet
     // https://developer.flightstats.com/api-docs/flightstatus/v2/airport
-    var url, data = { appId: appId, appKey: appKey, includeFlightPlan: false, maxPositions: 2 };
+    var url, params = { includeFlightPlan: false, maxPositions: 2,
+      appId: airport.length === 0 ? fleet_appId : tracker_appId,
+      appKey: airport.length === 0 ? fleet_appKey : tracker_appKey };
     if (airport.length === 0) {
       url = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/fleet/tracks/'+airline;
-      if (codeshares) { data.codeshares = true; }
+      if (codeshares) { params.codeshares = true; }
     } else {
       url = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/'+airport+'/'+arrDep;
-      if (airline.length > 0) { data.carrier = airline; }
+      if (airline.length > 0) { params.carrier = airline; }
     }
 
     $.ajax({
       url: url,
-      data: data,
+      data: params,
       dataType: 'jsonp',
       success: getFlights
     });
 
     function getFlights(data /* , status, xhr */) {
+      if (data.error) {
+        console.log(data.error);
+      }
       // console.log('flightdata', data);
       // $('#what').text(data.appendix.airlines[0].name);
       airports = getAppendix(data.appendix.airports);
@@ -190,7 +228,7 @@
       }
 
 
-      function clickplane(e) {
+      function clickplane(e) {  // click on plane icon to display flight info
         var mp = earth.projection.invert([e.pageX, e.pageY]);
         var mindist = 1000;
         var flight = null;
@@ -209,7 +247,6 @@
           $mess.text('').hide();
         }
       }
-
 
     }
   } // end mainloop

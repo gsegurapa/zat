@@ -14,9 +14,9 @@
 		.translate([width / 2, height / 2]);
 
 	// var projection = d3.geo.orthographic()
-	// 	.scale(3*(width + 1) / 2 / Math.PI)
-	// 	.translate([width / 2, height / 2])
-	// 	.clipAngle(90);
+	//	.scale(3*(width + 1) / 2 / Math.PI)
+	//	.translate([width / 2, height / 2])
+	//	.clipAngle(90);
 
 	var path = d3.geo.path().projection(projection);
 
@@ -35,9 +35,9 @@
 	// var graticule = d3.geo.graticule();
 
 	// svg.append('path')
-	// 	.datum(graticule)
-	// 	.attr('class', 'graticule')
-	// 	.attr('d', clippedpath);
+	//	.datum(graticule)
+	//	.attr('class', 'graticule')
+	//	.attr('d', clippedpath);
 
 	var feature;
 
@@ -57,7 +57,7 @@
 
 		// var fs_url = 
 		// d3.jsonp(fs_url, function() {
-		// 	console.log(arguments);
+		//	console.log(arguments);
 		// });
 
 
@@ -80,7 +80,7 @@
 			var m1 = [d3.event.pageX, d3.event.pageY],
 					o1 = [origin0[0] + (mouse0[0] - m1[0]) / 7, Math.min(Math.max(-90, origin0[1] + (m1[1] - mouse0[1]) / 7), 90)];
 			projection.origin(o1);
-			circle.origin(o1)
+			circle.origin(o1);
 			refresh();
 		}
 	}

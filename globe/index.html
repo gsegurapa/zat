@@ -15,18 +15,6 @@ body {
 	height: 100%;
 	overflow: hidden;
 }
-div#automessage {
-  position: absolute;
-  bottom: 15px;
-  width: 100%;
-  z-index: 1000;
-  padding: 4px 6px;
-  color: white;
-  font-size: 34px;
-  font-family: Ariel, Helvetica, sans-serif;
-  text-align: center;
-  text-shadow: 2px 2px black;
-}
 img#zatlogo {
   position: absolute;
   padding: 6px;
@@ -61,17 +49,31 @@ img#airlinelogo {
 	background-color: white;
   border-radius: 3px;
 }
-
+div#automessage {
+  display: none;
+  position: absolute;
+  bottom: 15px;
+  width: 100%;
+  z-index: 1000;
+  padding: 4px 6px;
+  color: white;
+  font-size: 34px;
+  font-family: Ariel, Helvetica, sans-serif;
+  text-align: center;
+  text-shadow: 2px 2px black;
+  background-color: rgb(47, 47, 47);
+  background-color: rgba(47, 47, 47, 0.5);
+}
 </style>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
 <script type="text/javascript" src="http://d3js.org/topojson.v1.min.js"></script>
 <script type="text/javascript" src="planetaryjs.js"></script>
+<script type="text/javascript" src="globe.js"></script>
 <body>
 <canvas id="globe"></canvas>
-<div id="automessage"></div>
 <img id="zatlogo" src="img/headerlogo.png" />
 <div id="what"></div>
-<script type="text/javascript" src="globe.js"></script>
+<div id="automessage"></div>
 </body>
 </html>

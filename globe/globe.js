@@ -93,7 +93,7 @@
     if (auto === 'off') { // drag manually
       earth.loadPlugin(planetaryjs.plugins.drag());
       earth.projection.rotate([100, -20, 0]);
-      if (interactive) { $('#automessage').text('Drag globe, click on flights'); }
+      if (interactive) { $('#automessage').text('Drag globe, click on flights').show(); }
     } else if (auto === 'rotate') {
       earth.projection.rotate([100, -10, 0]);
       earth.loadPlugin(autorotate(duration));
@@ -204,9 +204,9 @@
         if (mindist < 0.02 * scaleIcon) {
           $mess.text(flight.carrierFsCode+' '+flight.flightNumber+': '+
             airportname(airports[flight.departureAirportFsCode])+
-            ' to '+airportname(airports[flight.arrivalAirportFsCode]));
+            ' to '+airportname(airports[flight.arrivalAirportFsCode])).show();
         } else {
-          $mess.text('');
+          $mess.text('').hide();
         }
       }
 

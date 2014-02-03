@@ -49,19 +49,19 @@ table td {
     <li>Use the zoomFactor parameter to set the initial zoom.</li>
   </ul>
 </p>
-<p>If auto mode is off (not rotate, flights, or airports), then you can drag the globe with your mouse to rotate it.</p>
+<p>If auto mode is off (not rotate, or scroll), then you can drag the globe with your mouse to rotate it.</p>
 
 <h2>Examples</h2>
-<p>Show all active flights for Alaska (the default): <a class="link" href="?auto=rotate"
-  target="_blank"><span class="url"></span>?auto=rotate</a>. Rotate the globe manually by dragging it.</p>
-<p>Show all active flights for Alaska (the default) and rotate the globe automatically: <a class="link" href="?auto=rotate"
-  target="_blank"><span class="url"></span>?auto=rotate</a></p>
+<p>Show all active flights for Alaska (the default):
+  <a class="link" href="" target="_blank"><span class="url"></span></a>.
+  Rotate the globe manually by dragging it.</p>
+<p>Show all active flights for Alaska (the default) and rotate the globe automatically:
+  <a class="link" href="?auto=rotate" target="_blank"><span class="url"></span>?auto=rotate</a></p>
 <p>Show all active flights for United Airlines, and scroll between the current locations of the flights:
-<a class="link" href="?airline=UA&auto=flights"
-  target="_blank"><span class="url"></span>?airline=UA&amp;auto=flights</a></p>
-<p>Show all departing flights from Atlanta, and scroll between their destination airports, zoomed in:
-  <a class="link" href="?airport=ATL&auto=airports&zoomFactor=2"
-  target="_blank"><span class="url"></span>?airport=ATL&amp;auto=airports&amp;zoomFactor=2</a></p>
+  <a class="link" href="?airline=UA&auto=scroll" target="_blank"><span class="url"></span>?airline=UA&amp;auto=scroll</a></p>
+<p>Show all departing flights from Atlanta, and scroll between the current locations of the flights, zoomed in:
+  <a class="link" href="?airport=ATL&auto=scroll&zoomFactor=2"
+  target="_blank"><span class="url"></span>?airport=ATL&amp;auto=scroll&amp;zoomFactor=2</a></p>
 <p>Show all arriving flights to Atlanta on Delta Airlines and their codeshares:
   <a class="link" href="?airport=ATL&airline=DL&codeshares=true&arrDep=arr"
   target="_blank"><span class="url"></span>?airport=ATL&amp;airline=DL&amp;codeshares=true&amp;arrDep=arr</a></p>
@@ -111,19 +111,14 @@ table td {
 <h4>auto=rotate</h4>
 <p>Sets the globe spinning: <a class="link" href="?auto=rotate"
   target="_blank"><span class="url"></span>?auto=rotate</a></p>
-<h4>auto=flights</h4>
-<p>Centers the globe on each flight one after another, and displays the flight information at the top of the screen:
-  <a class="link" href="?auto=flights"
-  target="_blank"><span class="url"></span>?auto=flights</a></p>
-<h4>auto=airports</h4>
-<p>Centers the globe on each airport one after another, and displays the airport name at the top of the screen:
-  <a class="link" href="?auto=airports"
-  target="_blank"><span class="url"></span>?auto=airports</a></p>
+<h4>auto=scroll</h4>
+<p>Centers the globe on each flight one after another, and displays the flight information at the bottom of the screen:
+  <a class="link" href="?auto=scroll" target="_blank"><span class="url"></span>?auto=scroll</a></p>
 <h4>duration=<i>time</i></h4>
-<p>For <code>auto=flights</code> or <code>auto=airports</code>,
-  the duration parameter controls how many seconds each flight or airport is displayed:
-  <a class="link" href="?auto=flights&duration=10"
-  target="_blank"><span class="url"></span>?auto=flights&amp;duration=10</a></p>
+<p>For <code>auto=scroll</code>,
+  the duration parameter controls how many seconds between each scroll:
+  <a class="link" href="?auto=scroll&duration=10"
+  target="_blank"><span class="url"></span>?auto=scroll&amp;duration=10</a></p>
 <p>For <code>auto=rotate</code> the duration parameter controls the speed of rotation
   (in degrees per second, so smaller numbers correspond to a slower rotation):
   <a class="link" href="?auto=rotate&duration=0.5"
@@ -161,9 +156,9 @@ This is faster to draw on some hardware.</p>
   Ignored if the airport parameter is specified.</td></tr>
 <tr><td>arrDep</td><td>dep</td><td>arr, dep</td><td>Show arriving or departing flights.
   Used only if the airport parameter is specified.</td></tr>
-<tr><td>auto</td><td>off</td><td>off, rotate, flights, airports</td><td>Automatically rotate globe, or scan through flights or airports.</td></tr>
+<tr><td>auto</td><td>off</td><td>off, rotate, scroll</td><td>Automatically rotate globe, or scroll through flights.</td></tr>
 <tr><td>duration</td><td>5</td><td>(number)</td><td>Used with auto parameter.
-  Speed of rotation in degrees/second, or number of seconds to display each flight or airport.</td></tr>
+  Speed of rotation in degrees/second, or number of seconds between scrolls.</td></tr>
 <tr><td>airplaneIcon</td><td>airplane</td><td>airplane, triangle</td><td>Icon to use for airplane.</td></tr>
 <tr><td>scaleIcon</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the airplane icon. Bigger numbers make the icon larger.</td></tr>
 <tr><td>zoomFactor</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the globe. Bigger numbers make the globe larger.</td></tr>

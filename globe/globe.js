@@ -92,16 +92,15 @@
       if (auto === 'off') {
         auto = 'rotate';
         earth.plugins.autorotate.pause(false);
-        $mess.text('rotate').show().fadeOut(1500);
+        $mess.finish().text('rotate').show().fadeOut(1500);
       } else if (auto === 'rotate') {
         auto = 'scroll';
         earth.plugins.autorotate.pause();
-        autoindex = -1;
-        $mess.text('scroll').show();
+        $mess.finish().text('scroll').show().css('opacity', 1);
         autotransition();
       } else if (auto === 'scroll') {
         auto = 'off';
-        $mess.text('drag globe, click on airplanes').show();
+        $mess.finish().text('drag globe, click on airplanes').show().css('opacity', 1);
       }
     });
 
@@ -127,7 +126,7 @@
         airline = val;
         airport = '';
       }
-      console.log(airline, airport);
+      // console.log(airline, airport);
       $code.hide();
       showcode();
       mainloop();
@@ -175,6 +174,7 @@
       airports = getAppendix(data.appendix.airports);
       earth.plugins.flights.add(data.flightTracks);
       autodata = data.flightTracks;
+      autoindex = -1;
       $('#globe').on('click', clickplane);
 
       if (auto === 'scroll') {
@@ -183,6 +183,13 @@
         autotransition();
       } else if (auto === 'off' && interactive === true) {
         $mess.text('drag globe, click on airplanes').show();
+        if (airport.length > 0) {
+          d3.transition().duration(duration * 300).tween('rotate', function() {
+            var a = airports[airport];
+            var r = d3.interpolate(earth.projection.rotate(), [-a.longitude, -a.latitude]);
+            return function(t) { earth.projection.rotate(r(t))};
+          });
+        }
       }
     }
   } // end mainloop

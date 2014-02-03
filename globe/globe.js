@@ -181,7 +181,7 @@
         autoindex = -1;
         $mess.show();
         autotransition();
-      } else if (auto === 'off') {
+      } else if (auto === 'off' && interactive === true) {
         $mess.text('drag globe, click on airplanes').show();
       }
     }

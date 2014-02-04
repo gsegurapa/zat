@@ -107,7 +107,7 @@ table td {
 <p>If both airline and airport are specified, show only flights that match both.
   The arrDep parameter can be added to specify whether departing (the default) or arriving flights are shown.
   Note that when the airport parameter is specified, then the codeshares parameter does not work.
-  The airline logo is displayed in the lower right corner of the screen.</p>
+  The airline logo is displayed in the upper right corner of the screen.</p>
 <p>To display all Delta flights arriving Atlanta: <a class="link" href="?airline=DL&airport=ATL&arrDep=arr"
   target="_blank"><span class="url"></span>?airline=DL&amp;airport=ATL&amp;arrDep=arr</a></p>
 <h3>auto=<i>mode</i></h3>
@@ -130,6 +130,9 @@ table td {
   (in degrees per second, so smaller numbers correspond to a slower rotation):
   <a class="link" href="?auto=rotate&duration=0.5"
   target="_blank"><span class="url"></span>?auto=rotate&amp;duration=0.5</a></p>
+<h3>showDelays=false</h3>
+<p>By default, flight information includes a delay estimate for flights that are delayed by 15 minutes or more.
+  The showDelays parameter can be used to turn this off.</p>
 <h3>airplaneIcon=triangle</h3>
 <p>The default airplane icon looks like an airplane. Specifying <code>airplaneIcon=triangle</code>
   uses a simplified icon that looks like an arrowhead pointing in the direction the airplane is flying.
@@ -166,6 +169,7 @@ This is faster to draw on some hardware.</p>
 <tr><td>auto</td><td>off</td><td>off, rotate, scroll</td><td>Automatically rotate globe, or scroll through flights.</td></tr>
 <tr><td>duration</td><td>5</td><td>(number)</td><td>Used with auto parameter.
   Speed of rotation in degrees/second, or number of seconds between scrolls.</td></tr>
+<tr><td>showDelays</td><td>true</td><td>true, false</td><td>Show delay estimates.</td></tr>
 <tr><td>airplaneIcon</td><td>airplane</td><td>airplane, triangle</td><td>Icon to use for airplane.</td></tr>
 <tr><td>scaleIcon</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the airplane icon. Bigger numbers make the icon larger.</td></tr>
 <tr><td>zoomFactor</td><td>1.0</td><td>(number)</td><td>Factor by which to scale the globe. Bigger numbers make the globe larger.</td></tr>

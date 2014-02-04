@@ -187,7 +187,7 @@
           d3.transition().duration(duration * 300).tween('rotate', function() {
             var a = airports[airport];
             var r = d3.interpolate(earth.projection.rotate(), [-a.longitude, -a.latitude]);
-            return function(t) { earth.projection.rotate(r(t))};
+            return function(t) { earth.projection.rotate(r(t)); };
           });
         }
       }
@@ -236,6 +236,8 @@
         airportname(airports[flight.departureAirportFsCode])+
         ' to '+airportname(airports[flight.arrivalAirportFsCode])).show();
       highlight = +flight.flightId;
+      earth.plugins.pings.add(flight.positions[0].lon, flight.positions[0].lat,
+                  { color: 'white', angle: 3, ttl: duration * 500 });
     } else {
       $mess.text('').hide();
       highlight = null;
@@ -243,7 +245,7 @@
   }
 
   function airportname(p) { // airport information: code, city, state or country
-    return p.fs+' '+p.city+' '+(p.stateCode ? p.stateCode : p.countryName);
+    return p.fs+' '+p.city+' '+(p.countryCode === 'US' || p.countryCode === 'CA' ? p.stateCode : p.countryCode);
   }
 
 
@@ -254,7 +256,7 @@
     var airplaneIcons = {
       triangle: [ [0,0.5], [0.3,-0.5], [-0.3,-0.5], [0,0.5] ],
       airplane: [ [0, 0.6], [0.1, 0.5], [0.1, 0.1], [0.7, -0.3], [0.1, -0.1], [0.1, -0.4], [0.2, -0.5],
-          [-0.2, -0.5], [-0.1, -0.4], [-0.1, -0.1], [-0.7, -0.3], [-0.1, 0.1], [-0.1, 0.5], [0, 0.6] ],
+          [-0.2, -0.5], [-0.1, -0.4], [-0.1, -0.1], [-0.7, -0.3], [-0.1, 0.1], [-0.1, 0.5], [0, 0.6] ]
     };
     var icon = airplaneIcons[airplaneIcon].map(function(v) { return [scaleIcon * v[0], scaleIcon * v[1]]; });
     config = config || {};
@@ -275,19 +277,23 @@
           id: v.flightId,
           heading: v.heading || v.bearing || 0,
           dep: [d.longitude, d.latitude],
-          arr: [a.longitude, a.latitude],
+          arr: [a.longitude, a.latitude]
         });
       });
     };
 
     var drawFlights = function(planet, context) {
       var pathcontext = planet.path.context(context).pointRadius(2);
+      var selected = null;
       $.each(flist, function(i, v) {  // route
+        if (highlight === v.id) {
+          selected = v;
+          return;
+        }
         context.beginPath();
         pathcontext({ type: 'LineString', coordinates: [v.dep, v.plane, v.arr] });
-        // pathcontext({ type: 'LineString', coordinates: [v.plane, v.arr] });
-        context.strokeStyle = highlight === v.id ? '#fa2' : v.color;
-        context.lineWidth = highlight === v.id ? 3 : 1;
+        context.strokeStyle = v.color;
+        context.lineWidth = 1;
         context.stroke();
 
         context.beginPath();  // endpoints (airports)
@@ -295,6 +301,19 @@
         context.fillStyle = v.color;
         context.fill();
       });
+      // draw highlighted route
+      if (selected) {
+        context.beginPath();
+        pathcontext.pointRadius(4)({ type: 'LineString', coordinates: [selected.dep, selected.plane, selected.arr] });
+        context.strokeStyle = '#fa2';
+        context.lineWidth = 3;
+        context.stroke();
+
+        context.beginPath();  // endpoints (airports)
+        pathcontext({ type: 'MultiPoint', coordinates: [selected.dep, selected.arr] });
+        context.fillStyle = '#fa2';
+        context.fill();
+      }
       $.each(flist, function(i, v) {  // airplanes
         // var plane = d3.geo.circle().origin(v.plane).angle(60 * v.size / planet.projection.scale())();
         var rotfun = d3.geo.rotation([-v.plane[0], -v.plane[1], v.heading]).invert;

@@ -58,49 +58,7 @@
     { title: 'Departure', left: '58%', width: '18%', sort: timecmp },
     { title: 'Status', left: '75%', width: '16%', sort: function(a, b) { return order * (a.delay() - b.delay()); } }];
     
-  // parse XML tree into a JavaScript object
-  // obj.a is a map of attributes
-  // obj.c is a map of children nodes
-  // a child node can be an array of nodes with the same name
-  function XML2obj($x) {
-    var n = {},
-        xa = $x[0].attributes;
-    if (xa) { // has attributes
-      n.a = {};
-      var l = xa.length;
-      for (var i = 0; i < l; i++) {
-        n.a[xa[i].nodeName] = xa[i].nodeValue; // set attribute name:value
-      }
-    }
-    var $c = $x.children();
-    if ($c.length > 0) { // has children nodes
-      n.c = {};
-      $c.each(function() {
-        var name = this.tagName;
-        var child = n.c;
-        if (child[name] === undefined) { // one child
-          child[name] = XML2obj($(this));
-        } else { // multiple children
-          if (!$.isArray(child[name])) {
-            child[name] = [child[name]];
-          }
-          child[name].push(XML2obj($(this)));
-        }
-      });
-    }
-    return n;
-  }
-  
-  // create a table of airport information
-  function airportDict(t) {
-    var dict = {};
-    var num = t.length;
-    for (var i = 0; i<num; i++) {
-      dict[t[i].a.AirportCode] = t[i];
-    }
-    return dict;
-  }
-  
+    
   // returns the specified time suitable for passing as a parameter to Flightstats web service
   function dateParam(d) { // d is a Date object
     return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()+'T'+d.getHours()+':'+d.getMinutes();
@@ -186,18 +144,12 @@
         (codeshare()?'<div class="tcell" style="width:97%;left:1%;top:44px;font-size:0.8em;text-align:left"><em>Operated by '+
         origName+' ('+origCarrier+' '+origFlight+')</em></div>':'')+
         // Links line
-        '<div class="tcell links" style="width:97%;left:1%;top:60px"><a href="http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id='+fid+
-        '&airlineCode='+carrierCode+
-        '&flightNumber='+flightNum+
-        '&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">Detail Flight Status</a>'+
-        '&nbsp;&nbsp;<a href="http://www.flightstats.com/go/FlightMonitor/flightRuleCreate.do?airline='+
-        carrierCode+'&flightNumber='+flightNum+'&departureDate='+departDateStr+
-        '&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">Set Flight Alert</a>'+
-        '&nbsp;&nbsp;<a href="http://www.flightstats.com/go/FlightTracker/flightTracker.do?id='+
-        fid+'&airlineCode='+carrierCode+'&flightNumber='+flightNum+
-        '&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">Track Flight on Map</a>'+
-        '&nbsp;&nbsp;<a href="http://www.flightstats.com/go/Airport/airportDetails.do?airportCode='+otherAirportCode+
-        '&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">'+otherAirportCode+' Airport Info</a></div>');
+        '<div class="tcell links" style="width:97%;left:1%;top:60px"><a href="http://zat.com/apps/flick?id='+
+        fid+'&airline='+carrierCode+'&flight='+flightNum+'" target="_blank">Live Flight Tracker</a>'+
+        '&nbsp;&nbsp;<a href="http://zat.com/apps/delaylist?dep='+otherAirportCode+'" target="_blank">'+otherAirportCode+
+        ' Delay Info</a>&nbsp;&nbsp;<a href="http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id='+fid+
+        '&airlineCode='+carrierCode+'&flightNumber='+flightNum+
+        '&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">Detail Flight Status</a></div>');
     
     $l.appendTo('#out');
     $l.mouseenter(showDetails).mouseleave(hideDetails);
@@ -229,7 +181,7 @@
       time: function() { return departTime.getTime(); },
       delay: function() { return delay; },
       id: function() { return +fid; },
-      index: function() { return index; }
+      index: function() { return index; },
     };
     return pub;
   }
@@ -267,15 +219,12 @@
     $('#head').html('<strong><a class="button" style="font-size:1em" href="http://www.flightstats.com/go/Airport/airportDetails.do?airportCode='+
         aircode+'&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">'+
         aircode+'</a></strong> <span id="airportname"></span><div id="whichway">Departures</div>'+
-        daynames[startTime.getDay()]+', '+startTime.toLocaleString()+' (+'+numHours+
-        ' hours)<br /><a class="button" href="http://www.flightstats.com/go/FlightStatus/flightStatusByAirport.do?airportCode='+aircode+
-        '&airportQueryType=0" target="_blank">More Times</a>&nbsp;<a class="button" href="http://demo.flightstats-ops.com/airporttrackerdemo/?airportCode='+
-        aircode+'" target="_blank">Live Tracker</a>'+
-        '&nbsp;<a class="button csdisp" href="#">Hide Codeshares</a>'+
-        // '&nbsp;<a class="button" href="'+url+'" target="_blank">XML</a>'+
+        daynames[startTime.getDay()]+', '+startTime.toLocaleString()+' (+<span id="numHours">'+numHours+
+        '</span> hours)<br /><a class="button" href="http://zat.com/apps/airtrack/?airportCode='+
+        aircode+'&appId='+appId+'&appKey='+appKey+'" target="_blank">Live Airport Tracker</a>&nbsp;&nbsp;<a class="button" href="http://zat.com/apps/delaylist/?dep='+
+        aircode+'" target="_blank">'+aircode+' Delay Info</a>&nbsp;&nbsp;<a class="button csdisp" href="#">Hide Codeshares</a>'+
         '<br /><span style="font-family: Arial, sans-serif; font-size: 7pt">Click header to sort. Flight information is provided by '+
-        '<a target="_blank" href="http://www.flightstats.com">FlightStats</a>, and is subject to the FlightStats '+
-        '<a target="_blank" href="http://www.flightstats.com/go/About/termsOfUse.do">Terms of Use</a>.</span>'+
+        '<a target="_blank" href="http://www.flightstats.com">FlightStats</a>.</span>'+
         '<br /><table class="tblhead"><tr class="tblrow"><td></td><td></td><td></td><td></td><td></td></tr></table>');
     // build URL in array
     var url = ['https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/',
@@ -301,7 +250,7 @@
     // $.ajax({ url: url, success: sg});
     
     $('.csdisp').click(function(e) {
-      $(e.target).text((showcodeshares?'Show':'Hide')+' codeshares');
+      $(e.target).text((showcodeshares?'Show':'Hide')+' Codeshares');
       showcodeshares = !showcodeshares;
       dolines();
     });
@@ -313,7 +262,7 @@
     }
 
     function sg(data, status, xhr) {
-      // console.log('depart: ', data);
+      console.log('response: ', data);
       if (!data || data.error) { return; }
 
       var airports = getAppendix(data.appendix.airports);
@@ -323,14 +272,16 @@
 
       var index = 0;
       var airlines = getAppendix(data.appendix.airlines);
+      hour = data.request.hourOfDay.interpreted;
 
       $.each(data.flightStatuses, function(i, v) {
-        var dt = parseDate(v.operationalTimes && v.operationalTimes.estimatedRunwayDeparture && v.operationalTimes.estimatedRunwayDeparture.dateLocal
-          ? v.operationalTimes.estimatedRunwayDeparture.dateLocal : v.departureDate.dateLocal);
+        var dt = parseDate(v.operationalTimes && v.operationalTimes.estimatedRunwayDeparture && v.operationalTimes.estimatedRunwayDeparture.dateLocal ?
+          v.operationalTimes.estimatedRunwayDeparture.dateLocal : v.departureDate.dateLocal);
+        // console.log(dt, dt.valueOf());
         var line = {
           index: index,
           fid: v.flightId,
-          flightNum: v.flightNumber, 
+          flightNum: v.flightNumber,
           carrierCode: v.carrierFsCode,
           carrierName: airlines[v.carrierFsCode].name,
           otherAirportCode: v.arrivalAirportFsCode,
@@ -351,8 +302,8 @@
           line.origName = line.carrierName;
           line.origFlight = line.flightNum;
           var len = cs.length;
-          for (var i = 0; i < len; i++) {
-            share(line, cs[i]);
+          for (var idx = 0; idx < len; idx++) {
+            share(line, cs[idx]);
           }
         }
       });
@@ -402,3 +353,36 @@
 
   });
 }(jQuery));
+
+  // parse XML tree into a JavaScript object
+  // obj.a is a map of attributes
+  // obj.c is a map of children nodes
+  // a child node can be an array of nodes with the same name
+  // function XML2obj($x) {
+  //   var n = {},
+  //       xa = $x[0].attributes;
+  //   if (xa) { // has attributes
+  //     n.a = {};
+  //     var l = xa.length;
+  //     for (var i = 0; i < l; i++) {
+  //       n.a[xa[i].nodeName] = xa[i].nodeValue; // set attribute name:value
+  //     }
+  //   }
+  //   var $c = $x.children();
+  //   if ($c.length > 0) { // has children nodes
+  //     n.c = {};
+  //     $c.each(function() {
+  //       var name = this.tagName;
+  //       var child = n.c;
+  //       if (child[name] === undefined) { // one child
+  //         child[name] = XML2obj($(this));
+  //       } else { // multiple children
+  //         if (!$.isArray(child[name])) {
+  //           child[name] = [child[name]];
+  //         }
+  //         child[name].push(XML2obj($(this)));
+  //       }
+  //     });
+  //   }
+  //   return n;
+  // }

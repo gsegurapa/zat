@@ -14,7 +14,8 @@
   var $popped; // which detail is showing
   var $sorted; // header element of current sort order
   var order = 1; // 1 ascending, -1 descending
-  var inout = 'dep';  // departing, use 'arr' for arrivals
+  // var inout = 'dep';  // departing, use 'arr' for arrivals
+  var inout = 'arr';  // arriving, use 'dep' for departures
 
   var appId = '9543a3e8';
   var appKey = '91d511451d9dbf38ede3efafefac5f09';
@@ -22,7 +23,13 @@
   var params = window.location.href.match(/\?.*$/);
   if (params && params[0] && params[0].length === 4) {
     aircode = params[0].substr(1);
-  }
+  } else if (window.location.search.length > 4) { // arr=PDX or dep=SEA
+      window.location.href.replace(/[?&;]\s?([^=&;]+)=([^&;]*)/gi,
+        function(m,key,value) {
+          inout = key;
+          aircode = value;
+        });
+    }
 
   
   function strcmp( str1, str2 ) {
@@ -54,8 +61,8 @@
   var fields = [
     { title: 'Carrier', left: 0, width: '15%', sort: carriercmp },
     { title: 'Flight', left: '16%', width: '12%', sort: flightcmp },
-    { title: 'Destination', left: '37%', width: '21%', sort: destcmp },
-    { title: 'Departure', left: '58%', width: '18%', sort: timecmp },
+    { title: inout==='dep' ? 'Destination' : 'Origin', left: '37%', width: '21%', sort: destcmp },
+    { title: inout==='dep' ? 'Departure' : 'Arrival', left: '58%', width: '18%', sort: timecmp },
     { title: 'Status', left: '75%', width: '16%', sort: function(a, b) { return order * (a.delay() - b.delay()); } }];
     
     
@@ -105,7 +112,7 @@
       carrierName = args.carrierName,
       otherAirportCode = args.otherAirportCode,
       otherAirport = args.otherAirport,
-      departTime = args.departTime,
+      flightTime = args.flightTime,
       status = args.status,
       delay = args.delay,
       departDateStr = args.departDateStr,
@@ -130,10 +137,10 @@
         otherAirport.city+' ('+otherAirportCode+')</span></div>'+
         // Departure (time)
         '<div class="tcell" style="width:18%;left:58%"><span class="incell" style="font-size:0.8em;">'+
-        departTime.toLocaleTimeString()+'</span></div>'+  // .match(/[^ ]+ [^ ]+/)
+        flightTime.toLocaleTimeString()+'</span></div>'+  // .match(/[^ ]+ [^ ]+/)
         // Status and delay
         '<div class="tcell" style="width:16%;left:80%"><span style="font-size:0.8em;line-height:0">'+
-        status+'<br />'+(delay>0?'<span class="delay">Delayed '+(delay)+'m</span>' : 'On-time')+'</span></div>'+
+        status+'<br />'+(delay>=5?'<span class="delay">Delayed '+(delay)+'m</span>' : 'On-time')+'</span></div>'+
         // Flight info line
         '<div class="tcell" style="width:97%;left:1%;top:29px;font-size:0.8em;text-align:left;overflow:hidden;white-space:nowrap;">'+
         '<span class="carrierName">'+carrierName+'</span> '+carrierCode+' '+flightNum+
@@ -178,7 +185,7 @@
       carrier: function() { return carrierName; },
       airport: function() { return otherAirportCode; },
       city: function() { return otherAirport.city; },
-      time: function() { return departTime.getTime(); },
+      time: function() { return flightTime.getTime(); },
       delay: function() { return delay; },
       id: function() { return +fid; },
       index: function() { return index; },
@@ -188,7 +195,7 @@
   
   function dolines() {
     var len = lines.length;
-    linepos = 148;
+    linepos = 140;
     for (var i = 0; i<len; i++) {
       if (showcodeshares || !lines[i].codeshare()) {
         lines[i].move(linepos);
@@ -216,13 +223,12 @@
     // endTime.setMinutes(startTime.getMinutes() + elapsed);
     
     // top information
-    $('#head').html('<strong><a class="button" style="font-size:1em" href="http://www.flightstats.com/go/Airport/airportDetails.do?airportCode='+
-        aircode+'&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">'+
-        aircode+'</a></strong> <span id="airportname"></span><div id="whichway">Departures</div>'+
-        daynames[startTime.getDay()]+', '+startTime.toLocaleString()+' (+<span id="numHours">'+numHours+
+    $('#head').html('<div id="titleline">'+aircode+' '+(inout === 'dep' ? 'Departures' : 'Arrivals')+
+        '</div><div id="airportname"></div>'+
+        startTime.toLocaleString()+' (+<span id="numHours">'+numHours+
         '</span> hours)<br /><a class="button" href="http://zat.com/apps/airtrack/?airportCode='+
         aircode+'&appId='+appId+'&appKey='+appKey+'" target="_blank">Live Airport Tracker</a>&nbsp;&nbsp;<a class="button" href="http://zat.com/apps/delaylist/?dep='+
-        aircode+'" target="_blank">'+aircode+' Delay Info</a>&nbsp;&nbsp;<a class="button csdisp" href="#">Hide Codeshares</a>'+
+        aircode+'" target="_blank">'+aircode+' Delay Info</a>&nbsp;&nbsp;<span class="button csdisp">Hide Codeshares</span>'+
         '<br /><span style="font-family: Arial, sans-serif; font-size: 7pt">Click header to sort. Flight information is provided by '+
         '<a target="_blank" href="http://www.flightstats.com">FlightStats</a>.</span>'+
         '<br /><table class="tblhead"><tr class="tblrow"><td></td><td></td><td></td><td></td><td></td></tr></table>');
@@ -262,34 +268,40 @@
     }
 
     function sg(data, status, xhr) {
-      console.log('response: ', data);
+      // console.log('response: ', data);
       if (!data || data.error) { return; }
 
       var airports = getAppendix(data.appendix.airports);
       var homeairport = airports[aircode];  // home airport
       $('#airportname').text(homeairport.name+' ('+homeairport.city+', '+
-          homeairport.stateCode+', '+homeairport.countryCode+')');
+          (homeairport.stateCode !== undefined ? homeairport.stateCode+', ' : '')+homeairport.countryCode+')');
 
       var index = 0;
       var airlines = getAppendix(data.appendix.airlines);
       hour = data.request.hourOfDay.interpreted;
 
       $.each(data.flightStatuses, function(i, v) {
-        var dt = parseDate(v.operationalTimes && v.operationalTimes.estimatedRunwayDeparture && v.operationalTimes.estimatedRunwayDeparture.dateLocal ?
-          v.operationalTimes.estimatedRunwayDeparture.dateLocal : v.departureDate.dateLocal);
+        var ft = parseDate(inout === 'dep' ?
+          (v.operationalTimes && v.operationalTimes.estimatedRunwayDeparture && v.operationalTimes.estimatedRunwayDeparture.dateLocal ?
+          v.operationalTimes.estimatedRunwayDeparture.dateLocal : v.departureDate.dateLocal) :
+          (v.operationalTimes && v.operationalTimes.estimatedRunwayArrival && v.operationalTimes.estimatedRunwayArrival.dateLocal ?
+          v.operationalTimes.estimatedRunwayArrival.dateLocal : v.arrivalDate.dateLocal));
         // console.log(dt, dt.valueOf());
+        var other = inout === 'dep' ? v.arrivalAirportFsCode : v.departureAirportFsCode;
         var line = {
           index: index,
           fid: v.flightId,
           flightNum: v.flightNumber,
           carrierCode: v.carrierFsCode,
           carrierName: airlines[v.carrierFsCode].name,
-          otherAirportCode: v.arrivalAirportFsCode,
-          otherAirport: airports[v.arrivalAirportFsCode],
-          departTime: dt,
-          departDateStr: v.departureDate.dateLocal.substr(0,10),
-          delay: v.delays ? (v.delays.departureRunwayDelayMinutes ? v.delays.departureRunwayDelayMinutes :
-            (v.delays.departureGateDelayMinutes ? v.delays.departureGateDelayMinutes : 0)) : 0,
+          otherAirportCode: other,
+          otherAirport: airports[other],
+          flightTime: ft,
+          departDateStr: (inout === 'dep' ? v.departureDate : v.arrivalDate).dateLocal.substr(0,10),
+          delay: v.delays ? ( inout === 'dep' ?
+              (v.delays.departureRunwayDelayMinutes || v.delays.departureGateDelayMinutes || 0) :
+              (v.delays.arrivalRunwayDelayMinutes || v.delays.arrivalGateDelayMinutes || 0)
+            ) : 0,
           status: tstatus[v.status],
           vpos: linepos+29
         };
@@ -335,7 +347,7 @@
     
     var $tr = $('tr.tblrow td').each(function(i, el) {
       $(el).width(fields[i].width).text(fields[i].title);
-      if (fields[i].title === 'Departure') { $sorted = $(el).addClass('sortup'); } // initial value
+      if (fields[i].title === 'Departure' || fields[i].title === 'Arrival') { $sorted = $(el).addClass('sortup'); } // initial value
       var sf = fields[i].sort;
       if (sf) { $(el).click(function(e) {
         if ($sorted) {

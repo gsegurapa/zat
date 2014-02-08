@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<title>Zat Wind Map</title>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+	<style>
+	body, body iframe {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		margin: 0 0;
+		overflow: hidden;
+		border: none;
+	}
+	#alt {
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		width: 130px;
+		height: 60px;
+		padding: 15px;
+		font-family: Tahoma, Arial, Helvetica, sans-serif;
+		font-size: 25px;
+		background: black;
+		color: white;
+		text-align: center;
+		z-index: 100000;
+	}
+	#logo {
+		position: absolute;
+		right: 25px;
+		bottom: 25px;
+		z-index: 100000;
+	}
+	</style>
+</head>
+<body>
+<div id="alt">Wind at 30,000 feet</div>
+<img id="logo" src="headerlogo.png" />
+<script type="text/javascript">
+(function($){
+  "use strict";
+
+  var win = window;
+  var doc = document && document.documentElement;
+  var bod = document && document.getElementsByTagName("body")[0];
+  var width = win.innerWidth || doc.clientWidth || bod.clientWidth;
+  var height = win.innerHeight || doc.clientHeight || bod.clientHeight;
+  var size = Math.min(width, height) * 0.5;
+  var $alt = $('#alt');
+
+  var $frame = $('<iframe />', {
+  	id: 'windmap',
+    src: 'http://earth.nullschool.net/#current/wind/isobaric/250hPa/overlay=off/orthographic=-100,20,'+size
+  }).appendTo(bod);
+
+  $alt.click(function() {
+  	if ($alt.text() === 'Wind at Surface') {
+	  	$alt.text('Wind at 30,000 feet');
+	  	$frame.attr('src', 'http://earth.nullschool.net/#current/wind/isobaric/250hPa/overlay=off/orthographic=-100,20,'+size);
+  	} else {
+	  	$alt.text('Wind at Surface');
+	  	$frame.attr('src', 'http://earth.nullschool.net/#current/wind/surface/level/overlay=off/orthographic=-100,20,'+size);
+  	}
+	  $('#windmap').replaceWith($frame);
+  });
+
+})(jQuery)
+</script>
+</body>
+</html>

@@ -715,6 +715,7 @@
         var pixpos = map.latLngToLayerPoint(pos); // convert position to pixels
         var pib = bounds.contains(pos);
         var pos2, pixpos2, pib2 = false;
+        var $lk;
         if (lng > 0) {
           pos2 = L.latLng(lat, lng-360);
           pixpos2 = map.latLngToLayerPoint(pos2);
@@ -794,9 +795,14 @@
                 top: (pixpos.y - 4)+'px',
                 'z-index': 2+Math.round(v.normalizedScore*4)
             }});
-            if (pib) { $icon.appendTo($d); }
+            if (interactive) {
+              $lk = $('<a>', { href: 'http://zat.com/apps/delaylist/?interactive=true&dep='+airport.fs, target: '_blank' }).appendTo($d);
+            } else {
+              $lk = $d;
+            }
+            if (pib) { $icon.appendTo($lk); }
             if (pib2) {
-              $icon.clone().css('left', (pixpos2.x - 4)+'px').appendTo($d);
+              $icon.clone().css('left', (pixpos2.x - 4)+'px').appendTo($lk);
             }
           }
         }

@@ -112,7 +112,9 @@
 				if (ap.countryCode !== 'US' && ap.countryCode !== 'CA') { continue; }
 				dfl = el.observations - el.onTime - el.canceled;
 				score = el.normalizedScore;
-				$('<tr><td>'+el.airportFsCode+'</td><td>'+ap.city+' '+ap.stateCode+
+				$('<tr><td>'+
+						(interactive?'<a href="index.html?interactive=true&dep='+el.airportFsCode+'" target="_blank">'+el.airportFsCode+'</a>':el.airportFsCode)+
+						'</td><td>'+ap.city+' '+ap.stateCode+
 						'</td><td class="score"><span style="background-color:'+colors[Math.round(score)-1]+';padding:0 '+(score * 9)+'px;"></span></td><td>'+
 						(dfl > 0 ? dfl+' ('+Math.ceil(100*dfl/el.observations)+'%)' : '')+'</td><td>'+
 						(el.canceled > 0 ? el.canceled+' ('+Math.ceil(100*el.canceled/el.observations)+'%)' : '')+'</td><td>'+

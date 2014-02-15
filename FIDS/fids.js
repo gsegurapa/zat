@@ -223,8 +223,10 @@
     // endTime.setMinutes(startTime.getMinutes() + elapsed);
     
     // top information
-    $('#head').html('<div id="titleline">'+aircode+' '+(inout === 'dep' ? 'Departures' : 'Arrivals')+
-        '</div><div id="airportname"></div>'+
+    $('#head').html('<div id="titleline">' + (inout==='arr' ?
+        '<a href="index.html?dep=' + aircode + '">' + aircode + ' Arrivals' :
+        '<a href="index.html?arr=' + aircode + '">' + aircode + ' Departures') +
+        '</a></div><div id="airportname"></div>' +
         startTime.toLocaleString()+' (+<span id="numHours">'+numHours+
         '</span> hours)<br /><a class="button" href="http://zat.com/apps/airtrack/?airportCode='+
         aircode+'&appId='+appId+'&appKey='+appKey+'" target="_blank">Live Airport Tracker</a>&nbsp;&nbsp;<a class="button" href="http://zat.com/apps/delaylist/?dep='+

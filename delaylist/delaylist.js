@@ -29,8 +29,17 @@
 			$('body').css('overflow', 'hidden');
 		}
 		if (arrDep === 'arr' || arrDep == 'dep') {
-			$('#header').text(airport + ' Delayed '+(arrDep==='arr' ? 'Arrivals' : 'Departures'));
+			$('#header').html((interactive ? (arrDep==='arr' ?
+				'<a href="'+window.location.href.replace('arr', 'dep') + '">' :
+				'<a href="'+window.location.href.replace('dep', 'arr') + '">') : '') +
+				airport + ' Delayed ' + (arrDep==='arr' ? 'Arrivals' : 'Departures') +
+				(interactive ? '</a>' : ''));
+
+			var t = new Date();
+
 			$.ajax({
+							// url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/' + airport + '/' + arrDep +
+							//	'/' + t.getFullYear() + '/' + (t.getMonth() + 1) + '/' + t.getDate() + '/' + t.getHours(),
 							url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airport + '/' + arrDep,
 							data: { maxPositions: 1, appId: flight_appId, appKey: flight_appKey, includeFlightPlan: false },
 							dataType: 'jsonp',
@@ -64,7 +73,7 @@
 				}
 				return;
 			}
-			// console.log('flight data:', data);
+			console.log('flight data:', data);
 			var el, ap, c, d;
 			airports = getAppendix(data.appendix.airports);
 			var t = data.flightTracks;
@@ -77,11 +86,14 @@
 				if (el.delayMinutes === undefined || d < minDelayTime) { break; }
 				ap = arrDep === 'arr' ? el.departureAirportFsCode : el.arrivalAirportFsCode;
 				c = airports[ap].countryCode;
-				$('<tr><td>'+el.carrierFsCode+' '+el.flightNumber+'</td><td>'+
-						'<span style="color:'+colors[Math.min(4, Math.floor(d/15)+1)]+'">'+
-						(d >= 60 ? (d/60).toFixed(0)+':'+(d%60 < 10 ? '0' : '')+ d%60 : d+' min')+'</span></td><td>'+
-						ap+'</td><td>'+airports[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airports[ap].stateCode)+'</td></tr>').
-						appendTo('#tab');
+				$('<tr><td>' +
+					(interactive ? '<a href="http://zat.com/apps/flick?id='+el.flightId+'&airline='+
+						el.carrierFsCode+'&flight='+el.flightNumber+'" target="_blank">' : '') +
+					el.carrierFsCode+' '+el.flightNumber+ (interactive ? '</a>' : '') + '</td><td>'+
+					'<span style="color:'+colors[Math.min(4, Math.floor(d/15)+1)]+'">'+
+					(d >= 60 ? (d/60).toFixed(0)+':'+(d%60 < 10 ? '0' : '')+ d%60 : d+' min')+'</span></td><td>'+
+					ap+'</td><td>'+airports[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airports[ap].stateCode)+'</td></tr>').
+					appendTo('#tab');
 			}
 		}
 

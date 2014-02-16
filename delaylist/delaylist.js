@@ -81,7 +81,7 @@
 				return;
 			}
 			// console.log('flight data:', data);
-			var el, ap, c, d;
+			var el, ap, c, d, flag = 0;
 			airports = getAppendix(data.appendix.airports);
 			var t = data.flightTracks;
 			t.sort(cpf);
@@ -91,6 +91,7 @@
 				el = t[i];
 				d = +el.delayMinutes;
 				if (el.delayMinutes === undefined || d < minDelayTime) { break; }
+				flag++;
 				ap = arrDep === 'arr' ? el.departureAirportFsCode : el.arrivalAirportFsCode;
 				c = airports[ap].countryCode;
 				$('<tr><td>' +
@@ -102,6 +103,9 @@
 					(interactive ?  '<a href="'+window.location.href.replace('='+airport, '='+ap)+'">'+ap+'</a>' : ap)+
 					'</td><td>'+airports[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airports[ap].stateCode)+'</td></tr>').
 					appendTo('#tab');
+			}
+			if (flag === 0) {
+				$('<tr><td colspan="4"><i>No Delayed Flights Found</i></td></tr>').appendTo('#tab');
 			}
 		}
 
@@ -119,7 +123,7 @@
 				return;
 			}
 			// console.log('airport data:', data);
-			var el, dfl, ap, score;
+			var el, dfl, ap, score, flag=0;
 			airports = getAppendix(data.appendix.airports);
 			var di = data.delayIndexes;
 			di.sort(cpa);
@@ -130,6 +134,7 @@
 				el = di[i];
 				ap = airports[el.airportFsCode];
 				if (ap.countryCode !== 'US' && ap.countryCode !== 'CA') { continue; }
+				flag++;
 				dfl = el.observations - el.onTime - el.canceled;
 				score = el.normalizedScore;
 				$('<tr><td>'+
@@ -140,6 +145,9 @@
 						(el.canceled > 0 ? el.canceled+' ('+Math.ceil(100*el.canceled/el.observations)+'%)' : '')+'</td><td>'+
 						(el.delta !== 0.0 ? (el.delta > 0 ? '<font color="green">improving</font>' : '<font color="red">worsening</font>') : '')+
 						'</td></tr>').appendTo('#tab').find('span').attr('title', score);
+			}
+			if (flag === 0) {
+				$('<tr><td colspan="6"><i>No Significant Airport Delays Found</i></td></tr>').appendTo('#tab');
 			}
 		}
 

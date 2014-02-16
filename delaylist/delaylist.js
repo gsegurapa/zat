@@ -3,6 +3,7 @@
 
 	var airport_appId='23d80adf', airport_appKey='ebc0894e85d4ef2435d40914a285f956';
 	var flight_appId='368357de', flight_appKey='03072013';
+  var tracker_appId='368357de', tracker_appKey='26901bf7d1f3534aa1e7a5a3be111b39';
 	var airportSize = 2; // size of airports to display (1 is primary hub)
 	var minDelay = 1.0;  // min airport delay (0 - 5)
 	var minDelayTime = 15;  // min flight delay in minutes
@@ -10,7 +11,7 @@
 	$(document).ready(function() {
 
 		var airport, arrDep, airports;
-		var interactive = false;
+		var interactive = true;
 		var bounds = [[24.3, -125], [49.5, -66.8]]; // Continental US
 		var colors = [ 'lightgreen', 'yellow', 'darkorange', 'red', 'darkred' ];
 	
@@ -29,13 +30,16 @@
 			$('body').css('overflow', 'hidden');
 		}
 		if (arrDep === 'arr' || arrDep == 'dep') {
-			$('#header').html((interactive ? (arrDep==='arr' ?
-				'<a href="'+window.location.href.replace('arr', 'dep') + '">' :
-				'<a href="'+window.location.href.replace('dep', 'arr') + '">') : '') +
-				airport + ' Delayed ' + (arrDep==='arr' ? 'Arrivals' : 'Departures') +
-				(interactive ? '</a>' : ''));
+			$('#header').text(airport + ' Delayed ' + (arrDep==='arr' ? 'Arrivals' : 'Departures'));
+			$('#arrdep').show().attr({
+				src: (arrDep==='arr'?'arrive.png':'depart.png'),
+				onclick: 'window.location.href="'+(arrDep==='arr'?
+					window.location.href.replace('arr', 'dep') : window.location.href.replace('dep', 'arr'))+'";'});
+			$('#domap').show().attr('onclick', 'window.location.href = "../airtrack/index.html?arrDep='+arrDep+'&airportCode='+airport+
+				'&interactive=true&zoomLevel=7&showLabels=delay&flightMarkerScale=55&weatherFrames=3&appId='+
+				tracker_appId+'&appKey='+tracker_appKey+'";');
 
-			var t = new Date();
+			// var t = new Date();
 
 			$.ajax({
 							// url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/' + airport + '/' + arrDep +
@@ -48,6 +52,9 @@
 						});
 		} else {	// airport delays
 			$('#header').text('US Airports with Significant Delays');
+			if (interactive) {
+				$('#domap').show().attr('onclick', 'window.location.href = "../delay/index.html?mapArea=conus&showWeather=true&mapType=acetate";');
+			}
 			$.ajax({
 						url: 'https://api.flightstats.com/flex/delayindex/rest/v2/jsonp/within/'+
 						bounds[0][0]+'/'+bounds[0][1]+'/'+bounds[1][0]+'/'+bounds[1][1],
@@ -73,7 +80,7 @@
 				}
 				return;
 			}
-			console.log('flight data:', data);
+			// console.log('flight data:', data);
 			var el, ap, c, d;
 			airports = getAppendix(data.appendix.airports);
 			var t = data.flightTracks;
@@ -87,12 +94,13 @@
 				ap = arrDep === 'arr' ? el.departureAirportFsCode : el.arrivalAirportFsCode;
 				c = airports[ap].countryCode;
 				$('<tr><td>' +
-					(interactive ? '<a href="http://zat.com/apps/flick?id='+el.flightId+'&airline='+
-						el.carrierFsCode+'&flight='+el.flightNumber+'" target="_blank">' : '') +
+					(interactive ? '<a href="../flick/index.html?id='+el.flightId+'&airline='+
+						el.carrierFsCode+'&flight='+el.flightNumber+'">' : '') +
 					el.carrierFsCode+' '+el.flightNumber+ (interactive ? '</a>' : '') + '</td><td>'+
 					'<span style="color:'+colors[Math.min(4, Math.floor(d/15)+1)]+'">'+
 					(d >= 60 ? (d/60).toFixed(0)+':'+(d%60 < 10 ? '0' : '')+ d%60 : d+' min')+'</span></td><td>'+
-					ap+'</td><td>'+airports[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airports[ap].stateCode)+'</td></tr>').
+					(interactive ?  '<a href="'+window.location.href.replace('='+airport, '='+ap)+'">'+ap+'</a>' : ap)+
+					'</td><td>'+airports[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airports[ap].stateCode)+'</td></tr>').
 					appendTo('#tab');
 			}
 		}
@@ -125,7 +133,7 @@
 				dfl = el.observations - el.onTime - el.canceled;
 				score = el.normalizedScore;
 				$('<tr><td>'+
-						(interactive?'<a href="index.html?interactive=true&dep='+el.airportFsCode+'" target="_blank">'+el.airportFsCode+'</a>':el.airportFsCode)+
+						(interactive?'<a href="index.html?dep='+el.airportFsCode+'">'+el.airportFsCode+'</a>':el.airportFsCode)+
 						'</td><td>'+ap.city+' '+ap.stateCode+
 						'</td><td class="score"><span style="background-color:'+colors[Math.round(score)-1]+';padding:0 '+(score * 9)+'px;"></span></td><td>'+
 						(dfl > 0 ? dfl+' ('+Math.ceil(100*dfl/el.observations)+'%)' : '')+'</td><td>'+

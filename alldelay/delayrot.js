@@ -29,7 +29,7 @@
         break;
         case 1: // delay map
           $frame = $('<iframe />', {
-            src: '../delay/index.html?mapArea=conus&showWeather=true&mapType=acetate'
+            src: '../delay/index.html?mapArea=conus&showWeather=true&mapType=acetate&interactive=false'
           }).appendTo('#top');
           state++;
         break;
@@ -45,7 +45,7 @@
           }).appendTo('#top');
           state++;
         break;
-        case 4: // list of delayed arrivals
+        case 4: // list of delayed departures
           arr = true;
           flightDelays(dair);
           state++;
@@ -89,7 +89,7 @@
       $('#tab').empty();
       $('<tr><th></th><th></th><th></th><th id="flcol" colspan="2" align="center">&mdash; Flights &mdash;</th><th></th><tr>'+
         '<tr><th>Airport</th><th>City</th><th>Severity</th><th>Delayed</th><th>Canceled</th><th>Trend</th></tr>').
-          appendTo('#tab');    
+          appendTo('#tab');
       for (var i = 0; i < di.length ; i++) {
         el = di[i];
         ap = airportDict[el.airportFsCode];
@@ -135,11 +135,11 @@
             dataType: 'jsonp',
             success: getFlights,
             error: badajax
-          });      
+          });
     }
 
     function getFlights(data, status, xhr) {
-    	if (!data || data.error) {
+      if (!data || data.error) {
         if (console && console.log) {
           console.log('data request error:', data.error.errorMessage, data);
         } else {
@@ -154,18 +154,18 @@
       t.sort(cpf);
       $('#tab').empty();
       $('<tr><th>Flight</th><th>Delay</th><th>'+(arr ? 'Origin' : 'Destination')+'</th><th>City</th></tr>').
-      		appendTo('#tab');
+          appendTo('#tab');
       for (var i = 0; i < t.length; i++) {
-      	el = t[i];
+        el = t[i];
         d = +el.delayMinutes;
         if (el.delayMinutes === undefined || d < minDelayTime) { break; }
-      	ap = arr ? el.departureAirportFsCode : el.arrivalAirportFsCode;
-      	c = airportDict[ap].countryCode;
+        ap = arr ? el.departureAirportFsCode : el.arrivalAirportFsCode;
+        c = airportDict[ap].countryCode;
         $('<tr><td>'+el.carrierFsCode+' '+el.flightNumber+'</td><td>'+
             '<span style="color:'+colors[Math.min(4, Math.floor(d/15)+1)]+'">'+
             (d >= 60 ? (d/60).toFixed(0)+':'+(d%60 < 10 ? '0' : '')+ d%60 : d+' min')+'</span></td><td>'+
-      			ap+'</td><td>'+airportDict[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airportDict[ap].stateCode)+'</td></tr>').
-      			appendTo('#tab');
+            ap+'</td><td>'+airportDict[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airportDict[ap].stateCode)+'</td></tr>').
+            appendTo('#tab');
       }
       if ($frame) { // frame exists, delete
         $frame.remove();
@@ -173,7 +173,7 @@
     }
 
     function cpf(a, b) {
-    	return (b.delayMinutes === undefined ? 0 : b.delayMinutes) - (a.delayMinutes === undefined ? 0 : a.delayMinutes);
+      return (b.delayMinutes === undefined ? 0 : b.delayMinutes) - (a.delayMinutes === undefined ? 0 : a.delayMinutes);
     }
 
     function badajax(jqXHR, textStatus, errorThrown) {

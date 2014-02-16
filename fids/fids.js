@@ -152,8 +152,8 @@
         origName+' ('+origCarrier+' '+origFlight+')</em></div>':'')+
         // Links line
         '<div class="tcell links" style="width:97%;left:1%;top:60px"><a href="http://zat.com/apps/flick?id='+
-        fid+'&airline='+carrierCode+'&flight='+flightNum+'" target="_blank">Live Flight Tracker</a>'+
-        '&nbsp;&nbsp;<a href="http://zat.com/apps/delaylist?dep='+otherAirportCode+'" target="_blank">'+otherAirportCode+
+        fid+'&airline='+carrierCode+'&flight='+flightNum+'">Live Flight Tracker</a>'+
+        '&nbsp;&nbsp;<a href="http://zat.com/apps/delaylist?dep='+otherAirportCode+'">'+otherAirportCode+
         ' Delay Info</a>&nbsp;&nbsp;<a href="http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id='+fid+
         '&airlineCode='+carrierCode+'&flightNumber='+flightNum+
         '&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">Detail Flight Status</a></div>');
@@ -222,18 +222,22 @@
     var hour = startTime.getHours();
     // endTime.setMinutes(startTime.getMinutes() + elapsed);
     
-    // top information
-    $('#head').html('<div id="titleline">' + (inout==='arr' ?
-        '<a href="index.html?dep=' + aircode + '">' + aircode + ' Arrivals' :
-        '<a href="index.html?arr=' + aircode + '">' + aircode + ' Departures') +
-        '</a></div><div id="airportname"></div>' +
+    // header information
+    $('#head').html('<div id="titleline">' + aircode +
+        (inout==='arr' ? ' Arrivals' : ' Departures') + '</div><div id="airportname"></div><div id="curtime">' +
         startTime.toLocaleString()+' (+<span id="numHours">'+numHours+
-        '</span> hours)<br /><a class="button" href="http://zat.com/apps/airtrack/?airportCode='+
-        aircode+'&appId='+appId+'&appKey='+appKey+'" target="_blank">Live Airport Tracker</a>&nbsp;&nbsp;<a class="button" href="http://zat.com/apps/delaylist/?dep='+
-        aircode+'" target="_blank">'+aircode+' Delay Info</a>&nbsp;&nbsp;<span class="button csdisp">Hide Codeshares</span>'+
+        '</span> hours)</div><a class="button" href="http://zat.com/apps/airtrack/?airportCode='+
+        aircode+'&appId='+appId+'&appKey='+appKey+'">Live Airport Tracker</a>&nbsp;&nbsp;<a class="button" href="http://zat.com/apps/delaylist/?dep='+
+        aircode+'">'+aircode+' Delay Info</a>&nbsp;&nbsp;<span class="button csdisp">Hide Codeshares</span>'+
         '<br /><span style="font-family: Arial, sans-serif; font-size: 7pt">Click header to sort. Flight information is provided by '+
         '<a target="_blank" href="http://www.flightstats.com">FlightStats</a>.</span>'+
         '<br /><table class="tblhead"><tr class="tblrow"><td></td><td></td><td></td><td></td><td></td></tr></table>');
+
+    $('#arrdep').show().attr({
+        src: (inout==='arr'?'arrive.png':'depart.png'),
+        onclick: 'window.location.href="index.html?'+(inout==='arr'?'dep':'arr')+'='+aircode+'";'
+      });
+
     // build URL in array
     var url = ['https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/',
       aircode, '/', // airport code

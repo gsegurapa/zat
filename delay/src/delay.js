@@ -225,7 +225,13 @@
       formatDate(timeFormat);
     }
 
-    if (!(showLegend && showIcons)) { $('#legend').hide(); }
+    if (!(showLegend && showIcons)) {
+      $('#legend').hide();
+    } else if (interactive) {
+      $('#legend').click(function() {
+        window.location.href = '../delaylist/index.html';
+      });
+    }
 
     map = L.map('map_div', { // create map
       dragging: interactive,
@@ -796,7 +802,7 @@
                 'z-index': 2+Math.round(v.normalizedScore*4)
             }});
             if (interactive) {
-              $lk = $('<a>', { href: 'http://zat.com/apps/delaylist/?interactive=true&dep='+airport.fs, target: '_blank' }).appendTo($d);
+              $lk = $('<a>', { href: '../delaylist/index.html?dep='+airport.fs }).appendTo($d);
             } else {
               $lk = $d;
             }

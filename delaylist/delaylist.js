@@ -32,7 +32,7 @@
 		if (arrDep === 'arr' || arrDep == 'dep') {
 			$('#header').text(airport + ' Delayed ' + (arrDep==='arr' ? 'Arrivals' : 'Departures'));
 			$('#arrdep').show().attr({
-				src: (arrDep==='arr'?'arrive.png':'depart.png'),
+				src: 'img/'+(arrDep==='arr'?'arrive.png':'depart.png'),
 				onclick: 'window.location.href="'+(arrDep==='arr'?
 					window.location.href.replace('arr', 'dep') : window.location.href.replace('dep', 'arr'))+'";'});
 			$('#domap').show().attr('onclick', 'window.location.href = "../airtrack/index.html?arrDep='+arrDep+'&airportCode='+airport+
@@ -99,7 +99,7 @@
 						el.carrierFsCode+'&flight='+el.flightNumber+'">' : '') +
 					el.carrierFsCode+' '+el.flightNumber+ (interactive ? '</a>' : '') + '</td><td>'+
 					'<span style="color:'+colors[Math.min(4, Math.floor(d/15)+1)]+'">'+
-					(d >= 60 ? (d/60).toFixed(0)+':'+(d%60 < 10 ? '0' : '')+ d%60 : d+' min')+'</span></td><td>'+
+					(d >= 60 ? (d/60).toFixed(0)+':'+(d%60 < 10 ? '0' : '')+ d%60 + ' hr' : d+' min')+'</span></td><td>'+
 					(interactive ?  '<a href="'+window.location.href.replace('='+airport, '='+ap)+'">'+ap+'</a>' : ap)+
 					'</td><td>'+airports[ap].city+' '+(c !== 'US' && c !== 'CA' ? c : airports[ap].stateCode)+'</td></tr>').
 					appendTo('#tab');
@@ -143,7 +143,7 @@
 						'</td><td class="score"><span style="background-color:'+colors[Math.round(score)-1]+';padding:0 '+(score * 9)+'px;"></span></td><td>'+
 						(dfl > 0 ? dfl+' ('+Math.ceil(100*dfl/el.observations)+'%)' : '')+'</td><td>'+
 						(el.canceled > 0 ? el.canceled+' ('+Math.ceil(100*el.canceled/el.observations)+'%)' : '')+'</td><td>'+
-						(el.delta !== 0.0 ? (el.delta > 0 ? '<font color="green">improving</font>' : '<font color="red">worsening</font>') : '')+
+						(el.delta !== 0.0 ? (el.delta > 0 ? '<font color="green">better</font>' : '<font color="red">worse</font>') : '')+
 						'</td></tr>').appendTo('#tab').find('span').attr('title', score);
 			}
 			if (flag === 0) {

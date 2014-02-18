@@ -13,6 +13,7 @@
 		margin: 0 0;
 		/* overflow: hidden; */
 		border: none;
+		font-family: Helvetica, Arial, sans-serif;
 	}
 	#header {
 		position: absolute;
@@ -21,15 +22,24 @@
 		height: 60px;
 		font-size: 40px;
 		font-weight: bold;
-		font-family: sans-serif;
 		text-align: center;
 		margin-top: 10px;
+	}
+	#logo {
+		position: absolute;
+		top: 10px;
+		left: 10px;
+		width: 126px;
+		height: 35px;
+		padding: 6px;
+		background-color: black;
+		border-radius: 4px;
 	}
 	#arrdep {
 		display: none;
 		position: absolute;
 		top: 10px;
-		left: 10px;
+		right: 70px;
 		width: 40px;
 		height: 40px;
 		padding: 2px;
@@ -83,6 +93,7 @@
 </head>
 <body>
 <div id="header"></div>
+	<a href="index.html"><img id="logo" src="img/headerlogo@2.png" /></a>
 	<img id="arrdep" />
 	<img id="domap" src="img/globe.png" />
 <table id="tab"></table>

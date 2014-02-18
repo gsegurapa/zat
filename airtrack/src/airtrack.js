@@ -451,6 +451,12 @@
       }
       $('#legend').text(airportCode + (flip ? ' - ' + flipairports[0].loc :
           ' Delayed ' + (arrDep==='arr' ? 'Arrivals' : 'Departures')));
+      if (showLabels==='delay') {
+        $('#legend').click(function () {
+          window.location.href = '../delaylist/index.html?'+arrDep+'='+airportCode;
+          return false;
+        });
+      }
     }
 
     function doflip() {

@@ -100,7 +100,7 @@
             '</td><td class="score"><span style="background-color:'+colors[Math.round(score)-1]+';padding:0 '+(score * 9)+'px;"></span></td><td>'+
             (dfl > 0 ? dfl+' ('+Math.ceil(100*dfl/el.observations)+'%)' : '')+'</td><td>'+
             (el.canceled > 0 ? el.canceled+' ('+Math.ceil(100*el.canceled/el.observations)+'%)' : '')+'</td><td>'+
-            (el.delta !== 0.0 ? (el.delta > 0 ? '<font color="green">improving</font>' : '<font color="red">worsening</font>') : '')+
+            (el.delta !== 0.0 ? (el.delta > 0 ? '<font color="green">better</font>' : '<font color="red">worse</font>') : '')+
             '</td></tr>').appendTo('#tab').find('span').attr('title', score);
       }
       if ($frame) { // frame exists, delete

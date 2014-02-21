@@ -243,7 +243,7 @@
       fadeAnimation: false,
       zoomAnimation: false,
       keyboard: false,
-      maxBounds: [[-85,-360],[85, 180]],  // west -380?
+      // maxBounds: [[-85,-360],[85, 180]],  // west -380?
       worldCopyJump: false
     }).on({load: mapReady});
 

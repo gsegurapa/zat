@@ -1,4 +1,4 @@
-// FlightStats flight tracker
+// Zat flight tracker
 /*global L:false, jQuery:false */
 
 (function($){
@@ -234,7 +234,7 @@
 			zoomAnimation: true,
 			markerZoomAnimation: true,
 			layers: defaultlayers,
-			maxBounds: [[-80,-380],[85, 200]],
+			// maxBounds: [[-80,-380],[85, 200]],
 			worldCopyJump: false	// !!! only one copy of markers and polylines, for now
 		});
 		map.addLayer(layercontrol).addLayer(trackcontrol).addLayer(drawercontrol).

@@ -123,7 +123,8 @@
       origCarrier = args.origCarrier,
       origName = args.origName,
       origFlight = args.origFlight,
-      index = args.index;
+      index = args.index,
+      schedule = args.schedule;
       // ap = aobj[otherAirportCode].a;
     // console.log(departTime.toLocaleTimeString());
     var $l = $('<div class="FlightHistory">'+
@@ -156,7 +157,14 @@
         '&nbsp;&nbsp;<a href="http://zat.com/apps/delaylist?dep='+otherAirportCode+'">'+otherAirportCode+
         ' Delay Info</a>&nbsp;&nbsp;<a href="http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id='+fid+
         '&airlineCode='+carrierCode+'&flightNumber='+flightNum+
-        '&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">Detail Flight Status</a></div>');
+        '&utm_source=34b64945a69b9cac:-220bf53d:1326e2c0feb:4a89&utm_medium=cpc&utm_campaign=weblet" target="_blank">Detail Flight Status</a>'+
+        (schedule && inout === 'dep' && schedule.uplines ?
+          '&nbsp;&nbsp;<a href="..//upline/index.html?id='+schedule.uplines[0].flightId+
+          '&airline='+carrierCode+'&flight='+flightNum+'" target="_blank">Upline from '+
+          schedule.uplines[0].fsCode + '</a>' : '' )+'</div>');
+
+    if (schedule && inout === 'dep' && schedule.uplines) { console.log(carrierCode+flightNum, fid, 'uplines', schedule.uplines[0]); }
+    // if (schedule && schedule.downlines) { console.log(fid, 'downlines', schedule.downlines); }
     
     $l.appendTo('#out');
     $l.mouseenter(showDetails).mouseleave(hideDetails);
@@ -246,7 +254,7 @@
     ].join('');
     $.ajax({
       url: url,
-      data: { appId: appId, appKey: appKey, numHours: numHours },
+      data: { appId: appId, appKey: appKey, numHours: numHours, extendedOptions: 'includeNewFields' },
       dataType: 'jsonp',
       success: sg,
       error: badajax
@@ -274,7 +282,7 @@
     }
 
     function sg(data, status, xhr) {
-      // console.log('response: ', data);
+      console.log('response: ', data);
       if (!data || data.error) { return; }
 
       var airports = getAppendix(data.appendix.airports);
@@ -309,7 +317,8 @@
               (v.delays.arrivalRunwayDelayMinutes || v.delays.arrivalGateDelayMinutes || 0)
             ) : 0,
           status: tstatus[v.status],
-          vpos: linepos+29
+          vpos: linepos+29,
+          schedule: v.schedule
         };
         lines.push(Fline(line));
         index++;
@@ -371,36 +380,3 @@
 
   });
 }(jQuery));
-
-  // parse XML tree into a JavaScript object
-  // obj.a is a map of attributes
-  // obj.c is a map of children nodes
-  // a child node can be an array of nodes with the same name
-  // function XML2obj($x) {
-  //   var n = {},
-  //       xa = $x[0].attributes;
-  //   if (xa) { // has attributes
-  //     n.a = {};
-  //     var l = xa.length;
-  //     for (var i = 0; i < l; i++) {
-  //       n.a[xa[i].nodeName] = xa[i].nodeValue; // set attribute name:value
-  //     }
-  //   }
-  //   var $c = $x.children();
-  //   if ($c.length > 0) { // has children nodes
-  //     n.c = {};
-  //     $c.each(function() {
-  //       var name = this.tagName;
-  //       var child = n.c;
-  //       if (child[name] === undefined) { // one child
-  //         child[name] = XML2obj($(this));
-  //       } else { // multiple children
-  //         if (!$.isArray(child[name])) {
-  //           child[name] = [child[name]];
-  //         }
-  //         child[name].push(XML2obj($(this)));
-  //       }
-  //     });
-  //   }
-  //   return n;
-  // }

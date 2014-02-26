@@ -339,7 +339,7 @@
       dolines();
 
       function getAppendix(data) { // read in data from appendix and convert to dictionary
-        ret = {};
+        var ret = {};
         if (data) {
           for (var i = 0; i<data.length; i++) {
             var v = data[i];

@@ -72,7 +72,7 @@
 		var labels = Math.random() < 0.5;
 		var arc = Math.random() < 0.4;
 		$frame = $('<iframe />', {
-				src: 'index.html?demo=true&autoHide=true&zoomControl=false&mapType='+mapType+
+				src: 'index.html?demo=true&autoHide=true&showMini=false&zoomControl=false&mapType='+mapType+
 					'&showTerrain='+terrain+'&showLabels='+labels+'&showArc='+arc+
 					'&id='+flight.flightId+'&airline='+flight.carrierFsCode+'&flight='+flight.flightNumber
 			}).appendTo('#top');

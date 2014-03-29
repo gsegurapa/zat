@@ -474,7 +474,6 @@
       mainloop();
     }
 
-    
     mainloop();
 
     function mainloop() { // get position info for airplanes
@@ -482,10 +481,10 @@
       if (arrDep !== 'arr') { // dep or both
         $.ajax({
           url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/dep',
-          data: { maxPositions: 2, appId: appId, appKey: appKey, includeFlightPlan: false },
+          data: { maxPositions: 2, appId: appId, appKey: appKey, includeFlightPlan: false,
+              extendedOptions: 'includeNewFields', sourceType: 'derived' },
           dataType: 'jsonp',
-          success: getDepartures,
-          // timeout: 20000, // catch timeout after 20 seconds
+          success: getResponse,
           error: badajax
         });
       }
@@ -494,8 +493,7 @@
           url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/tracks/' + airportCode + '/arr',
           data: { maxPositions: 2, appId: appId, appKey: appKey, includeFlightPlan: false },
           dataType: 'jsonp',
-          success: getArrivals,
-          // timeout: 20000, // catch timeout after 20 seconds
+          success: getResponse,
           error: badajax
         });
       }
@@ -519,20 +517,22 @@
       return ret;
     }
 
-    function getDepartures(data /* , status, xhr */) {
+    function getResponse(data /* , status, xhr */) {
+      var ad = data.request.url.slice(-3) === 'arr';  // arr or dep
+      console.log((ad ? 'arrivals:' : 'departures:'), data);
       if (!data || data.error) {
         if (data && data.error && data.error.errorCode === 'AUTH_FAILURE') {
           alert('Invalid or Expired AppId and AppKey');
           clearInterval(maintimer);
         }
         if (console && console.log) {
-          console.log('departures error', data ? data : ' - no response');
+          console.log((da ? 'arrivals' : 'departures') +' error', data ? data : ' - no response');
         } else {
           if (data.error) { alert(data.error.errorMessage); }
         }
         return;
       }
-      if (arrDep === 'arr') { return; }
+      if (arrDep === (ad ? 'dep' : 'arr')) { return; }
       var airports = getAppendix(data.appendix.airports);
       var carriers = getAppendix(data.appendix.airlines);
       var ap = airports[data.request.airport.fsCode]; // home airport
@@ -541,12 +541,13 @@
       }
 
       var tracks = data.flightTracks;
-      if (showLegend && !flip && showLabels !== 'delay') { $('#takeoff').html('').prev().text('Departing'); }
+      if (showLegend && !flip && showLabels !== 'delay') {
+        $(ad ? '#landing' : '#takeoff').html('').prev().text(ad ? 'Arriving' : 'Departing');
+      }
       if (bounds) {
         // avgerr = 0; avgcnt = 0, maxerr = 0; // DEBUG
         $.each(tracks, function(key, v) {
           var alex = exceptions[v.carrierFsCode];
-          // if (alex === null ? allAirlines : !allAirlines) { // XOR
           if (allAirlines ? alex === null : alex === undefined) {
             return; // do not display flight
           }
@@ -557,7 +558,6 @@
           var curpos = positions[0];
           var pos = L.latLng(+curpos.lat, +curpos.lon);
           var curspeed = curpos.speedMph;
-          // console.log(curpos.date, (new Date(curpos.date)).valueOf(), Date.parse(curpos.date));
           var lastpos, p, a, t;
           if (positions.length >= 2) {
             lastpos = positions[1];
@@ -567,59 +567,51 @@
           }
           var fx = findf(+v.flightId); // index of this flight in planes
           if (bounds.contains(pos) && (!p || bounds.contains(p))) {
-            // if (!curpos.altitudeFt && console.log) {
-            //   console.log('missing flight altitude for '+v.carrierFsCode+' '+v.flightNumber+
-            //     ', using airport altitude: '+ap.elevationFeet+', speed: '+curpos.speedMph);
-            // }
             var airportalt = +ap.elevationFeet;
             var alt = curpos.altitudeFt ? curpos.altitudeFt : airportalt;
             var ts = Date.parse(curpos.date); // timestamp
             var delay = +(v.delayMinutes || 0);
             var flight = alex + ' ' + v.flightNumber;
             if (fx !== null) { // plane found, update position
-              // if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
-              //   if (!debug[flight] || (debug[flight] && positions[0].date !== debug[flight])) {
-              //     console.log('JUMP: ', flight, v.departureAirportFsCode+'->'+v.arrivalAirportFsCode,
-              //       lastpos.date, '('+p.lat.toFixed(3)+','+p.lng.toFixed(3)+')', lastpos.altitudeFt+'ft', lastpos.speedMph+'mph');                  
-              //   }
-              //   debug[flight] = positions[0].date;
-              // }
-              // if (debug[flight]) {
-              //   console.log(curpos.date === debug[flight] ? '-' : '+', flight, curpos.date,
-              //     '('+pos.lat.toFixed(3)+','+pos.lng.toFixed(3)+')', 
-              //     curpos.source, curpos.altitudeFt+'ft', curpos.speedMph+'mph', v.heading.toFixed(3)+'deg');
-              // }
-              planes[fx].update({ position: pos, altitude: alt, stamp: dstamp, delay: delay, fno: flight, time: ts, speed: curspeed });
+              planes[fx].update({ position: pos, altitude: alt, stamp: (ad ? astamp : dstamp),
+                  delay: delay, fno: flight, time: ts, speed: curspeed });
             } else { // add flight
-              var oairport = v.arrivalAirportFsCode;
+              var oairport = ad ? v.departureAirportFsCode : v.arrivalAirportFsCode;
               var ocity = airports[oairport].city;
               showplanes++;
-              if (dstamp>0) { // new departing flight (taking off)
-                var takeoff = airportLoc.distanceTo(pos);
-                // if (takeoff > 1000) { // DEBUG
-                //   console.log('takeoff: '+flight, takeoff.toFixed(0)+'m', pos.toString());
-                // }
-                if (showLegend && !flip && takeoff < 20000 && showLabels !== 'delay') {
-                  var th = $('#takeoff').html();
-                  if (th !== null) {
-                    $('#takeoff').html(th+(th.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>').
-                      prev().text('Taking Off:');
+              if (ad) { // arriving
+                if (positions.length >= 2) {
+                  lastpos = positions[1];
+                  p = L.latLng(+lastpos.lat, +lastpos.lon);
+                  a = +lastpos.altitudeFt;
+                }
+              } else {  // departing
+                if (dstamp > 0) { // new departing flight (taking off)
+                  var takeoff = airportLoc.distanceTo(pos);
+                  if (showLegend && !flip && takeoff < 20000 && showLabels !== 'delay') {
+                    var th = $('#takeoff').html();
+                    if (th !== null) {
+                      $('#takeoff').html(th+(th.length>0?', ':' ')+'<span style="white-space:nowrap">'+flight+'&raquo;'+ocity+'</span>').
+                        prev().text('Taking Off:');
+                    }
+                  }
+                  if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
+                    p = undefined; a = undefined; t = undefined;
+                  }
+                  if (takeoff < 20000) {
+                    if (alt > 5000) { alt = airportalt; } // fix data error on takeoff
+                    if (a && a > 5000) { a = airportalt; }
                   }
                 }
-                if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
-                  // console.log(flight+' distance in meters: '+pos.distanceTo(p));
-                  p = undefined; a = undefined; t = undefined;
-                }
-                if (alt > 5000) { alt = airportalt; } // fix data error
-                if (a && a > 5000) { a = airportalt; }
               }
               var np = new Plane({ id: +v.flightId, fno: flight, airline: alname,
                   airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt),
-                  heading: (v.heading ? +v.heading : +v.bearing), speed: curspeed,
-                  delay: delay, scale: flightMarkerScale * 0.01, depart: true, stamp: dstamp, time: (t ? t : ts) });
+                  heading: (curpos.course ? +curpos.course : (v.heading ? +v.heading : +v.bearing)),
+                  speed: curspeed, delay: delay, scale: flightMarkerScale * 0.01, time: (t ? t : ts),
+                  depart: !ad, stamp: (ad ? astamp : dstamp) });
               planes.push(np);
               map.addLayer(np);
-              if (p) { np.update({ position: pos, altitude: alt, stamp: dstamp, delay: delay, fno: flight, time: ts }); }
+              if (p) { np.update({ position: pos, altitude: alt, stamp: (ad ? astamp : dstamp), delay: delay, fno: flight, time: ts }); }
             }
           } else { // not in bounds
             if (fx !== null) { // remove offscreen flight
@@ -634,143 +626,30 @@
       // remove airplanes in planes array that are not in data.flightTracks
       for (var i = 0; i < planes.length; i++) {
         var h = planes[i];
-        if (h.isDep() && h.stamp() !== dstamp) {
+        if (ad ? (!h.isDep() && h.stamp() !== astamp) : (h.isDep() && h.stamp() !== dstamp)) {
+          if (ad) {
+            var touchdown = airportLoc.distanceTo(map.layerPointToLatLng(h.getXY()));
+            if (showLegend && !flip && touchdown < 5000 && showLabels !== 'delay') {
+              var t = $('#landing').html();
+              // console.log('landing', t, typeof t);
+              if (t !== null) {
+                $('#landing').html(t+(t.length>0?', ':' ')+'<span style="white-space:nowrap">'+h.flight()+'&laquo;'+h.city()+'</span>').
+                  prev().text('Landed:');
+              }
+            }
+          }
           showplanes--;
           h.remove();
           planes.splice(i, 1); // remove from planes
         }
       }
-      dstamp = (dstamp % 1000000) + 1; // update index
-      // if (avgcnt > 0) console.log('departures error: '+(avgerr / avgcnt)+' max: '+maxerr);
-
-    } // end getDepartures
-
-    function getArrivals(data /* , status, xhr */) {
-      if (!data || data.error) {
-        if (data && data.error && data.error.errorCode === 'AUTH_FAILURE') {
-          alert('Invalid or Expired AppId and AppKey');
-          clearInterval(maintimer);
-        }
-        if (console && console.log) {
-          console.log('arrivals error', data ? data : ' - no response');
-        } else {
-          if (data.error) { alert(data.error.errorMessage); }
-        }
-        return;
+      if (ad) {
+        astamp = (astamp % 1000000) + 1; // update index
+      } else {
+        dstamp = (dstamp % 1000000) + 1; // update index
       }
-      if (arrDep === 'dep') { return; }
-      var airports = getAppendix(data.appendix.airports);
-      var carriers = getAppendix(data.appendix.airlines);
-      var ap = airports[data.request.airport.fsCode]; // home airport
-      if (!airportLoc || resetAirport) {
-        setAirportLoc(ap); // set location of airport
-      }
-      var tracks = data.flightTracks;
-      if (showLegend && !flip && showLabels !== 'delay') { $('#landing').html('').prev().text('Arriving'); }
-      if (bounds) {
-        // avgerr = 0; avgcnt = 0, maxerr = 0; // DEBUG
-        $.each(tracks, function(key, v) {
-          var alex = exceptions[v.carrierFsCode];
-          if (allAirlines ? alex === null : alex === undefined) {
-            return; // do not display flight
-          }
-          if (alex === null || alex === undefined) { alex = v.carrierFsCode; }
-          var alname = carriers[carriers[alex] ? alex : v.carrierFsCode].name;
 
-          var positions = v.positions;
-          var curpos = positions[0];
-          var pos = L.latLng(+curpos.lat, +curpos.lon);
-          var curspeed = curpos.speedMph;
-          var lastpos, p, a, t;
-          if (positions.length >= 2) {
-            lastpos = positions[1];
-            p = L.latLng(+lastpos.lat, +lastpos.lon);
-            a = +lastpos.altitudeFt;
-            t = Date.parse(lastpos.date); // timestamp
-          }
-          var fx = findf(+v.flightId); // index of this flight in planes
-          if (bounds.contains(pos) && (!p || bounds.contains(p))) {
-            // if (!curpos.altitudeFt && console.log) {
-            //   console.log('missing flight altitude for '+v.carrierFsCode+' '+v.flightNumber+
-            //     ', using airport altitude: '+ap.elevationFeet+', speed: '+curpos.speedMph);
-            // }
-            var alt = curpos.altitudeFt ? curpos.altitudeFt : +ap.elevationFeet;
-            var ts = Date.parse(curpos.date); // timestamp
-            var delay = +(v.delayMinutes || 0);
-            var flight = alex + ' ' + v.flightNumber;
-            if (fx !== null) { // plane found, update position
-              // if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
-              //   if (!debug[flight] || (debug[flight] && positions[0].date !== debug[flight])) {
-              //     console.log('JUMP: ', flight, v.departureAirportFsCode+'->'+v.arrivalAirportFsCode,
-              //       lastpos.date, '('+p.lat.toFixed(3)+','+p.lng.toFixed(3)+')', lastpos.altitudeFt+'ft', lastpos.speedMph+'mph');                  
-              //     // console.log('JUMP: ', flight, p.lat, p.lng, planes[fx].stamp(), dstamp);                  
-              //   }
-              //   debug[flight] = positions[0].date;
-              // }
-              // if (debug[flight]) {
-              //   console.log(curpos.date === debug[flight] ? '-' : '+', flight, curpos.date,
-              //     '('+pos.lat.toFixed(3)+','+pos.lng.toFixed(3)+')', 
-              //     curpos.source, curpos.altitudeFt+'ft', curpos.speedMph+'mph', v.heading.toFixed(3)+'deg');
-              //   // console.log(curpos.date === debug[flight] ? '-' : '+', flight, curpos.date, curpos.lat, curpos.lon, curpos.source, curpos.altitudeFt, curpos.speedMph, v.heading);
-              // }
-              planes[fx].update({ position: pos, altitude: alt, stamp: astamp, delay: delay, fno: flight, time: ts, speed: curspeed });
-            } else { // add flight
-              var oairport = v.departureAirportFsCode;
-              var ocity = airports[oairport].city;
-              showplanes++;
-              if (positions.length >= 2) {
-                lastpos = positions[1];
-                p = L.latLng(+lastpos.lat, +lastpos.lon);
-                a = +lastpos.altitudeFt;
-              }
-              if (p && (Math.abs(pos.lat - p.lat) > 0.5 || Math.abs(pos.lng - p.lng) > 0.5)) {
-                // console.log(flight+' distance in meters: '+pos.distanceTo(p));
-                p = undefined; a = undefined; t = undefined;
-              }
-              var np = new Plane({ id: +v.flightId, fno: flight, airline: alname,
-                  airport: oairport, city: ocity, position: (p ? p : pos), altitude: (a ? a : alt),
-                  heading: (v.heading ? +v.heading : +v.bearing), speed: curspeed,
-                  delay: delay, scale: flightMarkerScale * 0.01, depart: false, stamp: astamp, time: (t ? t : ts) });
-              planes.push(np);
-              map.addLayer(np);
-              if (p) { np.update({ position: pos, altitude: alt, stamp: astamp, delay: delay, fno: flight, time: ts }); }
-            }
-          } else { // not in bounds
-            if (fx !== null) { // remove offscreen flight
-              showplanes--;
-              planes[fx].remove();
-              planes.splice(fx, 1); // remove from planes
-            }
-          }
-        });
-      }
-              
-      // remove airplanes in planes array that are not in data.flightTracks
-      for (var i = 0; i < planes.length; i++) {
-        var h = planes[i];
-        if (!h.isDep() && h.stamp() !== astamp) {
-          var touchdown = airportLoc.distanceTo(map.layerPointToLatLng(h.getXY()));
-          // if (touchdown > 1000) { // DEBUG
-          //   console.log('landing: '+h.flight(), touchdown.toFixed(0)+'m', map.layerPointToLatLng(h.getXY()).toString());
-          // }
-          showplanes--;
-          if (showLegend && !flip && touchdown < 5000 && showLabels !== 'delay') {
-            var t = $('#landing').html();
-            // console.log('landing', t, typeof t);
-            if (t !== null) {
-              $('#landing').html(t+(t.length>0?', ':' ')+'<span style="white-space:nowrap">'+h.flight()+'&laquo;'+h.city()+'</span>').
-                prev().text('Landed:');
-            }
-          }
-          h.remove();
-          planes.splice(i, 1); // remove from planes
-        }
-      }
-      astamp = (astamp % 1000000) + 1; // update index
-      // if (avgcnt > 0) console.log('arrivals error: '+(avgerr / avgcnt)+' max: '+maxerr);
-
-    } // end getArrivals
-      
+    } // end getResponse      
 
     function setAirportLoc(dairport) {
       if (dairport === undefined) {
@@ -1493,6 +1372,7 @@
           var pop = that.title_ + ', speed: '+that.speed_+' mph' + ', alt: '+Math.round(that.curalt_)+' ft, ' +
             (that.delay_ >= 15 ? that.delay_+' min delay' : 'on time');
           var pdata = { id: that.id_, fno: that.fno_ };
+
           clearTimeout(popupTimeout);
           $('#popup').stop().text(pop).css('opacity', 1).show().
             append(' <span class="trackme">Live&nbsp;Track</span>').

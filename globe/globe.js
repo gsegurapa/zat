@@ -153,7 +153,7 @@
     var url, params = { includeFlightPlan: false, maxPositions: 2,
       appId: airport.length === 0 ? fleet_appId : tracker_appId,
       appKey: airport.length === 0 ? fleet_appKey : tracker_appKey,
-      extendedOptions: 'includeNewFields', sourceType: 'derived' 
+      extendedOptions: 'includeNewFields', sourceType: 'derived'
     };
     if (airport.length === 0) {
       url = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/fleet/tracks/'+airline;

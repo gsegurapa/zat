@@ -519,7 +519,7 @@
 
     function getResponse(data /* , status, xhr */) {
       var ad = data.request.url.slice(-3) === 'arr';  // arr or dep
-      console.log((ad ? 'arrivals:' : 'departures:'), data);
+      // console.log((ad ? 'arrivals:' : 'departures:'), data);
       if (!data || data.error) {
         if (data && data.error && data.error.errorCode === 'AUTH_FAILURE') {
           alert('Invalid or Expired AppId and AppKey');

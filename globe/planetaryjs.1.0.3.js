@@ -1,8 +1,8 @@
-/*! Planetary.js v1.1.0
+/*! Planetary.js v1.0.3
  *  Copyright (c) 2013 Brandon Tilley
  *
  *  Released under the MIT license
- *  Date: 2014-02-03T08:15:06.913Z
+ *  Date: 2014-01-23T04:43:43.371Z
  */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -21,10 +21,6 @@
 
   var doDrawLoop = function(planet, canvas, hooks) {
     d3.timer(function() {
-      if (planet.stopped) {
-        return true;
-      }
-
       planet.context.clearRect(0, 0, canvas.width, canvas.height);
       for (var i = 0; i < hooks.onDraw.length; i++) {
         hooks.onDraw[i]();
@@ -80,14 +76,11 @@
   };
 
   var startDraw = function(planet, canvas, localPlugins, hooks) {
+    initPlugins(planet, localPlugins);
+
     planet.canvas = canvas;
     planet.context = canvas.getContext('2d');
 
-    if (planet.stopped !== true) {
-      initPlugins(planet, localPlugins);
-    }
-
-    planet.stopped = false;
     runOnInitHooks(planet, canvas, hooks);
   };
 
@@ -107,8 +100,7 @@
       var localPlugins = [];
       var hooks = {
         onInit: [],
-        onDraw: [],
-        onStop: []
+        onDraw: []
       };
 
       var planet = {
@@ -126,19 +118,8 @@
           hooks.onDraw.push(fn);
         },
 
-        onStop: function(fn) {
-          hooks.onStop.push(fn);
-        },
-
         loadPlugin: function(plugin) {
           localPlugins.push(plugin);
-        },
-
-        stop: function() {
-          planet.stopped = true;
-          for (var i = 0; i < hooks.onStop.length; i++) {
-            hooks.onStop[i](planet);
-          }
         },
 
         withSavedContext: function(fn) {
@@ -209,6 +190,12 @@
         planet.withSavedContext(function(context) {
           context.beginPath();
           planet.path.context(context)(land);
+
+          if (config.shadow) {
+            context.shadowOffsetX = config.shadow.shadowOffsetX || 1;
+            context.shadowOffsetY = config.shadow.shadowOffsetY || 1;
+            context.shadowColor = config.shadow.shadowColor || 'white';
+          }
 
           if (config.fill !== false) {
             context.fillStyle = config.fill || 'white';

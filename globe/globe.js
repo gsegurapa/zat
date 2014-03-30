@@ -152,7 +152,9 @@
     // https://developer.flightstats.com/api-docs/flightstatus/v2/airport
     var url, params = { includeFlightPlan: false, maxPositions: 2,
       appId: airport.length === 0 ? fleet_appId : tracker_appId,
-      appKey: airport.length === 0 ? fleet_appKey : tracker_appKey };
+      appKey: airport.length === 0 ? fleet_appKey : tracker_appKey,
+      extendedOptions: 'includeNewFields', sourceType: 'derived' 
+    };
     if (airport.length === 0) {
       url = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/fleet/tracks/'+airline;
       if (codeshares) { params.codeshares = true; }
@@ -279,11 +281,11 @@
         var d = airports[v.departureAirportFsCode];
         var a = airports[v.arrivalAirportFsCode];
         flist.push({
-          plane: [p.lon, p.lat],
+          plane: [+p.lon, +p.lat],
           id: v.flightId,
-          heading: v.heading || v.bearing || 0,
-          dep: [d.longitude, d.latitude],
-          arr: [a.longitude, a.latitude]
+          heading: p.course ? +p.course : (v.heading ? +v.heading : (v.bearing ? +v.bearing : 0)),
+          dep: [+d.longitude, +d.latitude],
+          arr: [+a.longitude, +a.latitude]
         });
       });
     };

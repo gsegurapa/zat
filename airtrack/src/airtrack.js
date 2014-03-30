@@ -526,7 +526,7 @@
           clearInterval(maintimer);
         }
         if (console && console.log) {
-          console.log((da ? 'arrivals' : 'departures') +' error', data ? data : ' - no response');
+          console.log((ad ? 'arrivals' : 'departures') +' error', data ? data : ' - no response');
         } else {
           if (data.error) { alert(data.error.errorMessage); }
         }

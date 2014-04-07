@@ -106,13 +106,14 @@
   }
 
 	function click1(e) {
-		var i, f, c;
+		var i, f, c, $d;
 		var aline, sched, est;
 		var b = $(e.target);
 		$('#carrier, #dest').hide();
 		$('#flights, #back').show();
 		$('#flights').html('<div style="font-weight:bold">Select your Flight:</div>');
 
+		// list of flights for a carrier
 		if (e.delegateTarget.id === 'carrier') {
 			fs.sort(function(a,b) {
 				return Date.parse(a.departureDate.dateLocal) - Date.parse(b.departureDate.dateLocal);
@@ -125,12 +126,16 @@
 					aline = c.zat_marketing ? c.zat_marketing : c.carrierFsCode;
 					sched = c.departureDate.dateLocal.slice(11,16);
 					est = departure(c.operationalTimes).slice(11,16);
-					$('<div class="button">'+aline+' '+c.flightNumber+' to '+airports[c.arrivalAirportFsCode].city+' ('+c.arrivalAirportFsCode+'), scheduled: '+
-							c.departureDate.dateLocal.slice(11,16)+(est !== sched ? ', estimated: '+est : '')+'</div>').
+					$d = $('<div class="button">'+aline+' '+c.flightNumber+' to '+airports[c.arrivalAirportFsCode].city+
+							' ('+c.arrivalAirportFsCode+'), sched: '+
+							c.departureDate.dateLocal.slice(11,16)+(est !== sched ? ', est: '+est : '')+'</div>').
 							data({"fid": c.flightId, "aline": aline, "fno": c.flightNumber }).appendTo('#flights');
+					checkup($d, c.flightId)
 				}
 			}
 		}
+
+		// list of flights for a destination
 		if (e.delegateTarget.id === 'dest') {
 			f = b.data('dcode');
 			$('#head').text('Flight Status for Flights to '+f);
@@ -140,11 +145,41 @@
 					aline = c.zat_marketing ? c.zat_marketing : c.carrierFsCode;
 					sched = c.departureDate.dateLocal.slice(11,16);
 					est = departure(c.operationalTimes).slice(11,16);
-					$('<div class="button">'+airlines[aline].name+ ' ('+aline+') '+c.flightNumber+', scheduled: '+
-							c.departureDate.dateLocal.slice(11,16)+(est !== sched ? ', estimated: '+est : '')+'</div>').
+					$('<div class="button">'+airlines[aline].name+ ' ('+aline+') '+c.flightNumber+', sched: '+
+							c.departureDate.dateLocal.slice(11,16)+(est !== sched ? ', est: '+est : '')+'</div>').
 							data({"fid": c.flightId, "aline": aline, "fno": c.flightNumber }).appendTo('#flights');
 
 				}
+			}
+		}	// end click1
+
+		function checkup($d, c) {
+			$.ajax({
+				url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/'+c,
+					data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
+					// sourceType: 'derived', includeFlightPlan: true },
+				dataType: 'jsonp',
+				success: checkupResponse
+			});
+			function checkupResponse(data) {
+				if (data.flightStatus && data.flightStatus.schedule && data.flightStatus.schedule.uplines) {
+					console.log('schedule:', data.flightStatus.schedule, 'flightId:', data.flightStatus.flightId);
+					var $u = $('<span>', { text: ' (upline '+data.flightStatus.schedule.uplines[0].fsCode+')',
+							data: { id: data.flightStatus.schedule.uplines[0].flightId } }).appendTo($d);
+					$u.click(function(e) {
+						var fl = $(e.target).data().id;
+						$.ajax({
+							url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/'+fl,
+								data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
+								// sourceType: 'derived', includeFlightPlan: true },
+							dataType: 'jsonp',
+							success: uplineResponse
+						});
+					});
+				}
+			}
+			function uplineResponse(data) {
+				console.log(data, data.flightStatus.status);
 			}
 		}
 
@@ -161,17 +196,17 @@
 		for (var i = 0; i < fs.length; i++) {
 			if (fs[i].flightId === d.fid) {
 				f = fs[i];
-				console.log(f);
-				$('#head').text('Flight Status for '+d.aline+' '+d.fno);
-				dom = $('#flights');
 				var dest = airports[f.arrivalAirportFsCode];
+				$('#head').text('Flight Status for '+airlines[f.carrierFsCode].name+' '+d.aline+' '+d.fno);
+				dom = $('#flights');
 				dom.empty();
-				$('<div>Airline: '+airlines[f.carrierFsCode].name+'</div>').appendTo(dom);
-				if (f.airportResources && f.airportResources.departureTerminal) {
-					$('<div>Departure Terminal: '+f.airportResources.departureTerminal+'</div>').appendTo(dom);
+				if (f.flightEquipment && f.flightEquipment.actualEquipmentIataCode) {
+					$('<div>Equipment: '+f.flightEquipment.actualEquipmentIataCode+'</div>').appendTo(dom);
 				}
-				if (f.airportResources && f.airportResources.departureGate) {
-					$('<div>Departure Gate: '+f.airportResources.departureGate+'</div>').appendTo(dom);
+				if (f.airportResources && f.airportResources.departureTerminal) {
+					$('<div>Departure Terminal: '+f.airportResources.departureTerminal+
+						(f.airportResources && f.airportResources.departureGate ? ' Gate: '+f.airportResources.departureGate : '')+
+						'</div>').appendTo(dom);
 				}
 				$('<div>Scheduled Departure Time: '+f.departureDate.dateLocal.slice(11,16)+'</div>').appendTo(dom);
 				if (f.operationalTimes) {
@@ -188,14 +223,38 @@
 					}
 				}
 
-				$('<div>Arrival Airport: '+f.arrivalAirportFsCode+'</div>').appendTo(dom);
-				$('<div>Arrival City: '+dest.city+(dest.stateCode ? ' '+dest.stateCode : '')+' '+dest.countryCode+'</div>').appendTo(dom);
+				$('<div>Arrival Airport: '+f.arrivalAirportFsCode+', '+dest.name+', '+
+						dest.city+(dest.stateCode ? ' '+dest.stateCode : '')+' '+dest.countryCode+'</div>').appendTo(dom);
 				$('<div>Scheduled Arrival Time: '+f.arrivalDate.dateLocal.slice(11,16)+'</div>').appendTo(dom);
+
+				$('<button>Full Data</button>').appendTo(dom).click(fdata);
+				$('<button>Full Status</button>').appendTo(dom).click(fstatus);
 				break;
 			}
 		}
-		// console.log('flight', d);
-	}
+
+		function fdata(e) {
+			$('<pre>', { text: JSON.stringify(f, null, 3) }).appendTo(dom);
+		}
+
+		function fstatus(e) {
+			$.ajax({
+				url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/'+f.flightId,
+					data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
+					// sourceType: 'derived', includeFlightPlan: true },
+				dataType: 'jsonp',
+				success: flightResponse
+			});
+		}
+		function flightResponse(data) {
+			if (data.flightStatus && data.flightStatus.schedule && data.flightStatus.schedule.uplines) {
+				$('<div>', { text: 'Uplines: '+data.flightStatus.schedule.uplines.length+' from '+
+					data.flightStatus.schedule.uplines[0].fsCode }).appendTo(dom);
+			}
+			$('<pre>', { text: JSON.stringify(data, null, 3) }).appendTo(dom);
+		}
+
+	}	// end click2
 
 	function getAppendix(data) { // read in data from appendix and convert to dictionary
     var ret = {};
@@ -220,12 +279,12 @@
   }
 
   function timehours(t) {
-  	t = +t;
-  	if (t >=60) {
-  		return Math.floor(t / 60)+' hours, '+(t % 60) +' minutes';
-  	} else {
-  		return t+' minutes';
-  	}
+		t = +t;
+		if (t >=60) {
+			return Math.floor(t / 60)+' hours, '+(t % 60) +' minutes';
+		} else {
+			return t+' minutes';
+		}
   }
 
 }(jQuery));

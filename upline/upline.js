@@ -28,7 +28,8 @@
 
 		$.ajax({
 			url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/'+fid,
-			data: { appId: appId, appKey: appKey },
+			data: { appId: appId, appKey: appKey,
+					extendedOptions: 'includeNewFields', sourceType: 'derived', includeFlightPlan: true },
 			dataType: 'jsonp',
 			success: response
 		});

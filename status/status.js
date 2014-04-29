@@ -4,9 +4,11 @@
 (function($){
 	"use strict";
 
-	var airport = 'ATL', airline;
 	var appId = '9543a3e8';
   var appKey = '91d511451d9dbf38ede3efafefac5f09';
+	var airport = 'ATL';	// default airport
+
+	var airline;
   var airlines, airports;
   var fairlines = {}, fairports = {};	// associated with flights
 	var sairlines, sairports;	// sorted
@@ -19,7 +21,7 @@
         function(m,key,value) { params[key] = value; });
 
     if (params.airport) { airport = params.airport.toUpperCase(); }
-    if (params.airline) { airline = params.airline; }
+    if (params.airline) { airline = params.airline.toUpperCase(); }
   }
 
 	getParams(window.location.href); // read parameters from URL
@@ -61,7 +63,11 @@
   }
 
   function response(data, status, xhr) {
-		// console.log('response: ', data);
+  	if (data.error) {
+  		alert('error: ' + data.error.errorCode + ' - ' + data.error.errorMessage);
+  		return;
+  	}
+		console.log('response: ', data);
 
 		airports = getAppendix(data.appendix.airports);
 		airlines = getAppendix(data.appendix.airlines);
@@ -105,7 +111,7 @@
 
   }
 
-	function click1(e) {
+	function click1(e) {	// first click (airline or destination)
 		var i, f, c, $d;
 		var aline, sched, est;
 		var b = $(e.target);
@@ -130,7 +136,7 @@
 							' ('+c.arrivalAirportFsCode+'), sched: '+
 							c.departureDate.dateLocal.slice(11,16)+(est !== sched ? ', est: '+est : '')+'</div>').
 							data({"fid": c.flightId, "aline": aline, "fno": c.flightNumber }).appendTo('#flights');
-					checkup($d, c.flightId)
+					checkup($d, c.flightId);
 				}
 			}
 		}
@@ -189,7 +195,7 @@
 
 	}
 
-	function click2(e) {
+	function click2(e) {	// second click (status of flight)
 		var b = $(e.target);
 		var d = b.data();
 		var f, dom;

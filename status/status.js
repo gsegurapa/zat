@@ -214,11 +214,10 @@
 						'</div>').appendTo(dom);
 				}
 				$('<div>Scheduled Arrival Time: '+dltime(f.arrivalDate)+'</div>').appendTo(dom);
-				if (f.operationalTimes && f.operationalTimes.estimatedRunwayArrival) {
-					$('<div>Estimated Runway Arrival Time: '+dltime(f.operationalTimes.estimatedRunwayArrival)+'</div>').appendTo(dom);
-				}
 				if (f.operationalTimes && f.operationalTimes.estimatedGateArrival) {
 					$('<div>Estimated Gate Arrival Time: '+dltime(f.operationalTimes.estimatedGateArrival)+'</div>').appendTo(dom);
+				} else if (f.operationalTimes && f.operationalTimes.estimatedRunwayArrival) {
+					$('<div>Estimated Runway Arrival Time: '+dltime(f.operationalTimes.estimatedRunwayArrival)+'</div>').appendTo(dom);
 				}
 				if (f.flightDurations && f.flightDurations.scheduledTaxiInMinutes) {
 					$('<div>Estimated Taxi In Time: '+timehours(f.flightDurations.scheduledTaxiInMinutes)+'</div>').appendTo(dom);

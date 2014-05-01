@@ -1,20 +1,21 @@
-// determine upline flight, if possible
+// Find flight and display status
 /*global jQuery:false */
 
 (function($){
 	"use strict";
 
-	var appId = '9543a3e8';
-  var appKey = '91d511451d9dbf38ede3efafefac5f09';
+	var appId;
+  var appKey;
 	var airport = 'ATL';	// default airport
 
 	var airline;
-  var airlines, airports;
+  var airlines, airports;	// appendices
   var fairlines = {}, fairports = {};	// associated with flights
 	var sairlines, sairports;	// sorted
 	var flights = [];	// selected flights
-	var fs;
+	var flightStatuses;	// array of flight statuses
 
+	// read parameters
 	function getParams(p) {
     var params = {}; // parameters
     p.replace(/[?&;]\s?([^=&;]+)=([^&;]*)/gi,
@@ -22,6 +23,8 @@
 
     if (params.airport) { airport = params.airport.toUpperCase(); }
     if (params.airline) { airline = params.airline.toUpperCase(); }
+    if (params.appId) { appId = params.appId; }
+    if (params.appKey) { appKey = params.appKey; }
   }
 
 	getParams(window.location.href); // read parameters from URL
@@ -52,7 +55,7 @@
     }
     $('#head').text('Flight Status for Flights Departing from '+airport);
 
-		$.ajax({
+		$.ajax({	// make API call to FlightStats -- see developer.flightstats.com
 			url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/airport/status/'+airport+
 					'/dep/'+year+'/'+month+'/'+day+'/'+hour,  // start time
 			data: data,
@@ -60,47 +63,57 @@
 			success: response
 		});
 
-  }
+  }	// end mainloop
 
   function response(data, status, xhr) {
-  	if (data.error) {
-  		alert('error: ' + data.error.errorCode + ' - ' + data.error.errorMessage);
-  		return;
-  	}
-		console.log('response: ', data);
+		if (data.error) {
+			alert('error: ' + data.error.errorCode + ' - ' + data.error.errorMessage);
+			return;
+		}
+		// console.log('response: ', data);
 
+		// read appendices and convert to objects
 		airports = getAppendix(data.appendix.airports);
 		airlines = getAppendix(data.appendix.airlines);
 
-		var i, j, fl,
+		var i, j,
+				flstatus,	// flight status record
+				codeshare,	// codeshare record
 				mkt;	// display marketing airline instead of operating airline
-		fs = data.flightStatuses;
-		for (i = 0; i < fs.length; i++) {
-			fl = fs[i];
-			if (fl.status === 'A' || fl.status === 'L') { continue; }
+		flightStatuses = data.flightStatuses;	// array of flight status records
+		for (i = 0; i < flightStatuses.length; i++) {
+			flstatus = flightStatuses[i];	// flight status record
+			if (flstatus.status === 'A' || flstatus.status === 'L') { continue; }	// ignore active or landed flights
 			mkt = true;
-			if (fl.codeshares && fl.codeshares.length > 0) {
-				for (j = 0; j < fl.codeshares.length; j++) {
-					var cs = fl.codeshares[j];
-					if (cs.relationship === 'S' || cs.relationship === 'X') {
+			if (flstatus.codeshares && flstatus.codeshares.length > 0) {
+				for (j = 0; j < flstatus.codeshares.length; j++) {
+					codeshare = flstatus.codeshares[j];
+					if (codeshare.relationship === 'S' || codeshare.relationship === 'X') {
 						mkt = false;
-						fl.zat_marketing = cs.fsCode;
-						fairlines[cs.fsCode] = fairlines[cs.fsCode] ? fairlines[cs.fsCode] + 1 : 1;
+						flstatus.zat_marketing = codeshare.fsCode;	// save marketing airline
+						fairlines[codeshare.fsCode] = fairlines[codeshare.fsCode] ? fairlines[codeshare.fsCode] + 1 : 1;
 					}
-					// fairlines[cs.fsCode] = fairlines[cs.fsCode] ? fairlines[cs.fsCode] + 1 : 1; // moved up
 				}
-			if (mkt) { fairlines[fl.carrierFsCode] = fairlines[fl.carrierFsCode] ? fairlines[fl.carrierFsCode] + 1 : 1; }
-			fairports[fl.arrivalAirportFsCode] = fairports[fl.arrivalAirportFsCode] ? fairlines[fl.arrivalAirportFsCode] + 1 : 1;
+				if (mkt) {
+					fairlines[flstatus.carrierFsCode] = fairlines[flstatus.carrierFsCode] ? fairlines[flstatus.carrierFsCode] + 1 : 1;
+				} else {
+					fairlines[flstatus.zat_marketing] = fairlines[flstatus.zat_marketing] ? fairlines[flstatus.zat_marketing] + 1 : 1;
+				}
+
+				fairports[flstatus.arrivalAirportFsCode] = fairports[flstatus.arrivalAirportFsCode] ? fairlines[flstatus.arrivalAirportFsCode] + 1 : 1;
 			}
 		}
 
+		// sort airlines and airports to display
 		sairlines = Object.keys(fairlines).sort(function(a, b) { return fairlines[b] - fairlines[a]; });
 		sairports = Object.keys(fairports).sort(function(a, b) { return airports[a].city.localeCompare(airports[b].city); });
 
+		// display airlines
 		$('#carrier').html('<div style="font-weight:bold">Select your Airline:</div>').show();
 		for (i = 0; i < sairlines.length; i++) {
 			$('<div class="button">'+airlines[sairlines[i]].name+'&nbsp;('+sairlines[i]+')</div>').data('acode', sairlines[i]).appendTo('#carrier');
 		}
+		// display destination airports
 		$('#dest').html('<div style="font-weight:bold">Or select your Destination:</div>').show();
 		for (i = 0; i < sairports.length; i++) {
 			var ap = airports[sairports[i]];
@@ -109,7 +122,7 @@
 					'&nbsp;('+ap.fs+')</div>').data('dcode', ap.fs).appendTo('#dest');
 		}
 
-  }
+  }	// end response
 
 	function click1(e) {	// first click (airline or destination)
 		var i, f, c, $d;
@@ -121,22 +134,21 @@
 
 		// list of flights for a carrier
 		if (e.delegateTarget.id === 'carrier') {
-			fs.sort(function(a,b) {
+			flightStatuses.sort(function(a,b) {
 				return Date.parse(a.departureDate.dateLocal) - Date.parse(b.departureDate.dateLocal);
 			});
 			f = b.data('acode');
 			$('#head').text('Flight Status for Flights on '+airlines[f].name+' ('+f+')');
-			for (i = 0; i < fs.length; i++) {
-				c = fs[i];
-				if (f.status != 'A' && f.status !== 'L' && (c.carrierFsCode === f /* || c.codeshares && c.codeshares.some(sharematch) */)) {
-					aline = c.zat_marketing ? c.zat_marketing : c.carrierFsCode;
-					sched = c.departureDate.dateLocal.slice(11,16);
-					est = departure(c.operationalTimes).slice(11,16);
+			for (i = 0; i < flightStatuses.length; i++) {
+				c = flightStatuses[i];
+				aline = c.zat_marketing ? c.zat_marketing : c.carrierFsCode;
+				if (c.status !== 'A' && c.status !== 'L' && aline === f) {
+					sched = dltime(c.departureDate);
+					est = dltime(departure(c.operationalTimes));
 					$d = $('<div class="button">'+aline+' '+c.flightNumber+' to '+airports[c.arrivalAirportFsCode].city+
 							' ('+c.arrivalAirportFsCode+'), sched: '+
-							c.departureDate.dateLocal.slice(11,16)+(est !== sched ? ', est: '+est : '')+'</div>').
+							dltime(c.departureDate)+(est !== sched ? ', est: '+est : '')+'</div>').
 							data({"fid": c.flightId, "aline": aline, "fno": c.flightNumber }).appendTo('#flights');
-					checkup($d, c.flightId);
 				}
 			}
 		}
@@ -145,47 +157,16 @@
 		if (e.delegateTarget.id === 'dest') {
 			f = b.data('dcode');
 			$('#head').text('Flight Status for Flights to '+f);
-			for (i = 0; i < fs.length; i++) {
-				c = fs[i];
+			for (i = 0; i < flightStatuses.length; i++) {
+				c = flightStatuses[i];
 				if (f.status != 'A' && f.status !== 'L' && c.arrivalAirportFsCode === f) {
 					aline = c.zat_marketing ? c.zat_marketing : c.carrierFsCode;
-					sched = c.departureDate.dateLocal.slice(11,16);
-					est = departure(c.operationalTimes).slice(11,16);
+					sched = dltime(c.departureDate);
+					est = dltime(departure(c.operationalTimes));
 					$('<div class="button">'+airlines[aline].name+ ' ('+aline+') '+c.flightNumber+', sched: '+
-							c.departureDate.dateLocal.slice(11,16)+(est !== sched ? ', est: '+est : '')+'</div>').
+							dltime(c.departureDate)+(est !== sched ? ', est: '+est : '')+'</div>').
 							data({"fid": c.flightId, "aline": aline, "fno": c.flightNumber }).appendTo('#flights');
-
 				}
-			}
-		}	// end click1
-
-		function checkup($d, c) {
-			$.ajax({
-				url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/'+c,
-					data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
-					// sourceType: 'derived', includeFlightPlan: true },
-				dataType: 'jsonp',
-				success: checkupResponse
-			});
-			function checkupResponse(data) {
-				if (data.flightStatus && data.flightStatus.schedule && data.flightStatus.schedule.uplines) {
-					console.log('schedule:', data.flightStatus.schedule, 'flightId:', data.flightStatus.flightId);
-					var $u = $('<span>', { text: ' (upline '+data.flightStatus.schedule.uplines[0].fsCode+')',
-							data: { id: data.flightStatus.schedule.uplines[0].flightId } }).appendTo($d);
-					$u.click(function(e) {
-						var fl = $(e.target).data().id;
-						$.ajax({
-							url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/'+fl,
-								data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
-								// sourceType: 'derived', includeFlightPlan: true },
-							dataType: 'jsonp',
-							success: uplineResponse
-						});
-					});
-				}
-			}
-			function uplineResponse(data) {
-				console.log(data, data.flightStatus.status);
 			}
 		}
 
@@ -193,73 +174,88 @@
 			return el.fsCode === f;
 		}
 
-	}
+	} // end click1
 
 	function click2(e) {	// second click (status of flight)
 		var b = $(e.target);
 		var d = b.data();
 		var f, dom;
-		for (var i = 0; i < fs.length; i++) {
-			if (fs[i].flightId === d.fid) {
-				f = fs[i];
+		for (var i = 0; i < flightStatuses.length; i++) {
+			if (flightStatuses[i].flightId === d.fid) {
+				f = flightStatuses[i];
 				var dest = airports[f.arrivalAirportFsCode];
-				$('#head').text('Flight Status for '+airlines[f.carrierFsCode].name+' '+d.aline+' '+d.fno);
+				$('#head').text('Flight Status for '+airlines[f.zat_marketing ? f.zat_marketing : f.carrierFsCode].name+' '+d.aline+' '+d.fno);
 				dom = $('#flights');
 				dom.empty();
-				if (f.flightEquipment && f.flightEquipment.actualEquipmentIataCode) {
-					$('<div>Equipment: '+f.flightEquipment.actualEquipmentIataCode+'</div>').appendTo(dom);
-				}
+
+				$('<br />').appendTo(dom);
 				if (f.airportResources && f.airportResources.departureTerminal) {
 					$('<div>Departure Terminal: '+f.airportResources.departureTerminal+
-						(f.airportResources && f.airportResources.departureGate ? ' Gate: '+f.airportResources.departureGate : '')+
+						(f.airportResources && f.airportResources.departureGate ? ', Gate: '+f.airportResources.departureGate : '')+
 						'</div>').appendTo(dom);
 				}
-				$('<div>Scheduled Departure Time: '+f.departureDate.dateLocal.slice(11,16)+'</div>').appendTo(dom);
+				$('<div>Scheduled Departure Time: '+dltime(f.departureDate)+'</div>').appendTo(dom);
 				if (f.operationalTimes) {
-					$('<div>Estimated Departure Time: '+departure(f.operationalTimes).slice(11,16)+'</div>').appendTo(dom);
+					$('<div>Estimated Departure Time: '+dltime(departure(f.operationalTimes))+'</div>').appendTo(dom);
 				}
 				if (f.delays) {
 					if (f.delays.departureGateDelayMinutes && f.delays.departureGateDelayMinutes > 4) {
 						$('<div>Gate Departure Delay: '+f.delays.departureGateDelayMinutes+' minutes</div>').appendTo(dom);
 					}
 				}
+
+				$('<br />').appendTo(dom);
+				$('<div>Arrival Airport: '+f.arrivalAirportFsCode+', '+dest.name+', '+
+						dest.city+(dest.stateCode ? ' '+dest.stateCode : dest.countryCode)+'</div>').appendTo(dom);
+				if (f.airportResources && f.airportResources.arrivalTerminal) {
+					$('<div>Arrival Terminal: '+f.airportResources.arrivalTerminal+
+						(f.airportResources && f.airportResources.arrivalGate ? ', Gate: '+f.airportResources.arrivalGate : '')+
+						'</div>').appendTo(dom);
+				}
+				$('<div>Scheduled Arrival Time: '+dltime(f.arrivalDate)+'</div>').appendTo(dom);
+				if (f.operationalTimes && f.operationalTimes.estimatedRunwayArrival) {
+					$('<div>Estimated Arrival Time: '+dltime(f.operationalTimes.estimatedRunwayArrival)+'</div>').appendTo(dom);
+				}
+
+				$('<br />').appendTo(dom);
+				if (f.flightEquipment) {
+					if (f.flightEquipment.actualEquipmentIataCode) {
+						$('<div>Equipment: '+f.flightEquipment.actualEquipmentIataCode+'</div>').appendTo(dom);
+					} else if (f.flightEquipment.scheduledEquipmentIataCode) {
+						$('<div>Equipment: '+f.flightEquipment.scheduledEquipmentIataCode+'</div>').appendTo(dom);
+					}
+				}
 				if (f.flightDurations) {
 					if (f.flightDurations.scheduledBlockMinutes) {
 						$('<div>Gate-to-Gate Flight Duration: '+timehours(f.flightDurations.scheduledBlockMinutes)+'</div>').appendTo(dom);
 					}
+					if (f.flightDurations.scheduledAirMinutes) {
+						$('<div>In-air Flight Duration: '+timehours(f.flightDurations.scheduledAirMinutes)+'</div>').appendTo(dom);
+					}
+					if (f.flightDurations.scheduledTaxiOutMinutes) {
+						$('<div>Departure Estimated Taxi Out Time: '+timehours(f.flightDurations.scheduledTaxiOutMinutes)+'</div>').appendTo(dom);
+					}
+					if (f.flightDurations.scheduledTaxiInMinutes) {
+						$('<div>Arrival Estimated Taxi In Time: '+timehours(f.flightDurations.scheduledTaxiInMinutes)+'</div>').appendTo(dom);
+					}
+				}
+				if (f.codeshares && f.codeshares.length > 0) {
+					$('<div>Codeshares: '+(f.codeshares.map(function(cs) {
+						if (cs.relationship === 'L' || cs.relationship === 'Z' || cs.relationship === 'C') {
+							return airlines[cs.fsCode].name + ' ' + cs.fsCode + ' ' + cs.flightNumber;
+						} else if (cs.relationship === 'S' || cs.relationship === 'X') {
+							return airlines[f.carrierFsCode].name + ' ' + f.carrierFsCode + ' ' + f.flightNumber;
+						}
+					}).join(', ')) + '</div>').appendTo(dom);
 				}
 
-				$('<div>Arrival Airport: '+f.arrivalAirportFsCode+', '+dest.name+', '+
-						dest.city+(dest.stateCode ? ' '+dest.stateCode : '')+' '+dest.countryCode+'</div>').appendTo(dom);
-				$('<div>Scheduled Arrival Time: '+f.arrivalDate.dateLocal.slice(11,16)+'</div>').appendTo(dom);
-
-				$('<button>Full Data</button>').appendTo(dom).click(fdata);
-				$('<button>Full Status</button>').appendTo(dom).click(fstatus);
+				// this is for development purposes only and should be removed
+				$('<button>Full Data</button>').appendTo(dom).click(function(e) {
+					$('<pre>', { text: JSON.stringify(f, null, 3) }).appendTo(dom);	// dump object
+				});
 				break;
 			}
 		}
-
-		function fdata(e) {
-			$('<pre>', { text: JSON.stringify(f, null, 3) }).appendTo(dom);
-		}
-
-		function fstatus(e) {
-			$.ajax({
-				url: 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/'+f.flightId,
-					data: { appId: appId, appKey: appKey, extendedOptions: 'includeNewFields' },
-					// sourceType: 'derived', includeFlightPlan: true },
-				dataType: 'jsonp',
-				success: flightResponse
-			});
-		}
-		function flightResponse(data) {
-			if (data.flightStatus && data.flightStatus.schedule && data.flightStatus.schedule.uplines) {
-				$('<div>', { text: 'Uplines: '+data.flightStatus.schedule.uplines.length+' from '+
-					data.flightStatus.schedule.uplines[0].fsCode }).appendTo(dom);
-			}
-			$('<pre>', { text: JSON.stringify(data, null, 3) }).appendTo(dom);
-		}
-
 	}	// end click2
 
 	function getAppendix(data) { // read in data from appendix and convert to dictionary
@@ -275,19 +271,26 @@
 
   function departure(t) {
 		if (t === undefined) { return ''; }
-		if (t.estimatedGateDeparture) { return t.estimatedGateDeparture.dateLocal; }
-		if (t.scheduledGateDeparture) { return t.scheduledGateDeparture.dateLocal; }
-		if (t.actualGateDeparture) { return t.actualGateDeparture.dateLocal; }
-		if (t.estimatedRunwayDeparture) { return t.estimatedRunwayDeparture.dateLocal; }
-		if (t.actualRunwayDeparture) { return t.actualRunwayDeparture.dateLocal; }
-		if (t.flightPlanPlannedDeparture) { return t.flightPlanPlannedDeparture.dateLocal; }
-		if (t.publishedDeparture) { return t.publishedDeparture.dateLocal; }
+		if (t.estimatedGateDeparture) { return t.estimatedGateDeparture; }
+		if (t.scheduledGateDeparture) { return t.scheduledGateDeparture; }
+		if (t.actualGateDeparture) { return t.actualGateDeparture; }
+		if (t.estimatedRunwayDeparture) { return t.estimatedRunwayDeparture; }
+		if (t.actualRunwayDeparture) { return t.actualRunwayDeparture; }
+		if (t.flightPlanPlannedDeparture) { return t.flightPlanPlannedDeparture; }
+		if (t.publishedDeparture) { return t.publishedDeparture; }
   }
 
-  function timehours(t) {
+  function dltime(t) {	// return local time
+		return t.dateLocal.slice(11,16);
+  }
+
+  function timehours(t) {	// split into hours and minutes and format
+		var h, m;
 		t = +t;
 		if (t >=60) {
-			return Math.floor(t / 60)+' hours, '+(t % 60) +' minutes';
+			h = Math.floor(t / 60);
+			m = (t % 60);
+			return h+' hour'+(h === 1 ? '' : 's')+', '+ m +' minute' + (m === 1 ? '' : 's');
 		} else {
 			return t+' minutes';
 		}
